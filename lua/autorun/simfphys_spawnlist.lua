@@ -12,6 +12,9 @@ local V = {
 
 	Members = {
 		Mass = 1700,	-- total mass of the   vehicle + masscenter counterweight     excluding the wheels
+		--FrontWheelMass = 50,
+		--RearWheelMass = 50,
+		
 		--MaxHealth = 1000,    -- overrides max health
 		--AirFriction = -250,
 		LightsTable = "jeep",  --wich list we want to use for our light positions. You can comment this variable out if you dont want lights.  lights are defined in simfphys_lights.lua 

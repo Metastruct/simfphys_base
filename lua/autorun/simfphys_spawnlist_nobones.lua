@@ -12,6 +12,8 @@ local V = {
 
 	Members = {
 		Mass = 500,
+		--FrontWheelMass = 50,
+		--RearWheelMass = 50,
 		
 		CustomWheels = true,       	 -- You have to set this to "true" in order to define custom wheels
 		CustomSuspensionTravel = 10,	--suspension travel limiter length

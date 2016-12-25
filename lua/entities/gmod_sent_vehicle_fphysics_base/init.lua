@@ -1620,6 +1620,13 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	local LimiterRopeLength = math.sqrt( (suspensiontravel * 0.5) ^ 2 + LimiterLength ^ 2 )
 	local WheelMass = self.Mass / 32
 	
+	if (self.FrontWheelMass and (index == 1 or index == 2)) then
+		WheelMass = self.FrontWheelMass
+	end
+	if (self.RearWheelMass and (index == 3 or index == 4 or index == 5 or index == 6)) then
+		WheelMass = self.RearWheelMass
+	end
+	
 	self.name = ents.Create( "gmod_sent_sim_veh_wheel" )
 	self.name:SetPos( attachmentpos - Up * height)
 	self.name:SetAngles( Angle )
