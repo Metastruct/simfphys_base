@@ -15,6 +15,7 @@ function ENT:PostEntityPaste( ply , ent , createdEntities )
 	self.Steer = 0
 	self:SetLightsEnabled( false )
 	self:SetLampsEnabled( false )
+	self:SetFogLightsEnabled( false )
 	
 	self.pSeat = {}
 	self.Wheels = {}
@@ -281,7 +282,7 @@ function ENT:SimulateVehicle( curtime )
 			local throttle = self:GetThrottle()
 			local maxrpm = self:GetLimitRPM()
 			local revlimiter = (maxrpm > 2500) and (throttle > 0)
-			rpm = math.Round(((flywheelrpm >= maxrpm - 200) and revlimiter) and math.Round(flywheelrpm - 200 + math.sin(CurTime() * 50) * 600,0) or flywheelrpm,0)
+			rpm = math.Round(((flywheelrpm >= maxrpm - 200) and revlimiter) and math.Round(flywheelrpm - 200 + math.sin(curtime * 50) * 600,0) or flywheelrpm,0)
 		else
 			rpm = flywheelrpm
 		end
@@ -332,7 +333,7 @@ function ENT:SimulateVehicle( curtime )
 			end
 		end
 		
-		self:SimulateTransmission(W,S,Shift,Alt,Space,GearUp,GearDown,transmode,IdleRPM,Powerbandstart,Powerbandend,sportsmode,cruise)
+		self:SimulateTransmission(W,S,Shift,Alt,Space,GearUp,GearDown,transmode,IdleRPM,Powerbandstart,Powerbandend,sportsmode,cruise,curtime)
 		self:SimulateEngine(W,S,aA,aD,boost,IdleRPM,LimitRPM,Powerbandstart,Powerbandend,curtime,aW,aS)
 		self:SimulateWheels(A,D,math.max(Space,Alt),LimitRPM)
 		
@@ -977,7 +978,7 @@ function ENT:StallAndRestart()
 	end)
 end
 
-function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_handbrake,k_gearup,k_geardown,isauto,IdleRPM,Powerbandstart,Powerbandend,shiftmode,cruisecontrol)
+function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_handbrake,k_gearup,k_geardown,isauto,IdleRPM,Powerbandstart,Powerbandend,shiftmode,cruisecontrol,curtime)
 	local GearsCount = table.Count( self.Gears ) 
 	local ply = self.Driver
 	local cruiseThrottle = math.min( math.max(self.cc_speed - math.abs(self.ForwardSpeed),0) / 10 ^ 2, 1)
@@ -995,7 +996,7 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 			self.GearUpPressed = k_gearup
 			if (k_gearup == 1) then
 				if (self.CurrentGear != GearsCount) then
-					self.ThrottleDelay = CurTime() + 0.4 - 0.4 * k_clutch
+					self.ThrottleDelay = curtime + 0.4 - 0.4 * k_clutch
 				end
 				self.CurrentGear = math.Clamp(self.CurrentGear + 1,1,GearsCount)
 			end
@@ -1005,7 +1006,7 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 			if (k_geardown == 1) then
 				self.CurrentGear = math.Clamp(self.CurrentGear - 1,1,GearsCount)
 				if (self.CurrentGear == 1) then 
-					self.ThrottleDelay = CurTime() + 0.25
+					self.ThrottleDelay = curtime + 0.25
 				end
 			end
 		end
@@ -1038,15 +1039,15 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 					local CanShiftUp = NextGearRPM > math.max(Powerbandstart * minThrottle,Powerbandstart - IdleRPM) and CalcRPM >= ShiftUpRPM and self.CurrentGear < GearsCount
 					local CanShiftDown = CalcRPM <= ShiftDownRPM and PrevGearRPM < ShiftDownRPM and self.CurrentGear > 3
 					
-					if (CanShiftUp and self.NextShift < CurTime()) then
+					if (CanShiftUp and self.NextShift < curtime) then
 						self.CurrentGear = self.CurrentGear + 1
-						self.NextShift = CurTime() + 0.5
-						self.ThrottleDelay = CurTime() + 0.25
+						self.NextShift = curtime + 0.5
+						self.ThrottleDelay = curtime + 0.25
 					end
 					
-					if (CanShiftDown and self.NextShift < CurTime()) then
+					if (CanShiftDown and self.NextShift < curtime) then
 						self.CurrentGear = self.CurrentGear - 1
-						self.NextShift = CurTime() + 0.35
+						self.NextShift = curtime + 0.35
 					end
 					
 					self.CurrentGear = math.Clamp(self.CurrentGear,3,GearsCount)
@@ -2005,7 +2006,6 @@ end
 function ENT:HurtPlayers( damage )
 	if (IsValid(self.Driver)) then
 		self.Driver:TakeDamage(damage, Entity(0), self )
-		--self:hurtalyx(damage, self.Driver)
 	end
 	
 	if (self.PassengerSeats) then
@@ -2018,47 +2018,6 @@ function ENT:HurtPlayers( damage )
 		end
 	end
 end
-
---[[
-function ENT:hurtalyx( damage, ply)
-	local alyxcrash = {
-		"vo/npc/alyx/al_car_crash02.wav",
-		"vo/npc/alyx/al_car_crash04.wav",
-		"vo/npc/alyx/al_car_crash05.wav",
-		"vo/npc/alyx/al_car_crash06.wav",
-		"vo/npc/alyx/al_car_crash07.wav"
-	}
-	
-	local alyxcrazy = {
-		"vo/npc/alyx/al_car_crazy02.wav",
-		"vo/npc/alyx/al_car_crazy04.wav",
-		"vo/npc/alyx/al_car_crazy06.wav",
-		"vo/npc/alyx/al_car_crazy07.wav",
-		"vo/npc/alyx/al_car_crazy08.wav"
-	}
-	
-	
-	vo/npc/alyx/al_car_jumpyell05.wav
-	vo/npc/alyx/al_car_laughing06.wav
-	vo/npc/alyx/al_car_laughing08.wav
-	vo/npc/alyx/al_car_laughing10.wav
-
-	vo/npc/alyx/al_car_rolled01a.wav
-	vo/npc/alyx/al_car_rolled01b.wav
-	vo/npc/alyx/al_car_rolled02.wav
-	vo/npc/alyx/al_car_rolled03.wav
-	vo/npc/alyx/al_car_rolled04.wav
-	vo/npc/alyx/al_car_rolled05.wav
-	vo/npc/alyx/al_car_rolled06.wav
-	vo/npc/alyx/al_car_rolled07.wav
-	
-	if (damage < 5) then
-		ply:EmitSound( alyxcrazy[ math.Round(math.random(1,table.Count(alyxcrazy)),0) ] )
-	else
-		ply:EmitSound( alyxcrash[ math.Round(math.random(1,table.Count(alyxcrash)),0) ] )
-	end
-end
-]]--
 
 numpad.Register( "k_forward", function( pl, ent, keydown )
 	if (!IsValid(pl) or !IsValid(ent)) then return false end

@@ -79,40 +79,6 @@ function ENT:SetupDataTables()
 		self:NetworkVarNotify( "TurboCharged", self.OnTurboCharged )
 		self:NetworkVarNotify( "SuperCharged", self.OnSuperCharged )
 		self:NetworkVarNotify( "IsBraking", self.OnIsBrakingChanged )
-		
-		self:SetTireSmokeColor(Vector(180,180,180) / 255)
-		
-		timer.Simple( 0.02, function()
-			if (!IsValid(self)) then return end
-			
-			self.Turbocharged = self.Turbocharged or false
-			self.Supercharged = self.Supercharged or false
-			
-			self:SetEngineSoundPreset( self.EngineSoundPreset )
-			self:SetSteerSpeed( self.TurnSpeed )
-			self:SetMaxTorque( self.PeakTorque )
-			self:SetDifferentialGear( self.DifferentialGear )
-			self:SetFastSteerConeFadeSpeed( self.SteeringFadeFastSpeed )
-			self:SetEfficiency( self.Efficiency )
-			self:SetMaxTraction( self.MaxGrip )
-			self:SetTractionBias( self.GripOffset / self.MaxGrip )
-			self:SetPowerDistribution( self.PowerBias )
-			
-			self:SetBackFire( self.Backfire or false )
-			self:SetDoNotStall( self.DoNotStall or false )
-			
-			self:SetIdleRPM( self.IdleRPM )
-			self:SetLimitRPM( self.LimitRPM )
-			self:SetRevlimiter( self.Revlimiter or false )
-			self:SetPowerBandEnd( self.PowerbandEnd )
-			self:SetPowerBandStart( self.PowerbandStart )
-			
-			self:SetTurboCharged( self.Turbocharged )
-			self:SetSuperCharged( self.Supercharged )
-			self:SetBrakePower( self.BrakePower )
-			
-			self:SetLights_List( self.LightsTable or "no_lights" )
-		end )
 	end
 end
 

@@ -61,6 +61,40 @@ function SpawnSimfphysVehicle( Player, vname, tr )
 		table.Merge( Ent, vehicle.Members )
 		duplicator.StoreEntityModifier( Ent, "VehicleMemDupe", vehicle.Members )
 	end
+	
+	timer.Simple( 0.02, function()
+		if (!IsValid(Ent)) then return end
+		
+		Ent:SetTireSmokeColor(Vector(180,180,180) / 255)
+		
+		Ent.Turbocharged = Ent.Turbocharged or false
+		Ent.Supercharged = Ent.Supercharged or false
+		
+		Ent:SetEngineSoundPreset( Ent.EngineSoundPreset )
+		Ent:SetSteerSpeed( Ent.TurnSpeed )
+		Ent:SetMaxTorque( Ent.PeakTorque )
+		Ent:SetDifferentialGear( Ent.DifferentialGear )
+		Ent:SetFastSteerConeFadeSpeed( Ent.SteeringFadeFastSpeed )
+		Ent:SetEfficiency( Ent.Efficiency )
+		Ent:SetMaxTraction( Ent.MaxGrip )
+		Ent:SetTractionBias( Ent.GripOffset / Ent.MaxGrip )
+		Ent:SetPowerDistribution( Ent.PowerBias )
+		
+		Ent:SetBackFire( Ent.Backfire or false )
+		Ent:SetDoNotStall( Ent.DoNotStall or false )
+		
+		Ent:SetIdleRPM( Ent.IdleRPM )
+		Ent:SetLimitRPM( Ent.LimitRPM )
+		Ent:SetRevlimiter( Ent.Revlimiter or false )
+		Ent:SetPowerBandEnd( Ent.PowerbandEnd )
+		Ent:SetPowerBandStart( Ent.PowerbandStart )
+		
+		Ent:SetTurboCharged( Ent.Turbocharged )
+		Ent:SetSuperCharged( Ent.Supercharged )
+		Ent:SetBrakePower( Ent.BrakePower )
+		
+		Ent:SetLights_List( Ent.LightsTable or "no_lights" )
+	end )
 
 	undo.Create( "Vehicle" )
 		undo.SetPlayer( Player )

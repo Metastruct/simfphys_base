@@ -1,19 +1,17 @@
-local delay = CurTime() + 30
-
 hook.Add("CalcMainActivity", "simfphysSeatActivityOverride", function(ply)
-	if (CurTime() < delay) then return end
-	
 	local vehicle = ply:GetVehicle()
 	if (!IsValid(vehicle)) then return end
 	
-	if (!vehicle.vehiclebase) then
+	if (!vehicle.vehiclebase and !vehicle.dontcheckmeagainpls) then
 		local parent = vehicle:GetParent()
 		if (IsValid(parent)) then
 			if (parent:GetClass() == "gmod_sent_vehicle_fphysics_base") then
 				vehicle.vehiclebase = parent
 			end
+			vehicle.dontcheckmeagainpls = true
 		end
 	end
+	
 	local vehiclebase = vehicle.vehiclebase
 	
 	if (!IsValid(vehiclebase)) then return end
@@ -33,20 +31,10 @@ hook.Add("CalcMainActivity", "simfphysSeatActivityOverride", function(ply)
 end)
 
 hook.Add("UpdateAnimation", "simfphysPoseparameters", function(ply , vel, seq)
-	if (CurTime() < delay) then return end
-	
 	if (CLIENT) then
 		local vehicle = ply:GetVehicle()
 		if (!IsValid(vehicle)) then return end
 		
-		if (!vehicle.vehiclebase) then
-			local parent = vehicle:GetParent()
-			if (IsValid(parent)) then
-				if (parent:GetClass() == "gmod_sent_vehicle_fphysics_base") then
-					vehicle.vehiclebase = parent
-				end
-			end
-		end
 		local vehiclebase = vehicle.vehiclebase
 		
 		if (!IsValid(vehiclebase)) then return end
