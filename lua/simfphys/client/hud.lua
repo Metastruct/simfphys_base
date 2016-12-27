@@ -146,6 +146,7 @@ local function drawsimfphysHUD(vehicle)
 		local s_ang = math.sin( math.rad(endang) )
 		local ang_pend = startang + math.Round( (powerbandend / maxrpm) * 255, 0)
 		local r_rpm = math.floor(maxrpm / 1000) * 1000
+		local in_red = s_smoothrpm < powerbandend
 		
 		for i = 0,r_rpm,1000 do
 			local anglestep = (255 / maxrpm) * i
@@ -170,8 +171,11 @@ local function drawsimfphysHUD(vehicle)
 			draw.SimpleText(printnumber, "simfphysfont3", x + cos_a * radius / 1.5, y + sin_a * radius / 1.5,u_col, 1, 1 )
 		end
 		
-		surface.SetDrawColor( 255, 255, 255, 255 )
+		local center_ncol = in_red and Color(0,254,235,200) or Color( 255, 0, 0, 255 )
+		
+		surface.SetDrawColor( in_red and Color(255,255,255,255) or Color( 255, 0, 0, 255 ) )
 		surface.DrawLine( x + c_ang * radius / 3.5, y + s_ang * radius / 3.5, x + c_ang * radius, y + s_ang * radius)
+		surface.SetDrawColor( 255, 255, 255, 255 )
 		
 		draw.Arc(x,y,radius,radius / 6.66,startang,math.min(endang,ang_pend),1,Color(255,255,255,150),true)
 		
@@ -185,9 +189,9 @@ local function drawsimfphysHUD(vehicle)
 		draw.Arc(x,y,radius,radius / 6.66,math.Round(ang_pend - 1,0),startang + (s_smoothrpm / maxrpm) * 255,1,Color(255,0,0,140),true)
 		
 		--inner
-		draw.Arc(x,y,radius / 5,radius / 70,0,360,15,Color(0,254,235,200),true)
+		draw.Arc(x,y,radius / 5,radius / 70,0,360,15,center_ncol,true)
 		
-		draw.SimpleText( (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)), "simfphysfont2", x * 0.999, y * 0.996, Color(0,254,235,200), 1, 1 )
+		draw.SimpleText( (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)), "simfphysfont2", x * 0.999, y * 0.996, center_ncol, 1, 1 )
 		
 		local print_text = Hudmph and "MPH" or "KM/H"
 		draw.SimpleText( print_text, "simfphysfont3", x * 1.08, y * 1.03, Color(255,255,255,50), 1, 1 )
@@ -252,6 +256,9 @@ local function simfphysHUD()
 end
 hook.Add( "HUDPaint", "simfphys_HUD", simfphysHUD)
 
+-- draw.arc function by bobbleheadbob
+-- https://dl.dropboxusercontent.com/u/104427432/Scripts/drawarc.lua
+-- https://facepunch.com/showthread.php?t=1438016&p=46536353&viewfull=1#post46536353
 
 function surface.PrecacheArc(cx,cy,radius,thickness,startang,endang,roughness,bClockwise)
 	local triarc = {}
