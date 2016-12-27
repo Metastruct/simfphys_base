@@ -13,8 +13,11 @@ function ENT:PostEntityPaste( ply , ent , createdEntities )
 	self.WheelOnGroundDelay = 0
 	self.SmoothAng = 0
 	self.Steer = 0
+	self:SetActive( false )
+	self:SetDriver( NULL )
 	self:SetLightsEnabled( false )
 	self:SetLampsEnabled( false )
+	self:SetFogLightsEnabled( false )
 	
 	self.pSeat = {}
 	self.Wheels = {}
@@ -140,6 +143,14 @@ function ENT:WaterPhysics()
 		self.EngineIsOn = 0
 		self.EngineRPM = 0
 		self:SetFlyWheelRPM( 0 )
+		
+		local Health = self.Healthpoints
+		if (Health <= (self.HealthMax * 0.2)) then
+			if (Health <= (self.HealthMax * 0.2)) then
+				self.Healthpoints = self.HealthMax * 0.2 + 1
+				self:Extinguish()
+			end
+		end
 	end
 	
 	local phys = self:GetPhysicsObject()
@@ -190,11 +201,18 @@ function ENT:SimulateVehicle( curtime )
 		self:SetActive( self.IsValidDriver )
 		self:SetDriver( self.Driver )
 		self.CurrentGear = 2
-		self.EngineRPM = IdleRPM
+		if (!self.IsInWater) then
+			self.EngineRPM = IdleRPM
+			self.EngineIsOn = 1
+		else
+			self.EngineRPM = 0
+			self.EngineIsOn = 0
+		end
+		
 		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
 		self:SetupControls( self.Driver )
 		
-		if (!Active) then
+		if (self.IsValidDriver) then
 			if (self.Enginedamage) then
 				self.Enginedamage:Play()
 			end
@@ -281,7 +299,7 @@ function ENT:SimulateVehicle( curtime )
 			local throttle = self:GetThrottle()
 			local maxrpm = self:GetLimitRPM()
 			local revlimiter = (maxrpm > 2500) and (throttle > 0)
-			rpm = math.Round(((flywheelrpm >= maxrpm - 200) and revlimiter) and math.Round(flywheelrpm - 200 + math.sin(CurTime() * 50) * 600,0) or flywheelrpm,0)
+			rpm = math.Round(((flywheelrpm >= maxrpm - 200) and revlimiter) and math.Round(flywheelrpm - 200 + math.sin(curtime * 50) * 600,0) or flywheelrpm,0)
 		else
 			rpm = flywheelrpm
 		end
@@ -332,7 +350,7 @@ function ENT:SimulateVehicle( curtime )
 			end
 		end
 		
-		self:SimulateTransmission(W,S,Shift,Alt,Space,GearUp,GearDown,transmode,IdleRPM,Powerbandstart,Powerbandend,sportsmode,cruise)
+		self:SimulateTransmission(W,S,Shift,Alt,Space,GearUp,GearDown,transmode,IdleRPM,Powerbandstart,Powerbandend,sportsmode,cruise,curtime)
 		self:SimulateEngine(W,S,aA,aD,boost,IdleRPM,LimitRPM,Powerbandstart,Powerbandend,curtime,aW,aS)
 		self:SimulateWheels(A,D,math.max(Space,Alt),LimitRPM)
 		
@@ -655,26 +673,6 @@ function ENT:InitializeVehicle()
 		self:CreateLights()
 	end
 	
-	if (self.ModelInfo) then
-		if (self.ModelInfo.Bodygroups) then
-			for i = 1, table.Count( self.ModelInfo.Bodygroups ) do
-				self:SetBodygroup(i, self.ModelInfo.Bodygroups[i] ) 
-			end
-		end
-		
-		if (self.ModelInfo.Skin) then
-			self:SetSkin( self.ModelInfo.Skin )
-		end
-		
-		if (self.ModelInfo.Color) then
-			self:SetColor( self.ModelInfo.Color )
-			
-			local Color = self.ModelInfo.Color
-			local dot = Color.r * Color.g * Color.b * Color.a
-			self.OldColor = dot
-		end
-	end
-	
 	self:GetPhysicsObject():SetDragCoefficient( self.AirFriction or -250 )
 	self:GetPhysicsObject():SetMass( self.Mass * 0.75 )
 	
@@ -682,7 +680,8 @@ function ENT:InitializeVehicle()
 	local AttachmemtID2 = self:LookupAttachment( "vehicle_passenger0_eyes" )
 	local CompatibleAttachments = self:GetAttachment( AttachmemtID ) or self:GetAttachment( AttachmemtID2 ) or false
 	local ViewPos = CompatibleAttachments or {Ang = self:LocalToWorldAngles( Angle(0, 90,0) ),Pos = self:GetPos()}
-	local ViewAng = ViewPos.Ang - Angle(0,90 + (self.SeatYaw or 0),self.SeatPitch)
+	local ViewAng = ViewPos.Ang - Angle(0,0,self.SeatPitch)
+	ViewAng:RotateAroundAxis(self:GetUp(), -90 - (self.SeatYaw or 0))
 	
 	self.DriverSeat = ents.Create( "prop_vehicle_prisoner_pod" )
 	self.DriverSeat:SetModel( "models/nova/airboat_seat.mdl" )
@@ -970,14 +969,14 @@ function ENT:StallAndRestart()
 	
 	timer.Simple( 1, function()
 		if !IsValid(self) then return end
-		if (self.Healthpoints > 0) then
+		if (self.Healthpoints > 0 and !self.IsInWater) then
 			self.EngineIsOn = 1
 			self.EngineRPM = self:GetIdleRPM()
 		end
 	end)
 end
 
-function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_handbrake,k_gearup,k_geardown,isauto,IdleRPM,Powerbandstart,Powerbandend,shiftmode,cruisecontrol)
+function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_handbrake,k_gearup,k_geardown,isauto,IdleRPM,Powerbandstart,Powerbandend,shiftmode,cruisecontrol,curtime)
 	local GearsCount = table.Count( self.Gears ) 
 	local ply = self.Driver
 	local cruiseThrottle = math.min( math.max(self.cc_speed - math.abs(self.ForwardSpeed),0) / 10 ^ 2, 1)
@@ -995,7 +994,7 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 			self.GearUpPressed = k_gearup
 			if (k_gearup == 1) then
 				if (self.CurrentGear != GearsCount) then
-					self.ThrottleDelay = CurTime() + 0.4 - 0.4 * k_clutch
+					self.ThrottleDelay = curtime + 0.4 - 0.4 * k_clutch
 				end
 				self.CurrentGear = math.Clamp(self.CurrentGear + 1,1,GearsCount)
 			end
@@ -1005,7 +1004,7 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 			if (k_geardown == 1) then
 				self.CurrentGear = math.Clamp(self.CurrentGear - 1,1,GearsCount)
 				if (self.CurrentGear == 1) then 
-					self.ThrottleDelay = CurTime() + 0.25
+					self.ThrottleDelay = curtime + 0.25
 				end
 			end
 		end
@@ -1038,15 +1037,15 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 					local CanShiftUp = NextGearRPM > math.max(Powerbandstart * minThrottle,Powerbandstart - IdleRPM) and CalcRPM >= ShiftUpRPM and self.CurrentGear < GearsCount
 					local CanShiftDown = CalcRPM <= ShiftDownRPM and PrevGearRPM < ShiftDownRPM and self.CurrentGear > 3
 					
-					if (CanShiftUp and self.NextShift < CurTime()) then
+					if (CanShiftUp and self.NextShift < curtime) then
 						self.CurrentGear = self.CurrentGear + 1
-						self.NextShift = CurTime() + 0.5
-						self.ThrottleDelay = CurTime() + 0.25
+						self.NextShift = curtime + 0.5
+						self.ThrottleDelay = curtime + 0.25
 					end
 					
-					if (CanShiftDown and self.NextShift < CurTime()) then
+					if (CanShiftDown and self.NextShift < curtime) then
 						self.CurrentGear = self.CurrentGear - 1
-						self.NextShift = CurTime() + 0.35
+						self.NextShift = curtime + 0.35
 					end
 					
 					self.CurrentGear = math.Clamp(self.CurrentGear,3,GearsCount)
@@ -1570,7 +1569,7 @@ function ENT:SetupVehicle()
 		self:CreateWheel(2, WheelFR, self:LocalToWorld( self.CustomWheelPosFR ), self.FrontHeight, self.FrontWheelRadius, true , self:LocalToWorld( self.CustomWheelPosFR + Vector(0,0,self.CustomSuspensionTravel * 0.5) ),self.CustomSuspensionTravel, self.FrontConstant, self.FrontDamping, self.FrontRelativeDamping)
 		self:CreateWheel(3, WheelRL, self:LocalToWorld( self.CustomWheelPosRL ), self.RearHeight, self.RearWheelRadius, false , self:LocalToWorld( self.CustomWheelPosRL + Vector(0,0,self.CustomSuspensionTravel * 0.5) ),self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
 		self:CreateWheel(4, WheelRR, self:LocalToWorld( self.CustomWheelPosRR ), self.RearHeight, self.RearWheelRadius, true , self:LocalToWorld( self.CustomWheelPosRR + Vector(0,0,self.CustomSuspensionTravel * 0.5) ), self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
-
+		
 		if (self.CustomWheelPosML) then
 			self:CreateWheel(5, WheelML, self:LocalToWorld( self.CustomWheelPosML ), self.RearHeight, self.RearWheelRadius, false , self:LocalToWorld( self.CustomWheelPosML + Vector(0,0,self.CustomSuspensionTravel * 0.5) ),self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
 		end
@@ -1612,7 +1611,10 @@ end
 
 function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , poseposition, suspensiontravel, constant, damping, rdamping)
 	local Angle = self:LocalToWorldAngles( self.VehicleData.LocalAngForward )
-	local Forward =  Angle:Forward() 
+	local wheelang = self:GetAngles()
+	wheelang:RotateAroundAxis(self:GetUp(), 90 + self.VehicleData.LocalAngRight.y)
+	
+	local Forward = Angle:Forward() 
 	local Right = swap_y and -self:LocalToWorldAngles( self.VehicleData.LocalAngRight ):Forward() or self:LocalToWorldAngles( self.VehicleData.LocalAngRight ):Forward() 
 	local Up = self:GetUp()
 	local RopeLength = 150
@@ -1629,7 +1631,7 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	
 	self.name = ents.Create( "gmod_sent_sim_veh_wheel" )
 	self.name:SetPos( attachmentpos - Up * height)
-	self.name:SetAngles( Angle )
+	self.name:SetAngles( wheelang )
 	self.name:Spawn()
 	self.name:Activate()
 	self.name:PhysicsInitSphere( radius, "jeeptire" )
@@ -1642,11 +1644,15 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	
 	if (self.CustomWheels) then
 		local Model = (self.CustomWheelModel_R and (index == 3 or index == 4 or index == 5 or index == 6)) and self.CustomWheelModel_R or self.CustomWheelModel
+		local GhostAngle = Right:Angle()
+		GhostAngle:RotateAroundAxis(self:GetForward(), self.CustomWheelAngleOffset.p)
+		GhostAngle:RotateAroundAxis(self:GetUp(), -self.CustomWheelAngleOffset.y)
+		GhostAngle:RotateAroundAxis(self:GetRight(), self.CustomWheelAngleOffset.r)
 		
 		self.GhostWheels[index] = ents.Create( "gmod_sent_simfphys_attachment" )
 		self.GhostWheels[index]:SetModel( Model )
 		self.GhostWheels[index]:SetPos( self.name:GetPos() )
-		self.GhostWheels[index]:SetAngles( Right:Angle() - self.CustomWheelAngleOffset )
+		self.GhostWheels[index]:SetAngles( GhostAngle )
 		self.GhostWheels[index]:SetOwner( self )
 		self.GhostWheels[index]:Spawn()
 		self.GhostWheels[index]:Activate()
@@ -2005,7 +2011,6 @@ end
 function ENT:HurtPlayers( damage )
 	if (IsValid(self.Driver)) then
 		self.Driver:TakeDamage(damage, Entity(0), self )
-		--self:hurtalyx(damage, self.Driver)
 	end
 	
 	if (self.PassengerSeats) then
@@ -2018,47 +2023,6 @@ function ENT:HurtPlayers( damage )
 		end
 	end
 end
-
---[[
-function ENT:hurtalyx( damage, ply)
-	local alyxcrash = {
-		"vo/npc/alyx/al_car_crash02.wav",
-		"vo/npc/alyx/al_car_crash04.wav",
-		"vo/npc/alyx/al_car_crash05.wav",
-		"vo/npc/alyx/al_car_crash06.wav",
-		"vo/npc/alyx/al_car_crash07.wav"
-	}
-	
-	local alyxcrazy = {
-		"vo/npc/alyx/al_car_crazy02.wav",
-		"vo/npc/alyx/al_car_crazy04.wav",
-		"vo/npc/alyx/al_car_crazy06.wav",
-		"vo/npc/alyx/al_car_crazy07.wav",
-		"vo/npc/alyx/al_car_crazy08.wav"
-	}
-	
-	
-	vo/npc/alyx/al_car_jumpyell05.wav
-	vo/npc/alyx/al_car_laughing06.wav
-	vo/npc/alyx/al_car_laughing08.wav
-	vo/npc/alyx/al_car_laughing10.wav
-
-	vo/npc/alyx/al_car_rolled01a.wav
-	vo/npc/alyx/al_car_rolled01b.wav
-	vo/npc/alyx/al_car_rolled02.wav
-	vo/npc/alyx/al_car_rolled03.wav
-	vo/npc/alyx/al_car_rolled04.wav
-	vo/npc/alyx/al_car_rolled05.wav
-	vo/npc/alyx/al_car_rolled06.wav
-	vo/npc/alyx/al_car_rolled07.wav
-	
-	if (damage < 5) then
-		ply:EmitSound( alyxcrazy[ math.Round(math.random(1,table.Count(alyxcrazy)),0) ] )
-	else
-		ply:EmitSound( alyxcrash[ math.Round(math.random(1,table.Count(alyxcrash)),0) ] )
-	end
-end
-]]--
 
 numpad.Register( "k_forward", function( pl, ent, keydown )
 	if (!IsValid(pl) or !IsValid(ent)) then return false end

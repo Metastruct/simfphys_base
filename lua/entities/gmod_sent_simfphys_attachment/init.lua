@@ -6,6 +6,8 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 	self:SetRenderMode( RENDERMODE_TRANSALPHA )
+	self:SetNotSolid( true )
+	self.DoNotDuplicate = true
 end
 
 function ENT:Think()

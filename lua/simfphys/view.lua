@@ -1,13 +1,5 @@
 hook.Add("CalcVehicleView", "simfphysViewOverride", function(Vehicle, ply, view)
 
-	if (!Vehicle.vehiclebase) then
-		local parent = Vehicle:GetParent()
-		if (IsValid(parent)) then
-			if (parent:GetClass() == "gmod_sent_vehicle_fphysics_base") then
-				Vehicle.vehiclebase = parent
-			end
-		end
-	end
 	local vehiclebase = Vehicle.vehiclebase
 	
 	if (!IsValid(vehiclebase)) then return end
@@ -55,14 +47,6 @@ hook.Add("StartCommand", "simfphys_lockview", function(ply, ucmd)
 	local vehicle = ply:GetVehicle()
 	if (!IsValid(vehicle)) then return end
 	
-	if (!vehicle.vehiclebase) then
-		local parent = vehicle:GetParent()
-		if (IsValid(parent)) then
-			if (parent:GetClass() == "gmod_sent_vehicle_fphysics_base") then
-				vehicle.vehiclebase = parent
-			end
-		end
-	end
 	local vehiclebase = vehicle.vehiclebase
 	
 	if (!IsValid(vehiclebase)) then return end

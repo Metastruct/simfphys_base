@@ -158,8 +158,6 @@ function TOOL:Reload( trace )
 		ent:SetBrakePower( VehicleList.Members.BrakePower )
 		ent:SetPowerDistribution( VehicleList.Members.PowerBias )
 		ent:SetEfficiency( VehicleList.Members.Efficiency )
-		ent:SetFrontSuspensionHeight( 0 )
-		ent:SetRearSuspensionHeight( 0 )
 	end
 	
 	return true
