@@ -205,8 +205,10 @@ function ENT:SimulateVehicle( curtime )
 			self.EngineRPM = IdleRPM
 			self.EngineIsOn = 1
 		else
-			self.EngineRPM = 0
-			self.EngineIsOn = 0
+			if (self:GetDoNotStall() == false) then
+				self.EngineRPM = 0
+				self.EngineIsOn = 0
+			end
 		end
 		
 		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
@@ -2221,7 +2223,7 @@ numpad.Register( "k_eng", function( pl, ent, keydown )
 			ent:SetFlyWheelRPM( 0 )
 			
 			ent:EmitSound( "vehicles/jetski/jetski_off.wav" )
-		elseif (ent.EngineIsOn == 0 and !ent.IsInWater) then
+		elseif (ent.EngineIsOn == 0 and !ent.IsInWater or (ent:GetDoNotStall() == true)) then
 			ent.EngineIsOn = 1
 			ent.EngineRPM = ent:GetIdleRPM()
 			ent:SetFlyWheelRPM( ent:GetIdleRPM() )
