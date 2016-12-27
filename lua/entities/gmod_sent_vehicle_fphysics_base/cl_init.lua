@@ -837,6 +837,8 @@ function ENT:SetSoundPreset(index)
 		end
 		
 		if (self.EngineSounds[ "Idle" ] != false and self.EngineSounds[ "LowRPM" ] != false and self.EngineSounds[ "HighRPM" ] != false) then
+			self:PrecacheSounds()
+			
 			return true
 		else
 			return false
@@ -892,6 +894,8 @@ function ENT:SetSoundPreset(index)
 		self.PitchMulLow = 1
 		self.PitchMulHigh = 1
 		self.PitchMulAll = 1
+		
+		self:PrecacheSounds()
 		
 		return false
 	end
@@ -1066,10 +1070,20 @@ function ENT:SetSoundPreset(index)
 		self.PitchMulHigh = Oldpresets[clampindex][8]
 		self.PitchMulAll = Oldpresets[clampindex][9]
 		
+		self:PrecacheSounds()
+		
 		return true
 	end
 	
 	return false
+end
+
+function ENT:PrecacheSounds()
+	for index, sound in pairs( self.EngineSounds ) do
+		if (sound != "") then
+			util.PrecacheSound( sound )
+		end
+	end
 end
 
 function ENT:OnRemove()

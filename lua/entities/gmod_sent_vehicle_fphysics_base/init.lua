@@ -13,6 +13,8 @@ function ENT:PostEntityPaste( ply , ent , createdEntities )
 	self.WheelOnGroundDelay = 0
 	self.SmoothAng = 0
 	self.Steer = 0
+	self:SetActive( false )
+	self:SetDriver( NULL )
 	self:SetLightsEnabled( false )
 	self:SetLampsEnabled( false )
 	self:SetFogLightsEnabled( false )
@@ -195,7 +197,7 @@ function ENT:SimulateVehicle( curtime )
 		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
 		self:SetupControls( self.Driver )
 		
-		if (!Active) then
+		if (self.IsValidDriver) then
 			if (self.Enginedamage) then
 				self.Enginedamage:Play()
 			end
@@ -654,26 +656,6 @@ function ENT:InitializeVehicle()
 	
 	if (self.LightsTable) then
 		self:CreateLights()
-	end
-	
-	if (self.ModelInfo) then
-		if (self.ModelInfo.Bodygroups) then
-			for i = 1, table.Count( self.ModelInfo.Bodygroups ) do
-				self:SetBodygroup(i, self.ModelInfo.Bodygroups[i] ) 
-			end
-		end
-		
-		if (self.ModelInfo.Skin) then
-			self:SetSkin( self.ModelInfo.Skin )
-		end
-		
-		if (self.ModelInfo.Color) then
-			self:SetColor( self.ModelInfo.Color )
-			
-			local Color = self.ModelInfo.Color
-			local dot = Color.r * Color.g * Color.b * Color.a
-			self.OldColor = dot
-		end
 	end
 	
 	self:GetPhysicsObject():SetDragCoefficient( self.AirFriction or -250 )

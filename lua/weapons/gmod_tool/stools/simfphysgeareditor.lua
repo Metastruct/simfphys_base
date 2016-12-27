@@ -30,6 +30,14 @@ if CLIENT then
 	language.Add( "tool.simfphysgeareditor.differential.help", "Multiplier for all gears" )
 end
 
+local function SetGears( ply, ent, gears)
+	if ( SERVER ) then
+		ent.Gears = gears
+		duplicator.StoreEntityModifier( ent, "gearmod", gears )
+	end
+end
+duplicator.RegisterEntityModifier( "gearmod", SetGears )
+
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	
@@ -49,7 +57,7 @@ function TOOL:LeftClick( trace )
 			gears[index] = tonumber( self:GetClientInfo( "gear_"..i ) )
 		end
 		
-		ent.Gears = gears
+		SetGears(self:GetOwner(), ent, gears )
 		ent:SetDifferentialGear( tonumber( self:GetClientInfo( "gear_diff" ) ) )
 	end
 	
@@ -100,8 +108,8 @@ function TOOL:Reload( trace )
 		local vname = ent:GetSpawn_List()
 		local VehicleList = list.Get( "simfphys_vehicles" )[vname]
 		
+		SetGears(self:GetOwner(), ent, VehicleList.Members.Gears )
 		ent:SetDifferentialGear( VehicleList.Members.DifferentialGear )
-		ent.Gears = VehicleList.Members.Gears
 	end
 	
 	return true

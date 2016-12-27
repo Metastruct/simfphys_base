@@ -1,4 +1,3 @@
-
 local function MakeLuaVehicle( Player, Pos, Ang, Model, Class, VName, VTable, data )
 
 	if ( !gamemode.Call( "PlayerSpawnVehicle", Player, Model, VName, VTable ) ) then return end
@@ -64,6 +63,33 @@ function SpawnSimfphysVehicle( Player, vname, tr )
 	
 	timer.Simple( 0.02, function()
 		if (!IsValid(Ent)) then return end
+		
+		if (Ent.ModelInfo) then
+			if (Ent.ModelInfo.Bodygroups) then
+				for i = 1, table.Count( Ent.ModelInfo.Bodygroups ) do
+					Ent:SetBodygroup(i, Ent.ModelInfo.Bodygroups[i] ) 
+				end
+			end
+			
+			if (Ent.ModelInfo.Skin) then
+				Ent:SetSkin( Ent.ModelInfo.Skin )
+			end
+			
+			if (Ent.ModelInfo.Color) then
+				Ent:SetColor( Ent.ModelInfo.Color )
+				
+				local Color = Ent.ModelInfo.Color
+				local dot = Color.r * Color.g * Color.b * Color.a
+				Ent.OldColor = dot
+				
+				local data = {
+					Color = Color,
+					RenderMode = 0,
+					RenderFX = 0
+				}
+				duplicator.StoreEntityModifier( Ent, "colour", data )
+			end
+		end
 		
 		Ent:SetTireSmokeColor(Vector(180,180,180) / 255)
 		
