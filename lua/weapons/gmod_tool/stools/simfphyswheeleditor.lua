@@ -4,19 +4,45 @@ TOOL.Name			= "#Wheel Model Editor"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 
-TOOL.ClientConVar[ "scale" ] = 1
-TOOL.ClientConVar[ "scalerear" ] = 1
 TOOL.ClientConVar[ "frontwheelmodel" ] = ""
 TOOL.ClientConVar[ "rearwheelmodel" ] = ""
-TOOL.ClientConVar[ "pitch" ] = 0
-TOOL.ClientConVar[ "yaw" ] = 0
-TOOL.ClientConVar[ "roll" ] = 0
 
 if CLIENT then
 	language.Add( "tool.simfphyswheeleditor.name", "simfphys wheel model editor" )
 	language.Add( "tool.simfphyswheeleditor.desc", "Changes the wheels for simfphys vehicles with CustomWheels Enabled" )
 	language.Add( "tool.simfphyswheeleditor.0", "Left click apply wheel model." )
 	language.Add( "tool.simfphyswheeleditor.1", "Left click apply wheel model." )
+end
+
+local function ApplyWheel(ply, ent, data)
+	timer.Simple( 0.05, function()
+		if (!IsValid(ent)) then return end
+		
+		for i = 1, table.Count( ent.GhostWheels ) do
+			local Wheel = ent.GhostWheels[i]
+			
+			if (IsValid(Wheel)) then
+				local isfrontwheel = (i == 1 or i == 2)
+				local swap_y = (i == 2 or i == 4 or i == 6)
+				local Right = swap_y and -ent:LocalToWorldAngles( ent.VehicleData.LocalAngRight ):Forward() or ent:LocalToWorldAngles( ent.VehicleData.LocalAngRight ):Forward() 
+				ent.CustomWheelAngleOffset = isfrontwheel and data[2] or data[4]
+				local model = isfrontwheel and data[1] or data[3]
+				
+				Wheel:SetModelScale( 1 )
+				Wheel:SetModel( model )
+				Wheel:SetAngles( Right:Angle() - ent.CustomWheelAngleOffset )
+				
+				timer.Simple( 0.05, function()
+					if (!IsValid(Wheel) or !IsValid(ent)) then return end
+					local wheelsize = Wheel:OBBMaxs() - Wheel:OBBMins()
+					local radius = isfrontwheel and ent.FrontWheelRadius or ent.RearWheelRadius
+					local size = (radius * 2) / math.max(wheelsize.x,wheelsize.y,wheelsize.z)
+					
+					Wheel:SetModelScale( size )
+				end)
+			end
+		end
+	end)
 end
 
 function TOOL:LeftClick( trace )
@@ -29,32 +55,32 @@ function TOOL:LeftClick( trace )
 	if (!IsVehicle) then return false end
 	
 	if (SERVER) then
+		local list = list.Get( "simfphys_Wheels" )
+		
+		local front_model = self:GetClientInfo("frontwheelmodel")
+		local front_list = list[front_model]
+		local front_angle = front_list.Angle
+		
+		local rear_model = self:GetClientInfo("rearwheelmodel")
+		local rear_list = list[rear_model]
+		local rear_angle = rear_list.Angle
+		
+		if (!list or !front_model or !rear_model or !front_angle or !rear_angle or !front_list or !rear_list) then print("wtf bro how did you do this") return false end
+		
 		if (ent.CustomWheels) then
 			if (ent.GhostWheels) then
-				local ply = self:GetOwner()
+				ent.SmoothAng = 0  -- lets make sure we are not steering
 				
-				ent.SmoothAng = 0
-				
-				timer.Simple( 0.05, function()
-					if (!IsValid(ply)) then return end
-					if (!IsValid(ent)) then return end
-					
-					for i = 1, table.Count( ent.GhostWheels ) do
-						local Wheel = ent.GhostWheels[i]
-						
-						if (IsValid(Wheel)) then
-							local swap_y = (i == 2 or i == 4 or i == 6)
-							local Right = swap_y and -ent:LocalToWorldAngles( ent.VehicleData.LocalAngRight ):Forward() or ent:LocalToWorldAngles( ent.VehicleData.LocalAngRight ):Forward() 
-							ent.CustomWheelAngleOffset = Angle( tonumber( self:GetClientInfo( "pitch" ) ) , tonumber( self:GetClientInfo( "yaw" ) ) , tonumber( self:GetClientInfo( "roll" ) ) )
-							
-							local Modelname = (i == 1 or i == 2) and self:GetClientInfo("frontwheelmodel") or (self:GetClientInfo("rearwheelmodel") != "" and self:GetClientInfo("rearwheelmodel") or self:GetClientInfo("frontwheelmodel"))
-							
-							Wheel:SetModel( Modelname )
-							Wheel:SetAngles( Right:Angle() - ent.CustomWheelAngleOffset )
-							Wheel:SetModelScale( (i == 1 or i == 2) and self:GetClientInfo( "scale" ) or self:GetClientInfo( "scalerear" )  )
-						end
+				for i = 1, table.Count( ent.Wheels ) do
+					local Wheel = ent.Wheels[ i ]
+					if (IsValid(Wheel)) then
+						local physobj = Wheel:GetPhysicsObject()
+						physobj:EnableMotion( true ) 
+						physobj:Wake() 
 					end
-				end)
+				end
+				
+				ApplyWheel(self:GetOwner(), ent, {front_model,front_angle,rear_model,rear_angle})
 			end
 		end
 	end
@@ -66,62 +92,46 @@ function TOOL:RightClick( trace )
 	return false
 end
 
-
-local ConVarsDefault = TOOL:BuildConVarList()
-
 function TOOL.BuildCPanel( panel )
-	panel:AddControl( "Header", { Text = "#tool.simfphyswheeleditor.name", Description = "#tool.simfphyswheeleditor.desc" } )
-	panel:AddControl( "ComboBox", { MenuButton = 1, Folder = "simfphys_wheel", Options = { [ "#preset.default" ] = ConVarsDefault }, CVars = table.GetKeys( ConVarsDefault ) } )
+	panel:AddControl( "Label",  { Text = "Front Wheel Model" } )
+	panel:AddControl( "PropSelect", { Label = "", ConVar = "simfphyswheeleditor_frontwheelmodel", Height = 0, Models = list.Get( "simfphys_Wheels" ) } )
+	panel:AddControl( "Label",  { Text = "" } )
+	panel:AddControl( "Label",  { Text = "Rear Wheel Model" } )
+	panel:AddControl( "PropSelect", { Label = "", ConVar = "simfphyswheeleditor_rearwheelmodel", Height = 0, Models = list.Get( "simfphys_Wheels" ) } )
 
-	panel:AddControl( "Textbox", 
-	{
-		Label 	= "Wheel Model",
-		Command = "simfphyswheeleditor_frontwheelmodel"
-	})	
-	panel:AddControl( "Textbox", 
-	{
-		Label 	= "Override Rear Model",
-		Command = "simfphyswheeleditor_rearwheelmodel"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Front Scale",
-		Type 	= "Float",
-		Min 	= "0",
-		Max 	= "5",
-		Command = "simfphyswheeleditor_scale"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Rear Scale",
-		Type 	= "Float",
-		Min 	= "0",
-		Max 	= "5",
-		Command = "simfphyswheeleditor_scalerear"
-	})
-	
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Pitch",
-		Type 	= "Float",
-		Min 	= "-180",
-		Max 	= "180",
-		Command = "simfphyswheeleditor_pitch"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Yaw",
-		Type 	= "Float",
-		Min 	= "-180",
-		Max 	= "180",
-		Command = "simfphyswheeleditor_yaw"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Roll",
-		Type 	= "Float",
-		Min 	= "-180",
-		Max 	= "180",
-		Command = "simfphyswheeleditor_roll"
-	})
 end
+
+--[[
+list.Set( "simfphys_Wheels", "models/props_phx/wheels/magnetic_small_base.mdl", {Angle = Angle(90,0,0)} )
+list.Set( "simfphys_Wheels", "models/props_vehicles/apc_tire001.mdl", {Angle = Angle(0,180,0)} )
+list.Set( "simfphys_Wheels", "models/red_hd_brera/red_hd_brera_wheel.mdl", {Angle = Angle(0,90,0)} )
+list.Set( "simfphys_Wheels", "models/winningrook/gtav/dukes/dukes_wheel.mdl", {Angle = Angle(0,-90,0)} )
+list.Set( "simfphys_Wheels", "models/salza/hatchback/hatchback_wheel.mdl", {Angle = Angle(0,90,0)} )
+list.Set( "simfphys_Wheels", "models/salza/van/van_wheel.mdl", {Angle = Angle(0,-90,0)} )
+list.Set( "simfphys_Wheels", "models/salza/moskvich/moskvich_wheel.mdl", {Angle = Angle(0,0,0)} )
+list.Set( "simfphys_Wheels", "models/salza/trabant/trabant_wheel.mdl", {Angle = Angle(0,0,0)} )
+list.Set( "simfphys_Wheels", "models/salza/trabant/trabant02_wheel.mdl", {Angle = Angle(0,0,0)} )
+list.Set( "simfphys_Wheels", "models/salza/volga/volga_wheel.mdl", {Angle = Angle(0,-90,0)} )
+list.Set( "simfphys_Wheels", "models/salza/zaz/zaz_wheel.mdl", {Angle = Angle(0,90,0)} )
+list.Set( "simfphys_Wheels", "models/salza/gaz52/gaz52_wheel.mdl", {Angle = Angle(0,180,0)} )
+list.Set( "simfphys_Wheels", "models/salza/skoda_liaz/skoda_liaz_fwheel.mdl", {Angle = Angle(0,180,0)} )
+list.Set( "simfphys_Wheels", "models/salza/skoda_liaz/skoda_liaz_rwheel.mdl", {Angle = Angle(0,180,0)} )
+list.Set( "simfphys_Wheels", "models/salza/avia/avia_wheel.mdl", {Angle = Angle(0,180,0)} )
+]]--
+
+timer.Simple( 0.1, function()
+	local v_list = list.Get( "simfphys_vehicles" )
+	for listname, _ in pairs( v_list ) do
+		if (v_list[listname].Members.CustomWheels) then
+			local FrontWheel = v_list[listname].Members.CustomWheelModel
+			local RearWheel = v_list[listname].Members.CustomWheelModel_R
+			local Angleoffset = v_list[listname].Members.CustomWheelAngleOffset or Angle(0,0,0)
+			if (FrontWheel) then
+				list.Set( "simfphys_Wheels", FrontWheel, {Angle = Angleoffset} )
+			end
+			if (RearWheel) then
+				list.Set( "simfphys_Wheels", RearWheel, {Angle = Angleoffset} )
+			end
+		end
+	end
+end)
