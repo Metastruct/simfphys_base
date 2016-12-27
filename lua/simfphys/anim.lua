@@ -7,9 +7,13 @@ hook.Add("CalcMainActivity", "simfphysSeatActivityOverride", function(ply)
 		if (IsValid(parent)) then
 			if (parent:GetClass() == "gmod_sent_vehicle_fphysics_base") then
 				vehicle.vehiclebase = parent
+				vehicle.unlockmymemes = CurTime() + 1
 			end
 			vehicle.dontcheckmeagainpls = true
 		end
+	end
+	if (vehicle.unlockmymemes) then
+		if (vehicle.unlockmymemes > CurTime()) then return end
 	end
 	
 	local vehiclebase = vehicle.vehiclebase
@@ -34,6 +38,10 @@ hook.Add("UpdateAnimation", "simfphysPoseparameters", function(ply , vel, seq)
 	if (CLIENT) then
 		local vehicle = ply:GetVehicle()
 		if (!IsValid(vehicle)) then return end
+		
+		if (vehicle.unlockmymemes) then
+			if (vehicle.unlockmymemes > CurTime()) then return end
+		end
 		
 		local vehiclebase = vehicle.vehiclebase
 		
