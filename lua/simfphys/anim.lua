@@ -7,7 +7,7 @@ hook.Add("CalcMainActivity", "simfphysSeatActivityOverride", function(ply)
 		if (IsValid(parent)) then
 			if (parent:GetClass() == "gmod_sent_vehicle_fphysics_base") then
 				vehicle.vehiclebase = parent
-				vehicle.unlockmymemes = CurTime() + 1
+				vehicle.unlockmymemes = CurTime() + 0.25
 			end
 			vehicle.dontcheckmeagainpls = true
 		end
