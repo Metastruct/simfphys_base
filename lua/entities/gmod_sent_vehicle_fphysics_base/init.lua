@@ -143,6 +143,14 @@ function ENT:WaterPhysics()
 		self.EngineIsOn = 0
 		self.EngineRPM = 0
 		self:SetFlyWheelRPM( 0 )
+		
+		local Health = self.Healthpoints
+		if (Health <= (self.HealthMax * 0.2)) then
+			if (Health <= (self.HealthMax * 0.2)) then
+				self.Healthpoints = self.HealthMax * 0.2 + 1
+				self:Extinguish()
+			end
+		end
 	end
 	
 	local phys = self:GetPhysicsObject()
@@ -193,7 +201,14 @@ function ENT:SimulateVehicle( curtime )
 		self:SetActive( self.IsValidDriver )
 		self:SetDriver( self.Driver )
 		self.CurrentGear = 2
-		self.EngineRPM = IdleRPM
+		if (!self.IsInWater) then
+			self.EngineRPM = IdleRPM
+			self.EngineIsOn = 1
+		else
+			self.EngineRPM = 0
+			self.EngineIsOn = 0
+		end
+		
 		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
 		self:SetupControls( self.Driver )
 		
@@ -953,7 +968,7 @@ function ENT:StallAndRestart()
 	
 	timer.Simple( 1, function()
 		if !IsValid(self) then return end
-		if (self.Healthpoints > 0) then
+		if (self.Healthpoints > 0 and !self.IsInWater) then
 			self.EngineIsOn = 1
 			self.EngineRPM = self:GetIdleRPM()
 		end

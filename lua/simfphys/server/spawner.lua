@@ -2,6 +2,9 @@ local function MakeLuaVehicle( Player, Pos, Ang, Model, Class, VName, VTable, da
 
 	if ( !gamemode.Call( "PlayerSpawnVehicle", Player, Model, VName, VTable ) ) then return end
 
+	if (!file.Exists( Model, "GAME" )) then return end
+	
+	
 	local Ent = ents.Create( "gmod_sent_vehicle_fphysics_base" )
 	if ( !Ent ) then return NULL end
 
