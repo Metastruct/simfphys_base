@@ -28,13 +28,27 @@ local function ApplyWheel(ply, ent, data)
 			if (IsValid(Wheel)) then
 				local isfrontwheel = (i == 1 or i == 2)
 				local swap_y = (i == 2 or i == 4 or i == 6)
-				local Right = swap_y and -ent:LocalToWorldAngles( ent.VehicleData.LocalAngRight ):Forward() or ent:LocalToWorldAngles( ent.VehicleData.LocalAngRight ):Forward() 
+				
 				local angleoffset = isfrontwheel and ent.CustomWheelAngleOffset or ent.CustomWheelAngleOffset_R
+				
 				local model = isfrontwheel and data[1] or data[3]
+				
+				local fAng = ent:LocalToWorldAngles( ent.VehicleData.LocalAngForward )
+				local rAng = ent:LocalToWorldAngles( ent.VehicleData.LocalAngRight )
+				
+				local Forward = fAng:Forward() 
+				local Right = swap_y and -rAng:Forward() or rAng:Forward()
+				local Up = ent:GetUp()
+				
+				local ghostAng = Right:Angle()
+				local mirAng = swap_y and 1 or -1
+				ghostAng:RotateAroundAxis(Forward,angleoffset.p * mirAng)
+				ghostAng:RotateAroundAxis(Right,angleoffset.r * mirAng)
+				ghostAng:RotateAroundAxis(Up,-angleoffset.y)
 				
 				Wheel:SetModelScale( 1 )
 				Wheel:SetModel( model )
-				Wheel:SetAngles( Right:Angle() - angleoffset )
+				Wheel:SetAngles( ghostAng )
 				
 				timer.Simple( 0.05, function()
 					if (!IsValid(Wheel) or !IsValid(ent)) then return end
@@ -49,6 +63,41 @@ local function ApplyWheel(ply, ent, data)
 	end)
 end
 
+local function GetAngleFromSpawnlist( model )
+	if (!model) then print("invalid model") return Angle(0,0,0) end
+	
+	model = string.lower( model )
+	
+	local v_list = list.Get( "simfphys_vehicles" )
+	for listname, _ in pairs( v_list ) do
+		if (v_list[listname].Members.CustomWheels) then
+			local FrontWheel = v_list[listname].Members.CustomWheelModel
+			local RearWheel = v_list[listname].Members.CustomWheelModel_R
+			
+			
+			if (FrontWheel) then 
+				FrontWheel = string.lower( FrontWheel )
+			end
+			
+			if (RearWheel) then 
+				FrontWheel = string.lower( RearWheel )
+			end
+			
+			if (model == FrontWheel or model == RearWheel) then
+				local Angleoffset = v_list[listname].Members.CustomWheelAngleOffset
+				if (Angleoffset) then
+					return Angleoffset
+				end
+			end
+		end
+	end
+	
+	local list = list.Get( "simfphys_Wheels" )[model]
+	local output = list and list.Angle or Angle(0,0,0)
+	
+	return output
+end
+
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	
@@ -59,17 +108,13 @@ function TOOL:LeftClick( trace )
 	if (!IsVehicle) then return false end
 	
 	if (SERVER) then
-		local list = list.Get( "simfphys_Wheels" )
-		
 		local front_model = self:GetClientInfo("frontwheelmodel")
-		local front_list = list[front_model]
-		local front_angle = front_list and front_list.Angle or Angle(0,-90,0)
+		local front_angle = GetAngleFromSpawnlist(front_model)
 		
 		local rear_model = self:GetClientInfo("rearwheelmodel")
-		local rear_list = list[rear_model]
-		local rear_angle = rear_list and rear_list.Angle or Angle(0,-90,0)
+		local rear_angle = GetAngleFromSpawnlist(rear_model)
 		
-		if (!list or !front_model or !rear_model or !front_angle or !rear_angle) then print("wtf bro how did you do this") return false end
+		if (!front_model or !rear_model or !front_angle or !rear_angle) then print("wtf bro how did you do this") return false end
 		
 		if (ent.CustomWheels) then
 			if (ent.GhostWheels) then
@@ -88,7 +133,6 @@ function TOOL:LeftClick( trace )
 			end
 		end
 	end
-	
 	return true
 end
 
@@ -129,12 +173,11 @@ timer.Simple( 0.1, function()
 		if (v_list[listname].Members.CustomWheels) then
 			local FrontWheel = v_list[listname].Members.CustomWheelModel
 			local RearWheel = v_list[listname].Members.CustomWheelModel_R
-			local Angleoffset = v_list[listname].Members.CustomWheelAngleOffset or Angle(0,0,0)
 			if (FrontWheel) then
-				list.Set( "simfphys_Wheels", FrontWheel, {Angle = Angleoffset} )
+				list.Set( "simfphys_Wheels", FrontWheel, {} )
 			end
 			if (RearWheel) then
-				list.Set( "simfphys_Wheels", RearWheel, {Angle = Angleoffset} )
+				list.Set( "simfphys_Wheels", RearWheel, {} )
 			end
 		end
 	end

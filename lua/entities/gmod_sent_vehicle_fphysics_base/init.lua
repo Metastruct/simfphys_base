@@ -9,15 +9,18 @@ end)
 DamageEnabled = GetConVar( "sv_simfphys_enabledamage" ):GetBool()
 
 function ENT:PostEntityPaste( ply , ent , createdEntities )
-	self.EnableSuspension = 0
-	self.WheelOnGroundDelay = 0
-	self.SmoothAng = 0
-	self.Steer = 0
+	self:SetValues()
+	
 	self:SetActive( false )
 	self:SetDriver( NULL )
 	self:SetLightsEnabled( false )
 	self:SetLampsEnabled( false )
 	self:SetFogLightsEnabled( false )
+	
+	self:SetThrottle( 0 )
+	self:SetDriverSeat( NULL )
+	self:SetFlyWheelRPM( 0 )
+	self:SetThrottle( 0 )
 	
 	self.pSeat = {}
 	self.Wheels = {}
@@ -1453,7 +1456,14 @@ function ENT:WriteVehicleDataTable()
 		local Figure3 = math.Round( math.acos( math.Clamp(self.posepositions.Pose0_Steerangle:Right():Dot(self.posepositions.Pose1_Steerangle:Right()),-1,1) ) * (180 / math.pi) , 2)
 		self.VehicleData["steerangle"] = self.CustomWheels and self.CustomSteerAngle or math.max(Figure1,Figure2,Figure3)
 		
-		self.VehicleData["LocalAngForward"] = self:WorldToLocalAngles( (((self.posepositions.Pose0_Pos_FL + self.posepositions.Pose0_Pos_FR) / 2 - (self.posepositions.Pose0_Pos_RL + self.posepositions.Pose0_Pos_RR) / 2) * Vector(1,1,0)):GetNormalized():Angle() )
+		local pFL = self.posepositions.Pose0_Pos_FL
+		local pFR = self.posepositions.Pose0_Pos_FR
+		local pRL = self.posepositions.Pose0_Pos_RL
+		local pRR = self.posepositions.Pose0_Pos_RR
+		local pAngL = self:WorldToLocalAngles( ((pFL + pFR) / 2 - (pRL + pRR) / 2):Angle() )
+		pAngL.r = 0
+		
+		self.VehicleData["LocalAngForward"] = pAngL
 		self.VehicleData["LocalAngRight"] = self.VehicleData.LocalAngForward - Angle(0,90,0)
 		self.VehicleData[ "pp_spin_1" ] = "vehicle_wheel_fl_spin"
 		self.VehicleData[ "pp_spin_2" ] = "vehicle_wheel_fr_spin"
@@ -1613,10 +1623,13 @@ function ENT:SetupVehicle()
 end
 
 function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , poseposition, suspensiontravel, constant, damping, rdamping)
-	local Angle = self:LocalToWorldAngles( self.VehicleData.LocalAngForward )
-	local Forward =  Angle:Forward() 
-	local Right = swap_y and -self:LocalToWorldAngles( self.VehicleData.LocalAngRight ):Forward() or self:LocalToWorldAngles( self.VehicleData.LocalAngRight ):Forward() 
+	local fAng = self:LocalToWorldAngles( self.VehicleData.LocalAngForward )
+	local rAng = self:LocalToWorldAngles( self.VehicleData.LocalAngRight )
+	
+	local Forward = fAng:Forward() 
+	local Right = swap_y and -rAng:Forward() or rAng:Forward()
 	local Up = self:GetUp()
+	
 	local RopeLength = 150
 	local LimiterLength = 60
 	local LimiterRopeLength = math.sqrt( (suspensiontravel * 0.5) ^ 2 + LimiterLength ^ 2 )
@@ -1631,7 +1644,7 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	
 	self.name = ents.Create( "gmod_sent_sim_veh_wheel" )
 	self.name:SetPos( attachmentpos - Up * height)
-	self.name:SetAngles( Angle )
+	self.name:SetAngles( fAng )
 	self.name:Spawn()
 	self.name:Activate()
 	self.name:PhysicsInitSphere( radius, "jeeptire" )
@@ -1644,11 +1657,16 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	
 	if (self.CustomWheels) then
 		local Model = (self.CustomWheelModel_R and (index == 3 or index == 4 or index == 5 or index == 6)) and self.CustomWheelModel_R or self.CustomWheelModel
+		local ghostAng = Right:Angle()
+		local mirAng = swap_y and 1 or -1
+		ghostAng:RotateAroundAxis(Forward,self.CustomWheelAngleOffset.p * mirAng)
+		ghostAng:RotateAroundAxis(Right,self.CustomWheelAngleOffset.r * mirAng)
+		ghostAng:RotateAroundAxis(Up,-self.CustomWheelAngleOffset.y)
 		
 		self.GhostWheels[index] = ents.Create( "gmod_sent_simfphys_attachment" )
 		self.GhostWheels[index]:SetModel( Model )
 		self.GhostWheels[index]:SetPos( self.name:GetPos() )
-		self.GhostWheels[index]:SetAngles( Right:Angle() - self.CustomWheelAngleOffset )
+		self.GhostWheels[index]:SetAngles( ghostAng )
 		self.GhostWheels[index]:SetOwner( self )
 		self.GhostWheels[index]:Spawn()
 		self.GhostWheels[index]:Activate()
