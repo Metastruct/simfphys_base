@@ -1975,6 +1975,7 @@ end
 
 function ENT:OnTakeDamage( dmginfo )
 	self:TakePhysicsDamage( dmginfo )
+	if (self.EnableSuspension != 1) then return end
 	
 	local Damage = dmginfo:GetDamage() 
 	local DamagePos = dmginfo:GetDamagePosition() 
