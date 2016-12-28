@@ -1540,54 +1540,85 @@ function ENT:SetupVehicle()
 	constraint.DoNotDuplicate = true
 	
 	if (self.CustomWheels) then
-		if (self.SteerFront != false) then
-			self.SteerMaster = ents.Create( "prop_physics" )
-			self.SteerMaster:SetModel( self.CustomWheelModel )
-			self.SteerMaster:SetPos( self:GetPos() )
-			self.SteerMaster:SetAngles( self:GetAngles() )
-			self.SteerMaster:Spawn()
-			self.SteerMaster:Activate()
-			self.SteerMaster:GetPhysicsObject():EnableMotion(false)
-			self.SteerMaster:SetOwner( self )
-			self.SteerMaster:DrawShadow( false )
-			self.SteerMaster:SetNotSolid( true )
-			self.SteerMaster:SetNoDraw( true )
-			self.SteerMaster.DoNotDuplicate = true
-			self:DeleteOnRemove( self.SteerMaster )
-			self:s_MakeOwner( self.SteerMaster )
-		end
+		if (self.CustomWheelModel) then
+			if (!file.Exists( self.CustomWheelModel, "GAME" )) then 
+				PrintMessage(3, "ERROR: \""..self.CustomWheelModel.."\" does not exist! Removing vehicle. (Class: "..self:GetSpawn_List().." )")
+				self:Remove()
+				return
+			end
 		
-		if (self.SteerRear) then
-			self.SteerMaster2 = ents.Create( "prop_physics" )
-			self.SteerMaster2:SetModel( self.CustomWheelModel )
-			self.SteerMaster2:SetPos( self:GetPos() )
-			self.SteerMaster2:SetAngles( self:GetAngles() )
-			self.SteerMaster2:Spawn()
-			self.SteerMaster2:Activate()
-			self.SteerMaster2:GetPhysicsObject():EnableMotion(false)
-			self.SteerMaster2:SetOwner( self )
-			self.SteerMaster2:DrawShadow( false )
-			self.SteerMaster2:SetNotSolid( true )
-			self.SteerMaster2:SetNoDraw( true )
-			self.SteerMaster2.DoNotDuplicate = true
-			self:DeleteOnRemove( self.SteerMaster2 )
-			self:s_MakeOwner( self.SteerMaster2 )
-		end
-		
-		local radius = IsValid(self.SteerMaster) and (self.SteerMaster:OBBMaxs() - self.SteerMaster:OBBMins()) or (self.SteerMaster2:OBBMaxs() - self.SteerMaster2:OBBMins())
-		self.FrontWheelRadius = self.FrontWheelRadius or math.max( radius.x, radius.y, radius.z ) * 0.5
-		self.RearWheelRadius = self.RearWheelRadius or self.FrontWheelRadius
-		
-		self:CreateWheel(1, WheelFL, self:LocalToWorld( self.CustomWheelPosFL ), self.FrontHeight, self.FrontWheelRadius, false , self:LocalToWorld( self.CustomWheelPosFL + Vector(0,0,self.CustomSuspensionTravel * 0.5) ),self.CustomSuspensionTravel, self.FrontConstant, self.FrontDamping, self.FrontRelativeDamping)
-		self:CreateWheel(2, WheelFR, self:LocalToWorld( self.CustomWheelPosFR ), self.FrontHeight, self.FrontWheelRadius, true , self:LocalToWorld( self.CustomWheelPosFR + Vector(0,0,self.CustomSuspensionTravel * 0.5) ),self.CustomSuspensionTravel, self.FrontConstant, self.FrontDamping, self.FrontRelativeDamping)
-		self:CreateWheel(3, WheelRL, self:LocalToWorld( self.CustomWheelPosRL ), self.RearHeight, self.RearWheelRadius, false , self:LocalToWorld( self.CustomWheelPosRL + Vector(0,0,self.CustomSuspensionTravel * 0.5) ),self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
-		self:CreateWheel(4, WheelRR, self:LocalToWorld( self.CustomWheelPosRR ), self.RearHeight, self.RearWheelRadius, true , self:LocalToWorld( self.CustomWheelPosRR + Vector(0,0,self.CustomSuspensionTravel * 0.5) ), self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
-		
-		if (self.CustomWheelPosML) then
-			self:CreateWheel(5, WheelML, self:LocalToWorld( self.CustomWheelPosML ), self.RearHeight, self.RearWheelRadius, false , self:LocalToWorld( self.CustomWheelPosML + Vector(0,0,self.CustomSuspensionTravel * 0.5) ),self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
-		end
-		if (self.CustomWheelPosMR) then
-			self:CreateWheel(6, WheelMR, self:LocalToWorld( self.CustomWheelPosMR ), self.RearHeight, self.RearWheelRadius, true , self:LocalToWorld( self.CustomWheelPosMR + Vector(0,0,self.CustomSuspensionTravel * 0.5) ), self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
+			if (self.SteerFront != false) then
+				self.SteerMaster = ents.Create( "prop_physics" )
+				self.SteerMaster:SetModel( self.CustomWheelModel )
+				self.SteerMaster:SetPos( self:GetPos() )
+				self.SteerMaster:SetAngles( self:GetAngles() )
+				self.SteerMaster:Spawn()
+				self.SteerMaster:Activate()
+				
+				local pobj = self.SteerMaster:GetPhysicsObject()
+				if (IsValid(pobj)) then
+					pobj:EnableMotion(false)
+				else
+					PrintMessage(3, "ERROR: \""..self.CustomWheelModel.."\" doesn't have an collision model! Removing vehicle. (Class: "..self:GetSpawn_List().." )")
+					self.SteerMaster:Remove()
+					self:Remove()
+					return
+				end
+				
+				self.SteerMaster:SetOwner( self )
+				self.SteerMaster:DrawShadow( false )
+				self.SteerMaster:SetNotSolid( true )
+				self.SteerMaster:SetNoDraw( true )
+				self.SteerMaster.DoNotDuplicate = true
+				self:DeleteOnRemove( self.SteerMaster )
+				self:s_MakeOwner( self.SteerMaster )
+			end
+			
+			if (self.SteerRear) then
+				self.SteerMaster2 = ents.Create( "prop_physics" )
+				self.SteerMaster2:SetModel( self.CustomWheelModel )
+				self.SteerMaster2:SetPos( self:GetPos() )
+				self.SteerMaster2:SetAngles( self:GetAngles() )
+				self.SteerMaster2:Spawn()
+				self.SteerMaster2:Activate()
+				
+				local pobj = self.SteerMaster2:GetPhysicsObject()
+				if (IsValid(pobj)) then
+					pobj:EnableMotion(false)
+				else
+					PrintMessage(3, "ERROR: \""..self.CustomWheelModel.."\" doesn't have an collision model! Removing vehicle. (Class: "..self:GetSpawn_List().." )")
+					self.SteerMaster2:Remove()
+					self:Remove()
+					return
+				end
+				
+				self.SteerMaster2:SetOwner( self )
+				self.SteerMaster2:DrawShadow( false )
+				self.SteerMaster2:SetNotSolid( true )
+				self.SteerMaster2:SetNoDraw( true )
+				self.SteerMaster2.DoNotDuplicate = true
+				self:DeleteOnRemove( self.SteerMaster2 )
+				self:s_MakeOwner( self.SteerMaster2 )
+			end
+			
+			local radius = IsValid(self.SteerMaster) and (self.SteerMaster:OBBMaxs() - self.SteerMaster:OBBMins()) or (self.SteerMaster2:OBBMaxs() - self.SteerMaster2:OBBMins())
+			self.FrontWheelRadius = self.FrontWheelRadius or math.max( radius.x, radius.y, radius.z ) * 0.5
+			self.RearWheelRadius = self.RearWheelRadius or self.FrontWheelRadius
+			
+			self:CreateWheel(1, WheelFL, self:LocalToWorld( self.CustomWheelPosFL ), self.FrontHeight, self.FrontWheelRadius, false , self:LocalToWorld( self.CustomWheelPosFL + Vector(0,0,self.CustomSuspensionTravel * 0.5) ),self.CustomSuspensionTravel, self.FrontConstant, self.FrontDamping, self.FrontRelativeDamping)
+			self:CreateWheel(2, WheelFR, self:LocalToWorld( self.CustomWheelPosFR ), self.FrontHeight, self.FrontWheelRadius, true , self:LocalToWorld( self.CustomWheelPosFR + Vector(0,0,self.CustomSuspensionTravel * 0.5) ),self.CustomSuspensionTravel, self.FrontConstant, self.FrontDamping, self.FrontRelativeDamping)
+			self:CreateWheel(3, WheelRL, self:LocalToWorld( self.CustomWheelPosRL ), self.RearHeight, self.RearWheelRadius, false , self:LocalToWorld( self.CustomWheelPosRL + Vector(0,0,self.CustomSuspensionTravel * 0.5) ),self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
+			self:CreateWheel(4, WheelRR, self:LocalToWorld( self.CustomWheelPosRR ), self.RearHeight, self.RearWheelRadius, true , self:LocalToWorld( self.CustomWheelPosRR + Vector(0,0,self.CustomSuspensionTravel * 0.5) ), self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
+			
+			if (self.CustomWheelPosML) then
+				self:CreateWheel(5, WheelML, self:LocalToWorld( self.CustomWheelPosML ), self.RearHeight, self.RearWheelRadius, false , self:LocalToWorld( self.CustomWheelPosML + Vector(0,0,self.CustomSuspensionTravel * 0.5) ),self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
+			end
+			if (self.CustomWheelPosMR) then
+				self:CreateWheel(6, WheelMR, self:LocalToWorld( self.CustomWheelPosMR ), self.RearHeight, self.RearWheelRadius, true , self:LocalToWorld( self.CustomWheelPosMR + Vector(0,0,self.CustomSuspensionTravel * 0.5) ), self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
+			end
+		else
+			PrintMessage(3, "ERROR: no wheel model defined. Removing vehicle. (Class: "..self:GetSpawn_List().." )")
+			self:Remove()
 		end
 	else
 		self:CreateWheel(1, WheelFL, self:GetAttachment( self:LookupAttachment( "wheel_fl" ) ).Pos, self.FrontHeight, self.FrontWheelRadius, false , self.posepositions.Pose1_Pos_FL, self.VehicleData.suspensiontravel_fl, self.FrontConstant, self.FrontDamping, self.FrontRelativeDamping)
