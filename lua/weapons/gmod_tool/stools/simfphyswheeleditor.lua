@@ -15,6 +15,10 @@ if CLIENT then
 end
 
 local function ApplyWheel(ply, ent, data)
+
+	ent.CustomWheelAngleOffset = data[2]
+	ent.CustomWheelAngleOffset_R = data[4]
+	
 	timer.Simple( 0.05, function()
 		if (!IsValid(ent)) then return end
 		
@@ -25,12 +29,12 @@ local function ApplyWheel(ply, ent, data)
 				local isfrontwheel = (i == 1 or i == 2)
 				local swap_y = (i == 2 or i == 4 or i == 6)
 				local Right = swap_y and -ent:LocalToWorldAngles( ent.VehicleData.LocalAngRight ):Forward() or ent:LocalToWorldAngles( ent.VehicleData.LocalAngRight ):Forward() 
-				ent.CustomWheelAngleOffset = isfrontwheel and data[2] or data[4]
+				local angleoffset = isfrontwheel and ent.CustomWheelAngleOffset or ent.CustomWheelAngleOffset_R
 				local model = isfrontwheel and data[1] or data[3]
 				
 				Wheel:SetModelScale( 1 )
 				Wheel:SetModel( model )
-				Wheel:SetAngles( Right:Angle() - ent.CustomWheelAngleOffset )
+				Wheel:SetAngles( Right:Angle() - angleoffset )
 				
 				timer.Simple( 0.05, function()
 					if (!IsValid(Wheel) or !IsValid(ent)) then return end

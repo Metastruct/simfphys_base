@@ -1185,7 +1185,8 @@ function ENT:SimulateWheels(left,right,k_clutch,LimitRPM)
 			if (self.CustomWheels) then
 				local GhostEnt = self.GhostWheels[i]
 				local Angle = GhostEnt:GetAngles()
-				local Direction = GhostEnt:LocalToWorldAngles( self.CustomWheelAngleOffset ):Forward()
+				local offsetang = IsFrontWheel and self.CustomWheelAngleOffset or (self.CustomWheelAngleOffset_R or self.CustomWheelAngleOffset)
+				local Direction = GhostEnt:LocalToWorldAngles( offsetang ):Forward()
 				local AngleStep = IsFrontWheel and TurnWheel or (self.HandBrake < MaxTraction) and TurnWheel or 0
 				Angle:RotateAroundAxis(Direction, IsRightWheel and AngleStep or -AngleStep)
 				
