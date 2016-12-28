@@ -1613,10 +1613,7 @@ end
 
 function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , poseposition, suspensiontravel, constant, damping, rdamping)
 	local Angle = self:LocalToWorldAngles( self.VehicleData.LocalAngForward )
-	local wheelang = self:GetAngles()
-	wheelang:RotateAroundAxis(self:GetUp(), 90 + self.VehicleData.LocalAngRight.y)
-	
-	local Forward = Angle:Forward() 
+	local Forward =  Angle:Forward() 
 	local Right = swap_y and -self:LocalToWorldAngles( self.VehicleData.LocalAngRight ):Forward() or self:LocalToWorldAngles( self.VehicleData.LocalAngRight ):Forward() 
 	local Up = self:GetUp()
 	local RopeLength = 150
@@ -1633,7 +1630,7 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	
 	self.name = ents.Create( "gmod_sent_sim_veh_wheel" )
 	self.name:SetPos( attachmentpos - Up * height)
-	self.name:SetAngles( wheelang )
+	self.name:SetAngles( Angle )
 	self.name:Spawn()
 	self.name:Activate()
 	self.name:PhysicsInitSphere( radius, "jeeptire" )
@@ -1646,15 +1643,11 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	
 	if (self.CustomWheels) then
 		local Model = (self.CustomWheelModel_R and (index == 3 or index == 4 or index == 5 or index == 6)) and self.CustomWheelModel_R or self.CustomWheelModel
-		local GhostAngle = Right:Angle()
-		GhostAngle:RotateAroundAxis(self:GetForward(), self.CustomWheelAngleOffset.p)
-		GhostAngle:RotateAroundAxis(self:GetUp(), -self.CustomWheelAngleOffset.y)
-		GhostAngle:RotateAroundAxis(self:GetRight(), self.CustomWheelAngleOffset.r)
 		
 		self.GhostWheels[index] = ents.Create( "gmod_sent_simfphys_attachment" )
 		self.GhostWheels[index]:SetModel( Model )
 		self.GhostWheels[index]:SetPos( self.name:GetPos() )
-		self.GhostWheels[index]:SetAngles( GhostAngle )
+		self.GhostWheels[index]:SetAngles( Right:Angle() - self.CustomWheelAngleOffset )
 		self.GhostWheels[index]:SetOwner( self )
 		self.GhostWheels[index]:Spawn()
 		self.GhostWheels[index]:Activate()

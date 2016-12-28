@@ -59,13 +59,13 @@ function TOOL:LeftClick( trace )
 		
 		local front_model = self:GetClientInfo("frontwheelmodel")
 		local front_list = list[front_model]
-		local front_angle = front_list.Angle
+		local front_angle = front_list and front_list.Angle or Angle(0,-90,0)
 		
 		local rear_model = self:GetClientInfo("rearwheelmodel")
 		local rear_list = list[rear_model]
-		local rear_angle = rear_list.Angle
+		local rear_angle = rear_list and rear_list.Angle or Angle(0,-90,0)
 		
-		if (!list or !front_model or !rear_model or !front_angle or !rear_angle or !front_list or !rear_list) then print("wtf bro how did you do this") return false end
+		if (!list or !front_model or !rear_model or !front_angle or !rear_angle) then print("wtf bro how did you do this") return false end
 		
 		if (ent.CustomWheels) then
 			if (ent.GhostWheels) then
