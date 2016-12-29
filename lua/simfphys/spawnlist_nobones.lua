@@ -139,6 +139,10 @@ local V = {
 		SeatYaw = 0,
 		
 		PassengerSeats = {
+			{
+				pos = Vector(13,75,-2),
+				ang = Angle(0,0,0)
+			},
 		},
 		
 		Attachments = {
