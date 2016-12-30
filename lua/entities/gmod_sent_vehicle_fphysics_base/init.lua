@@ -17,7 +17,6 @@ function ENT:PostEntityPaste( ply , ent , createdEntities )
 	self:SetLampsEnabled( false )
 	self:SetFogLightsEnabled( false )
 	
-	self:SetThrottle( 0 )
 	self:SetDriverSeat( NULL )
 	self:SetFlyWheelRPM( 0 )
 	self:SetThrottle( 0 )
