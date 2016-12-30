@@ -12,6 +12,7 @@ if SERVER then
 	AddCSLuaFile("simfphys/spawnlist_nobones.lua")
 	AddCSLuaFile("simfphys/spawnlist_prewarvehicles.lua")
 	AddCSLuaFile("simfphys/view.lua")
+	AddCSLuaFile("simfphys/wheelpickup.lua")
 	
 	include("simfphys/server/exitpoints.lua")
 	include("simfphys/server/mousesteer.lua")
@@ -33,6 +34,7 @@ include("simfphys/spawnlist.lua")
 include("simfphys/spawnlist_nobones.lua")
 include("simfphys/spawnlist_prewarvehicles.lua")
 include("simfphys/view.lua")
+include("simfphys/wheelpickup.lua")
 
 timer.Simple( 0.5, function()
 	include("simfphys/rescuespawnlists.lua")
