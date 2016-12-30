@@ -6,12 +6,13 @@ TOOL.ConfigName		= ""
 
 TOOL.ClientConVar[ "frontwheelmodel" ] = ""
 TOOL.ClientConVar[ "rearwheelmodel" ] = ""
+TOOL.ClientConVar[ "sameasfront" ] = 1
 
 if CLIENT then
 	language.Add( "tool.simfphyswheeleditor.name", "simfphys wheel model editor" )
 	language.Add( "tool.simfphyswheeleditor.desc", "Changes the wheels for simfphys vehicles with CustomWheels Enabled" )
-	language.Add( "tool.simfphyswheeleditor.0", "Left click apply wheel model." )
-	language.Add( "tool.simfphyswheeleditor.1", "Left click apply wheel model." )
+	language.Add( "tool.simfphyswheeleditor.0", "Left click apply wheel model. Reload to reset" )
+	language.Add( "tool.simfphyswheeleditor.1", "Left click apply wheel model. Reload to reset" )
 end
 
 local function ApplyWheel(ply, ent, data)
@@ -74,7 +75,6 @@ local function GetAngleFromSpawnlist( model )
 			local FrontWheel = v_list[listname].Members.CustomWheelModel
 			local RearWheel = v_list[listname].Members.CustomWheelModel_R
 			
-			
 			if (FrontWheel) then 
 				FrontWheel = string.lower( FrontWheel )
 			end
@@ -111,7 +111,8 @@ function TOOL:LeftClick( trace )
 		local front_model = self:GetClientInfo("frontwheelmodel")
 		local front_angle = GetAngleFromSpawnlist(front_model)
 		
-		local rear_model = self:GetClientInfo("rearwheelmodel")
+		local sameasfront = self:GetClientInfo("sameasfront") == "1"
+		local rear_model = sameasfront and front_model or self:GetClientInfo("rearwheelmodel")
 		local rear_angle = GetAngleFromSpawnlist(rear_model)
 		
 		if (!front_model or !rear_model or !front_angle or !rear_angle) then print("wtf bro how did you do this") return false end
@@ -140,11 +141,55 @@ function TOOL:RightClick( trace )
 	return false
 end
 
+function TOOL:Reload( trace )
+	local ent = trace.Entity
+	
+	if (!IsValid(ent)) then return false end
+	
+	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
+	
+	if (!IsVehicle) then return false end
+	
+	if (SERVER) then
+		local vname = ent:GetSpawn_List()
+		local VehicleList = list.Get( "simfphys_vehicles" )[vname]
+
+		if (ent.CustomWheels) then
+			if (ent.GhostWheels) then
+				ent.SmoothAng = 0  -- lets make sure we are not steering
+				
+				for i = 1, table.Count( ent.Wheels ) do
+					local Wheel = ent.Wheels[ i ]
+					if (IsValid(Wheel)) then
+						local physobj = Wheel:GetPhysicsObject()
+						physobj:EnableMotion( true ) 
+						physobj:Wake() 
+					end
+				end
+				
+				local front_model = VehicleList.Members.CustomWheelModel
+				local front_angle = VehicleList.Members.CustomWheelAngleOffset
+				local rear_model = VehicleList.Members.CustomWheelModel_R and VehicleList.Members.CustomWheelModel_R or front_model
+				local rear_angle = VehicleList.Members.CustomWheelAngleOffset
+				
+				ApplyWheel(self:GetOwner(), ent, {front_model,front_angle,rear_model,rear_angle})
+			end
+		end
+	end
+	
+	return true
+end
+
 function TOOL.BuildCPanel( panel )
 	panel:AddControl( "Label",  { Text = "Front Wheel Model" } )
 	panel:AddControl( "PropSelect", { Label = "", ConVar = "simfphyswheeleditor_frontwheelmodel", Height = 0, Models = list.Get( "simfphys_Wheels" ) } )
 	panel:AddControl( "Label",  { Text = "" } )
 	panel:AddControl( "Label",  { Text = "Rear Wheel Model" } )
+	panel:AddControl( "Checkbox", 
+	{
+		Label 	= "same as front",
+		Command = "simfphyswheeleditor_sameasfront",
+	})	
 	panel:AddControl( "PropSelect", { Label = "", ConVar = "simfphyswheeleditor_rearwheelmodel", Height = 0, Models = list.Get( "simfphys_Wheels" ) } )
 
 end
