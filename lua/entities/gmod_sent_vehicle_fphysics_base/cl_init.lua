@@ -872,22 +872,22 @@ function ENT:SetSoundPreset(index)
 			self.Throttle_PitchMul = data[14]
 			self.Throttle_VolumeMul = data[15]
 		else
-			self.EngineSounds[ "IdleSound" ] = vehiclelist.Members.Sound_Idle or "simulated_vehicles/misc/e49_idle.wav"
+			self.EngineSounds[ "IdleSound" ] = vehiclelist and vehiclelist.Members.Sound_Idle or "simulated_vehicles/misc/e49_idle.wav"
 			self.Idle_PitchMul = (vehiclelist and vehiclelist.Members.Sound_IdlePitch) or 1
 			
-			self.EngineSounds[ "LowSound" ] = vehiclelist.Members.Sound_Mid or "simulated_vehicles/misc/gto_onlow.wav"
+			self.EngineSounds[ "LowSound" ] = vehiclelist and vehiclelist.Members.Sound_Mid or "simulated_vehicles/misc/gto_onlow.wav"
 			self.Mid_PitchMul = (vehiclelist and vehiclelist.Members.Sound_MidPitch) or 1
 			self.Mid_VolumeMul =  (vehiclelist and vehiclelist.Members.Sound_MidVolume) or 0.75
 			self.Mid_FadeOutRPMpercent =  (vehiclelist and vehiclelist.Members.Sound_MidFadeOutRPMpercent) or 68
 			self.Mid_FadeOutRate =  (vehiclelist and vehiclelist.Members.Sound_MidFadeOutRate) or 0.4
 			
-			self.EngineSounds[ "HighSound" ] = vehiclelist.Members.Sound_High or "simulated_vehicles/misc/nv2_onlow_ex.wav"
+			self.EngineSounds[ "HighSound" ] = vehiclelist and vehiclelist.Members.Sound_High or "simulated_vehicles/misc/nv2_onlow_ex.wav"
 			self.High_PitchMul = (vehiclelist and vehiclelist.Members.Sound_HighPitch) or 1 
 			self.High_VolumeMul = (vehiclelist and vehiclelist.Members.Sound_HighVolume) or 1 
 			self.High_FadeInRPMpercent = (vehiclelist and vehiclelist.Members.Sound_HighFadeInRPMpercent) or 26.6
 			self.High_FadeInRate = (vehiclelist and vehiclelist.Members.Sound_HighFadeInRate) or 0.266
 			
-			self.EngineSounds[ "ThrottleSound" ] = vehiclelist.Members.Sound_Throttle or "simulated_vehicles/valve_noise.wav"
+			self.EngineSounds[ "ThrottleSound" ] = vehiclelist and vehiclelist.Members.Sound_Throttle or "simulated_vehicles/valve_noise.wav"
 			self.Throttle_PitchMul = (vehiclelist and vehiclelist.Members.Sound_ThrottlePitch) or 0.65
 			self.Throttle_VolumeMul = (vehiclelist and vehiclelist.Members.Sound_ThrottleVolume) or 1 
 		end

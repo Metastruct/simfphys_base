@@ -219,10 +219,14 @@ timer.Simple( 0.1, function()
 			local FrontWheel = v_list[listname].Members.CustomWheelModel
 			local RearWheel = v_list[listname].Members.CustomWheelModel_R
 			if (FrontWheel) then
-				list.Set( "simfphys_Wheels", FrontWheel, {} )
+				if (file.Exists( FrontWheel, "GAME" )) then 
+					list.Set( "simfphys_Wheels", FrontWheel, {} )
+				end
 			end
 			if (RearWheel) then
-				list.Set( "simfphys_Wheels", RearWheel, {} )
+				if (file.Exists( RearWheel, "GAME" )) then 
+					list.Set( "simfphys_Wheels", RearWheel, {} )
+				end
 			end
 		end
 	end
