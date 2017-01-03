@@ -66,7 +66,7 @@ function ENT:ManageSmoke()
 	local GripLoss = self:GetGripLoss()
 	local Material = self:GetSurfaceMaterial()
 	
-	self.FadeHeat = math.Clamp( (self.FadeHeat + GripLoss * 0.1 * WheelOnGround * ((Material == "concrete" or Material == "rock" or Material == "tile") and 1 or 0)) * 0.995,0,10)
+	self.FadeHeat = math.Clamp( (self.FadeHeat + GripLoss * 0.18 * WheelOnGround * ((Material == "concrete" or Material == "rock" or Material == "tile") and 1 or 0)) * 0.995,0,10)
 	local Scale = self.FadeHeat ^ 3 / 1000
 	local SmokeOn = (self.FadeHeat >= 7)
 	local DirtOn = GripLoss > 0.05

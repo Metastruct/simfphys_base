@@ -21,7 +21,7 @@ TOOL.ClientConVar[ "gear_12" ] = 1.2
 TOOL.ClientConVar[ "gear_diff" ] = 0.5
 
 if CLIENT then
-	language.Add( "tool.simfphysgeareditor.name", "simfphys Gear Ratio Editor" )
+	language.Add( "tool.simfphysgeareditor.name", "simfphys Transmission Editor" )
 	language.Add( "tool.simfphysgeareditor.desc", "A tool used to edit gear ratios on simfphys vehicles" )
 	language.Add( "tool.simfphysgeareditor.0", "Left click apply settings. Right click copy settings. Reload to reset" )
 	language.Add( "tool.simfphysgeareditor.1", "Left click apply settings. Right click copy settings. Reload to reset" )
@@ -118,7 +118,7 @@ end
 local ConVarsDefault = TOOL:BuildConVarList()
 function TOOL.BuildCPanel( panel )
 	panel:AddControl( "Header", { Text = "#tool.simfphysgeareditor.name", Description = "#tool.simfphysgeareditor.desc" } )
-	panel:AddControl( "ComboBox", { MenuButton = 1, Folder = "simfphys", Options = { [ "#preset.default" ] = ConVarsDefault }, CVars = table.GetKeys( ConVarsDefault ) } )
+	panel:AddControl( "ComboBox", { MenuButton = 1, Folder = "transeditor", Options = { [ "#preset.default" ] = ConVarsDefault }, CVars = table.GetKeys( ConVarsDefault ) } )
 	panel:AddControl( "Label",  { Text = "" } )
 	
 	panel:AddControl( "Slider", 

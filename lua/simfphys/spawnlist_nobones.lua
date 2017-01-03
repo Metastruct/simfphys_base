@@ -15,6 +15,11 @@ local V = {
 		--FrontWheelMass = 50,
 		--RearWheelMass = 50,
 		
+		--MaxHealth = 1000,    -- overrides max health
+		--AirFriction = -250,
+		
+		--LightsTable = "jeep",  --wich list we want to use for our light positions. You can comment this variable out if you dont want lights.  lights are defined in simfphys_lights.lua 
+		
 		CustomWheels = true,       	 -- You have to set this to "true" in order to define custom wheels
 		CustomSuspensionTravel = 10,	--suspension travel limiter length
 		
@@ -388,7 +393,7 @@ local V = {
 		IdleRPM = 750,
 		LimitRPM = 7500,
 		Revlimiter = true,
-		PeakTorque = 130,
+		PeakTorque = 120,
 		PowerbandStart = 2000,
 		PowerbandEnd = 7000,
 		Turbocharged = true,
@@ -494,7 +499,7 @@ local V = {
 		
 		IdleRPM = 600,
 		LimitRPM = 7700,
-		PeakTorque = 250,
+		PeakTorque = 200,
 		PowerbandStart = 1500,
 		PowerbandEnd = 7400,
 		Turbocharged = false,

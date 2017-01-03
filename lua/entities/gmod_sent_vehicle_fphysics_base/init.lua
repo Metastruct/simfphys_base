@@ -8,6 +8,12 @@ cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue,
 end)
 DamageEnabled = GetConVar( "sv_simfphys_enabledamage" ):GetBool()
 
+local RealDamage = false
+cvars.AddChangeCallback( "mp_falldamage", function( convar, oldValue, newValue )
+	RealDamage = ( tonumber( newValue )~=0 )
+end)
+RealDamage = GetConVar( "mp_falldamage" ):GetBool()
+
 function ENT:PostEntityPaste( ply , ent , createdEntities )
 	self:SetValues()
 	
@@ -2038,16 +2044,28 @@ function ENT:OnTakeDamage( dmginfo )
 	end
 end
 
+
 function ENT:PhysicsCollide( data, physobj )
 	if ( data.Speed > 60 && data.DeltaTime > 0.2 ) then
 		if (data.Speed > 1000) then
 			self:EmitSound( "MetalVehicle.ImpactHard" )
 			self.Healthpoints = math.max(self.Healthpoints - (data.Speed / 8),0)
-			self:HurtPlayers(5)
 		else
 			self:EmitSound( "MetalVehicle.ImpactSoft" )
-			if (data.Speed > 700) then
-				self:HurtPlayers(2)
+		end
+		if (RealDamage) then
+			if (data.Speed > 500) then
+				local vel = data.OurOldVelocity
+				vel.z = 0
+				self:HurtPlayers(vel:Length() ^ 2 / 90000)
+			end
+		else
+			if (data.Speed > 1000) then
+				self:HurtPlayers(5)
+			else
+				if (data.Speed > 700) then
+					self:HurtPlayers(2)
+				end
 			end
 		end
 	end

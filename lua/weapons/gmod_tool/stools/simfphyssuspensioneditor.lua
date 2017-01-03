@@ -123,7 +123,7 @@ local ConVarsDefault = TOOL:BuildConVarList()
 
 function TOOL.BuildCPanel( panel )
 	panel:AddControl( "Header", { Text = "#tool.simfphyssuspensioneditor.name", Description = "#tool.simfphyssuspensioneditor.desc" } )
-	panel:AddControl( "ComboBox", { MenuButton = 1, Folder = "simfphys", Options = { [ "#preset.default" ] = ConVarsDefault }, CVars = table.GetKeys( ConVarsDefault ) } )
+	panel:AddControl( "ComboBox", { MenuButton = 1, Folder = "suspensionedtior", Options = { [ "#preset.default" ] = ConVarsDefault }, CVars = table.GetKeys( ConVarsDefault ) } )
 	
 	panel:AddControl( "Label",  { Text = "" } )
 	panel:AddControl( "Label",  { Text = "--- Front ---" } )
