@@ -395,12 +395,12 @@ local V = {
 		
 		FrontHeight = 13.5,
 		FrontConstant = 27000,
-		FrontDamping = 2800,
+		FrontDamping = 2200,
 		FrontRelativeDamping = 1500, 
 		
 		RearHeight = 13.5,
 		RearConstant = 32000,
-		RearDamping = 2900,
+		RearDamping = 2200,
 		RearRelativeDamping = 1500,
 		
 		FastSteeringAngle = 10,
