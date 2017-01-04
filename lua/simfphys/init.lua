@@ -3,6 +3,7 @@ if SERVER then
 	AddCSLuaFile("simfphys/client/fonts.lua")
 	AddCSLuaFile("simfphys/client/tab.lua")
 	AddCSLuaFile("simfphys/client/hud.lua")
+	AddCSLuaFile("simfphys/client/seatcontrols.lua")
 	
 	AddCSLuaFile("simfphys/anim.lua")
 	AddCSLuaFile("simfphys/convars.lua")
@@ -18,6 +19,7 @@ if SERVER then
 	include("simfphys/server/mousesteer.lua")
 	include("simfphys/server/resource.lua")
 	include("simfphys/server/spawner.lua")
+	include("simfphys/server/seatcontrols.lua")
 end
 	
 if CLIENT then
@@ -25,6 +27,7 @@ if CLIENT then
 	include("simfphys/client/fonts.lua")
 	include("simfphys/client/tab.lua")
 	include("simfphys/client/hud.lua")
+	include("simfphys/client/seatcontrols.lua")
 end
 
 include("simfphys/anim.lua")
