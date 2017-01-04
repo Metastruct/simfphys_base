@@ -8,12 +8,6 @@ cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue,
 end)
 DamageEnabled = GetConVar( "sv_simfphys_enabledamage" ):GetBool()
 
-local RealDamage = false
-cvars.AddChangeCallback( "mp_falldamage", function( convar, oldValue, newValue )
-	RealDamage = ( tonumber( newValue )~=0 )
-end)
-RealDamage = GetConVar( "mp_falldamage" ):GetBool()
-
 function ENT:PostEntityPaste( ply , ent , createdEntities )
 	self:SetValues()
 	
@@ -250,6 +244,8 @@ function ENT:SimulateVehicle( curtime )
 		else
 			self:ControlLights( false )
 
+			self.IsLocked = false
+			
 			if (self.ems) then
 				self.ems:Stop()
 			end
@@ -460,6 +456,8 @@ function ENT:SetupControls( ply )
 		local Alt = ply:GetInfoNum( "cl_simfphys_keyclutch", 0 )
 		local Space = ply:GetInfoNum( "cl_simfphys_keyhandbrake", 0 )
 		
+		local lock = ply:GetInfoNum( "cl_simfphys_key_lock", 0 )
+		
 		local w_dn = numpad.OnDown( ply, W, "k_forward",self, true )
 		local w_up = numpad.OnUp( ply, W, "k_forward",self, false )
 		local s_dn = numpad.OnDown( ply, S, "k_reverse",self, true )
@@ -510,7 +508,31 @@ function ENT:SetupControls( ply )
 		local k_engine_dn = numpad.OnDown( ply, I, "k_eng",self, true )
 		local k_engine_up = numpad.OnUp( ply, I, "k_eng",self, false )
 		
-		self.keys = {w_dn,w_up,s_dn,s_up,a_dn,a_up,d_dn,d_up,aw_dn,aw_up,as_dn,as_up,aa_dn,aa_up,ad_dn,ad_up,gup_dn,gup_up,gdn_dn,gdn_up,shift_dn,shift_up,alt_dn,alt_up,space_dn,space_up,k_cruise,k_lights_dn,k_lights_up,k_horn_dn,k_horn_up,k_flights_dn,k_flights_up,k_freelook_dn,k_freelook_up,k_engine_dn,k_engine_up}
+		local k_lock_dn = numpad.OnDown( ply, lock, "k_lock",self, true )
+		local k_lock_up = numpad.OnUp( ply, lock, "k_lock",self, false )
+		
+		self.keys = {
+			w_dn,w_up,
+			s_dn,s_up,
+			a_dn,a_up,
+			d_dn,d_up,
+			aw_dn,aw_up,
+			as_dn,as_up,
+			aa_dn,aa_up,
+			ad_dn,ad_up,
+			gup_dn,gup_up,
+			gdn_dn,gdn_up,
+			shift_dn,shift_up,
+			alt_dn,alt_up,
+			space_dn,space_up,
+			k_cruise,
+			k_lights_dn,k_lights_up,
+			k_horn_dn,k_horn_up,
+			k_flights_dn,k_flights_up,
+			k_freelook_dn,k_freelook_up,
+			k_engine_dn,k_engine_up,
+			k_lock_dn,k_lock_up,
+		}
 	end
 end
 
@@ -2049,24 +2071,11 @@ function ENT:PhysicsCollide( data, physobj )
 	if ( data.Speed > 60 && data.DeltaTime > 0.2 ) then
 		if (data.Speed > 1000) then
 			self:EmitSound( "MetalVehicle.ImpactHard" )
+			self:HurtPlayers(5)
 			self.Healthpoints = math.max(self.Healthpoints - (data.Speed / 8),0)
 		else
 			self:EmitSound( "MetalVehicle.ImpactSoft" )
-		end
-		if (RealDamage) then
-			if (data.Speed > 500) then
-				local vel = data.OurOldVelocity
-				vel.z = 0
-				self:HurtPlayers(vel:Length() ^ 2 / 90000)
-			end
-		else
-			if (data.Speed > 1000) then
-				self:HurtPlayers(5)
-			else
-				if (data.Speed > 700) then
-					self:HurtPlayers(2)
-				end
-			end
+			self:HurtPlayers(2)
 		end
 	end
 end
@@ -2291,6 +2300,19 @@ numpad.Register( "k_eng", function( pl, ent, keydown )
 		end
 	end
 end)
+
+numpad.Register( "k_lock", function( pl, ent, keydown )
+	if (!IsValid(pl) or !IsValid(ent)) then return false end
+	if (keydown) then
+		if (ent.IsLocked) then
+			ent.IsLocked = false
+			ent:EmitSound( "doors/latchunlocked1.wav" )
+		else
+			ent.IsLocked = true
+			ent:EmitSound( "doors/latchlocked2.wav" )
+		end
+	end
+end )
 
 numpad.Register( "k_flgts", function( pl, ent, keydown )
 	if (!IsValid(pl) or !IsValid(ent) or !ent.LightsTable) then return false end

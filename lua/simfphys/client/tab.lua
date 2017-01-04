@@ -38,6 +38,8 @@ local k_afwd = CreateClientConVar( "cl_simfphys_key_air_forward", KEY_PAD_8, tru
 local k_abck = CreateClientConVar( "cl_simfphys_key_air_reverse", KEY_PAD_2, true, true )
 local k_aleft = CreateClientConVar( "cl_simfphys_key_air_left", k_left:GetInt(), true, true )
 local k_aright = CreateClientConVar( "cl_simfphys_key_air_right", k_right:GetInt(), true, true )
+local k_lock = CreateClientConVar( "cl_simfphys_key_lock", KEY_NONE, true, true )
+
 local k_list = {
 	{k_fwd,KEY_W,"Forward"},
 	{k_bck,KEY_S,"Reverse"},
@@ -57,6 +59,7 @@ local k_list = {
 	{k_abck,KEY_PAD_2,"Tilt Forward"},
 	{k_aleft,KEY_A,"Tilt Left"},
 	{k_aright,KEY_D,"Tilt Right"},
+	{k_lock,KEY_NONE ,"Lock / Unlock"},
 }
 
 local function createbinder( x, y, tbl, num, parent, sizex, sizey)
@@ -170,7 +173,7 @@ local function buildcontrolsmenu( self )
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
 	Shape:SetPos( 20, 40 )
-	Shape:SetSize( 525, 745 )
+	Shape:SetSize( 525, 800 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	
 	local TextLabel = vgui.Create( "DPanel", self.PropPanel)
@@ -194,16 +197,20 @@ local function buildcontrolsmenu( self )
 	binders[11] = createbinder(25,455,k_list,11,self.PropPanel,516, 40)
 	binders[12] = createbinder(25,510,k_list,12,self.PropPanel,516, 40)
 	binders[13] = createbinder(25,565,k_list,13,self.PropPanel,516, 40)
+	
 	binders[14] = createbinder(25,400,k_list,14,self.PropPanel,516, 40)
-	binders[15] = createbinder(290,645,k_list,15,self.PropPanel,250, 40)
-	binders[16] = createbinder(25,645,k_list,16,self.PropPanel,250, 40)
-	binders[17] = createbinder(25,700,k_list,17,self.PropPanel,250, 40)
-	binders[18] = createbinder(290,700,k_list,18,self.PropPanel,250, 40)
+	
+	binders[15] = createbinder(290,700,k_list,15,self.PropPanel,250, 40)
+	binders[16] = createbinder(25,700,k_list,16,self.PropPanel,250, 40)
+	binders[17] = createbinder(25,755,k_list,17,self.PropPanel,250, 40)
+	binders[18] = createbinder(290,755,k_list,18,self.PropPanel,250, 40)
+	
+	binders[19] = createbinder(25,620,k_list,19,self.PropPanel,516, 40)
 	
 	local DermaButton = vgui.Create( "DButton" )
 	DermaButton:SetParent( self.PropPanel )
 	DermaButton:SetText( "Reset" )	
-	DermaButton:SetPos( 25, 755 )
+	DermaButton:SetPos( 25, 810 )
 	DermaButton:SetSize( 516, 25 )
 	DermaButton.DoClick = function()
 		for i = 1, table.Count( binders ) do
