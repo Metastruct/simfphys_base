@@ -598,7 +598,7 @@ local V = {
 		BrakePower = 50,
 		
 		IdleRPM = 750,
-		LimitRPM = 5800,
+		LimitRPM = 5600,
 		PeakTorque = 230,
 		PowerbandStart = 1000,
 		PowerbandEnd = 5400,
@@ -614,12 +614,12 @@ local V = {
 		
 		snd_low = "simulated_vehicles/master_chris_charger69/charger_low.wav",
 		snd_low_revdown = "simulated_vehicles/master_chris_charger69/charger_revdown.wav",
-		snd_low_pitch = 0.95,
+		snd_low_pitch = 0.9,
 		
 		snd_mid = "simulated_vehicles/master_chris_charger69/charger_mid.wav",
 		snd_mid_gearup = "simulated_vehicles/master_chris_charger69/charger_second.wav",
 		snd_mid_geardown = "simulated_vehicles/master_chris_charger69/charger_shiftdown.wav",
-		snd_mid_pitch = 1.2,
+		snd_mid_pitch = 1.15,
 		
 		snd_horn = "simulated_vehicles/horn_3.wav",
 		
