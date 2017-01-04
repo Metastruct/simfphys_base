@@ -29,6 +29,9 @@ if (CLIENT) then
 	SWEP.Slot			= 1
 	SWEP.SlotPos			= 9
 	SWEP.IconLetter			= "k"
+	
+	SWEP.WepSelectIcon 			= surface.GetTextureID( "weapons/s_repair" ) 
+	--SWEP.DrawWeaponInfoBox 	= false
 end
 
 function SWEP:Initialize()
