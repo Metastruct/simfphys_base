@@ -2074,8 +2074,8 @@ function ENT:PhysicsCollide( data, physobj )
 			self:HurtPlayers(5)
 			self.Healthpoints = math.max(self.Healthpoints - (data.Speed / 8),0)
 		else
+			self:EmitSound( "MetalVehicle.ImpactSoft" )
 			if (data.Speed > 700) then
-				self:EmitSound( "MetalVehicle.ImpactSoft" )
 				self:HurtPlayers(2)
 			end
 		end
