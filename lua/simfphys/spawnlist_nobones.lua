@@ -529,3 +529,114 @@ local V = {
 list.Set( "simfphys_vehicles", "sim_fphys_dukes", V )
 
 
+
+--[[
+
+local V = {
+	Name = "Duke of Drift",
+	Model = "models/winningrook/gtav/dukes/dukes.mdl",
+	Class = "gmod_sent_vehicle_fphysics_base",
+	Category = "Base",
+	SpawnOffset = Vector(0,0,20),
+	SpawnAngleOffset = 90,
+
+	Members = {
+		Mass = 1700,
+		
+		LightsTable = "dukes",
+		
+		CustomWheels = true,
+		CustomSuspensionTravel = 15,
+		
+		CustomWheelModel = "models/winningrook/gtav/dukes/dukes_wheel.mdl",
+		CustomWheelPosFL = Vector(63.5,36,-13),
+		CustomWheelPosFR = Vector(63.5,-36,-13),
+		CustomWheelPosRL = Vector(-64,36.5,-9),
+		CustomWheelPosRR = Vector(-64,-36.5,-9),
+		CustomWheelAngleOffset = Angle(0,-90,0),
+		
+		CustomMassCenter = Vector(0,0,5),
+		
+		CustomSteerAngle = 35,
+		
+		SeatOffset = Vector(-18,-18,19),
+		SeatPitch = 0,
+		SeatYaw = 90,
+		
+		ModelInfo = {
+			Bodygroups = {1,2,0,0,0,0,0,1,1,1},
+			Color = Color(0,31,127,255)
+		},
+		
+		PassengerSeats = {
+			{
+				pos = Vector(-3,-19,-13),
+				ang = Angle(0,-90,17)
+			}
+		},
+		
+		ExhaustPositions = {
+			{
+				pos = Vector(-122.25,20.93,-7.28),
+				ang = Angle(90,165,0)
+			},
+			{
+				pos = Vector(-122.1,-20.95,-7.42),
+				ang = Angle(90,195,0)
+			}
+		},
+		
+		FrontHeight = 6,
+		FrontConstant = 29000,
+		FrontDamping = 2500,
+		FrontRelativeDamping = 2500,
+		
+		RearHeight = 11,
+		RearConstant = 29000,
+		RearDamping = 2500,
+		RearRelativeDamping = 2500,
+		
+		FastSteeringAngle = 10,
+		SteeringFadeFastSpeed = 535,
+		
+		TurnSpeed = 8,
+		
+		MaxGrip = 40,
+		Efficiency = 0.8,
+		GripOffset = -8,
+		BrakePower = 40,
+		
+		IdleRPM = 600,
+		LimitRPM = 7700,
+		Revlimiter = true, 
+		PeakTorque = 500,
+		PowerbandStart = 1500,
+		PowerbandEnd = 7400,
+		Turbocharged = false,
+		Supercharged = false,
+		
+		PowerBias = 1,
+		
+		EngineSoundPreset = -1,
+		
+		snd_pitch = 1,
+		snd_idle = "simulated_vehicles/gta5_gauntlet/gauntlet_idle.wav",
+		
+		snd_low = "simulated_vehicles/gta5_gauntlet/gauntlet_low.wav",
+		snd_low_revdown = "simulated_vehicles/gta5_gauntlet/gauntlet_revdown.wav",
+		snd_low_pitch = 0.85,
+		
+		snd_mid = "simulated_vehicles/gta5_gauntlet/gauntlet_mid.wav",
+		snd_mid_gearup = "simulated_vehicles/gta5_gauntlet/gauntlet_gear.wav",
+		snd_mid_pitch = 1,
+		
+		snd_horn = "simulated_vehicles/horn_3.wav",
+		
+		DifferentialGear = 0.6,
+		Gears = {-0.12,0,0.12,0.21,0.32,0.42,0.5}
+	}
+}
+list.Set( "simfphys_vehicles", "sim_fphys_dukes_drift", V )
+
+
+]]--
