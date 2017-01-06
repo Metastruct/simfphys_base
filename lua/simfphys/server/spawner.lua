@@ -43,6 +43,17 @@ end
 function SpawnSimfphysVehicle( Player, vname, tr )
 	if ( !vname ) then return end
 
+	local Tickrate = 1 / engine.TickInterval()
+	
+	if (Tickrate <= 25) then  -- lets warn these fools everytime they spawn a car because these stupid bug reports are getting annoying
+		Player:PrintMessage( HUD_PRINTTALK, "(SIMFPHYS) WARNING! Server tickrate is "..Tickrate.." we recommend 33 or greater for this addon to work properly!")
+		Player:PrintMessage( HUD_PRINTTALK, "Problems caused by a too low tickrate:")
+		Player:PrintMessage( HUD_PRINTTALK, "- Wobbly suspension")
+		Player:PrintMessage( HUD_PRINTTALK, "- Wheelspazz or shaking after an crashes on bumps or while drifting")
+		Player:PrintMessage( HUD_PRINTTALK, "- Moondrive (wheels turning slower than expected)")
+		Player:PrintMessage( HUD_PRINTTALK, "- Worse vehicle performance")
+	end
+	
 	local VehicleList = list.Get( "simfphys_vehicles" )
 	local vehicle = VehicleList[ vname ]
 
