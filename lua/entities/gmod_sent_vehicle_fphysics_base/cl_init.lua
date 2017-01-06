@@ -16,6 +16,7 @@ function ENT:Initialize()
 	self.FadeThrottle = 0
 	self.EnableLights = 0
 	self.ListFound = false
+	self.Sprites = {}
 	
 	self.SoundMode = 0
 	
@@ -383,90 +384,27 @@ function ENT:Draw()
 	end
 	
 	if (SpritesDisabled) then return end
-	
-	if (self:GetFogLightsEnabled()) then
-		self:DrawFogLights()
-	end
-	
-	if (self:GetLightsEnabled()) then
-		self:DrawLights()
-	end
-	
-	if (self:GetLampsEnabled()) then
-		self:DrawHighBeams()
-	end
-	
-	if (self:GetIsBraking() and self.LightsBrake) then
-		self:DrawBrakeLights()
-	end
-	
-	if (self:GetGear() == 1 and self.LightsReverse) then
-		self:DrawReverseLights()
-	end
-end
 
-function ENT:DrawHighBeams()
-	if (self.Lights_h) then
-		for i = 1, table.Count( self.Lights_h ) do
-			if (isvector(self.Lights_h[i])) then
-				local LightPos = self:LocalToWorld( self.Lights_h[i] )
-				local Visible = util.PixelVisible( LightPos, 4, self.PixVis_h[i] )
-				
-				if Visible and Visible >= 0.6 then
-					Visible = (Visible - 0.6) / 0.4
-					
-					render.SetMaterial( self.mat )
-					render.DrawSprite( LightPos, 16, 16,  Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  255 * Visible) )
-					
-					render.SetMaterial( self.mat2 )
-					render.DrawSprite( LightPos, 64, 64,  Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  150 * Visible) )
-				end
-			else
-				local LightPos = self:LocalToWorld( self.Lights_h[i].pos )
-				local Visible = util.PixelVisible( LightPos, 4, self.PixVis_h[i] )
-				local s_col = self.Lights_h[i].color
-				local s_mat = self.Lights_h[i].material
-				local s_size = self.Lights_h[i].size
-				
-				if (self.Lights_h[i].OnBodyGroups) then
-					Visible = !self:BodyGroupIsValid( self.Lights_h[i].OnBodyGroups ) and 0 or Visible
-				end
-				
-				if Visible and Visible >= 0.6 then
-					Visible = (Visible - 0.6) / 0.4
-					render.SetMaterial( s_mat )
-					render.DrawSprite( LightPos, s_size, s_size,  Color( s_col["r"], s_col["g"], s_col["b"],  s_col["a"] * Visible) )
-				end
-			end
-		end
-	end
-end
-
-function ENT:DrawBrakeLights()
-	for i = 1, table.Count( self.LightsBrake ) do
-		if (isvector(self.LightsBrake[i])) then
-			local LightPos = self:LocalToWorld( self.LightsBrake[i] )
-			local Visible = util.PixelVisible( LightPos, 4, self.PixVisBrake[i] )
+	local triggers = {
+		[1] = self:GetLightsEnabled(),
+		[2] = self:GetLampsEnabled(),
+		[3] = self:GetFogLightsEnabled(),
+		[4] = self:GetIsBraking(),
+		[5] = (self:GetGear() == 1),
+	}
+	
+	for _, sprite in pairs( self.Sprites ) do
+		local triggered = sprite.trigger
+		if triggers[triggered] then
+			local LightPos = self:LocalToWorld( sprite.pos )
+			local Visible = util.PixelVisible( LightPos, 4, sprite.PixVis )
+			local s_col = sprite.color
+			local s_mat = sprite.material
+			local s_size = sprite.size
 			
-			if Visible and Visible >= 0.6 then
-				Visible = (Visible - 0.6) / 0.4
-				
-				render.SetMaterial( self.mat2 )
-				render.DrawSprite( LightPos, 12, 12,  Color( 255, 120, 0,  125 * Visible) )
-				
-				render.SetMaterial( self.mat )
-				render.DrawSprite( LightPos, 32, 32,  Color( 255, 0, 0,  90 * Visible) )
+			if sprite.bodygroups then
+				Visible = !self:BodyGroupIsValid( sprite.bodygroups ) and 0 or Visible
 			end
-		else
-			local LightPos = self:LocalToWorld( self.LightsBrake[i].pos )
-			local Visible = util.PixelVisible( LightPos, 4, self.PixVisBrake[i] )
-			local s_col = self.LightsBrake[i].color
-			local s_mat = self.LightsBrake[i].material
-			local s_size = self.LightsBrake[i].size
-			
-			if (self.LightsBrake[i].OnBodyGroups) then
-					Visible = !self:BodyGroupIsValid( self.LightsBrake[i].OnBodyGroups ) and 0 or Visible
-				end
 			
 			if Visible and Visible >= 0.6 then
 				Visible = (Visible - 0.6) / 0.4
@@ -477,39 +415,6 @@ function ENT:DrawBrakeLights()
 	end
 end
 
-function ENT:DrawFogLights()
-	if (self.Lights_f) then
-		for i = 1, table.Count( self.Lights_f ) do
-			if (isvector(self.Lights_f[i])) then
-				local LightPos = self:LocalToWorld( self.Lights_f[i] )
-				local Visible = util.PixelVisible( LightPos, 4, self.PixVis_f[i] )
-				
-				if Visible and Visible >= 0.6 then
-					Visible = (Visible - 0.6) / 0.4
-					
-					render.SetMaterial( self.mat2 )
-					render.DrawSprite( LightPos, 32, 32,  Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  200 * Visible) )
-				end
-			else
-				local LightPos = self:LocalToWorld( self.Lights_f[i].pos )
-				local Visible = util.PixelVisible( LightPos, 4, self.PixVis_f[i] )
-				local s_col = self.Lights_f[i].color
-				local s_mat = self.Lights_f[i].material
-				local s_size = self.Lights_f[i].size
-				
-				if (self.Lights_f[i].OnBodyGroups) then
-					Visible = !self:BodyGroupIsValid( self.Lights_f[i].OnBodyGroups ) and 0 or Visible
-				end
-				
-				if Visible and Visible >= 0.6 then
-					Visible = (Visible - 0.6) / 0.4
-					render.SetMaterial( s_mat )
-					render.DrawSprite( LightPos, s_size, s_size,  Color( s_col["r"], s_col["g"], s_col["b"],  s_col["a"] * Visible) )
-				end
-			end
-		end
-	end
-end
 
 function ENT:DrawEMSLights()
 	local Time = CurTime()
@@ -548,257 +453,240 @@ function ENT:DrawEMSLights()
 	end
 end
 
-function ENT:DrawReverseLights()
-	for i = 1, table.Count( self.LightsReverse ) do
-		if (isvector(self.LightsReverse[i])) then
-			local LightPos = self:LocalToWorld( self.LightsReverse[i] )
-			local Visible = util.PixelVisible( LightPos, 4, self.PixVisReverse[i] )
-			
-			if Visible and Visible >= 0.6 then
-				Visible = (Visible - 0.6) / 0.4
-				
-				render.SetMaterial( self.mat )
-				render.DrawSprite( LightPos, 12, 12,  Color( 255, 255, 255,  255 * Visible) )
-				
-				render.SetMaterial( self.mat2 )
-				render.DrawSprite( LightPos, 16, 16,  Color( 255, 255, 255,  150 * Visible) )
-			end
-		else
-			local LightPos = self:LocalToWorld( self.LightsReverse[i].pos )
-			local Visible = util.PixelVisible( LightPos, 4, self.PixVisReverse[i] )
-			local s_col = self.LightsReverse[i].color
-			local s_mat = self.LightsReverse[i].material
-			local s_size = self.LightsReverse[i].size
-			
-			if (self.LightsReverse[i].OnBodyGroups) then
-				Visible = !self:BodyGroupIsValid( self.LightsReverse[i].OnBodyGroups ) and 0 or Visible
-			end
-			
-			if Visible and Visible >= 0.6 then
-				Visible = (Visible - 0.6) / 0.4
-				render.SetMaterial( s_mat )
-				render.DrawSprite( LightPos, s_size, s_size,  Color( s_col["r"], s_col["g"], s_col["b"],  s_col["a"] * Visible) )
-			end
-		end
-	end
-end
-
-function ENT:DrawLights()
-	if (self.Lights) then
-		for i = 1, table.Count( self.Lights ) do
-			if (isvector(self.Lights[i])) then
-				local LightPos = self:LocalToWorld( self.Lights[i] )
-				local Visible = util.PixelVisible( LightPos, 4, self.PixVis[i] )
-				
-				if Visible and Visible >= 0.6 then
-					Visible = (Visible - 0.6) / 0.4
-					
-					render.SetMaterial( self.mat )
-					render.DrawSprite( LightPos, 16, 16,  Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  255 * Visible) )
-					
-					render.SetMaterial( self.mat2 )
-					render.DrawSprite( LightPos, 64, 64,  Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  150 * Visible) )
-				end
-			else
-				local LightPos = self:LocalToWorld( self.Lights[i].pos )
-				local Visible = util.PixelVisible( LightPos, 4, self.PixVis[i] )
-				local s_col = self.Lights[i].color
-				local s_mat = self.Lights[i].material
-				local s_size = self.Lights[i].size
-				
-				if (self.Lights[i].OnBodyGroups) then
-					Visible = !self:BodyGroupIsValid( self.Lights[i].OnBodyGroups ) and 0 or Visible
-				end
-				
-				if Visible and Visible >= 0.6 then
-					Visible = (Visible - 0.6) / 0.4
-					render.SetMaterial( s_mat )
-					render.DrawSprite( LightPos, s_size, s_size,  Color( s_col["r"], s_col["g"], s_col["b"],  s_col["a"] * Visible) )
-				end
-			end
-		end
-	end
-
-	if (self.LightsRear) then
-		for i = 1, table.Count( self.LightsRear ) do
-			if (isvector(self.LightsRear[i])) then
-				local LightPos = self:LocalToWorld( self.LightsRear[i] )
-				local Visible = util.PixelVisible( LightPos, 4, self.PixVisRear[i] )
-				
-				if Visible and Visible >= 0.6 then
-					Visible = (Visible - 0.6) / 0.4
-					
-					render.SetMaterial( self.mat2 )
-					render.DrawSprite( LightPos, 12, 12,  Color( 255, 120, 0,  125 * Visible) )
-					
-					render.SetMaterial( self.mat )
-					render.DrawSprite( LightPos, 32, 32,  Color( 255, 0, 0,  90 * Visible) )
-				end
-			else
-				local LightPos = self:LocalToWorld( self.LightsRear[i].pos )
-				local Visible = util.PixelVisible( LightPos, 4, self.PixVisRear[i] )
-				local s_col = self.LightsRear[i].color
-				local s_mat = self.LightsRear[i].material
-				local s_size = self.LightsRear[i].size
-				
-				if (self.LightsRear[i].OnBodyGroups) then
-					Visible = !self:BodyGroupIsValid( self.LightsRear[i].OnBodyGroups ) and 0 or Visible
-				end
-				
-				if Visible and Visible >= 0.6 then
-					Visible = (Visible - 0.6) / 0.4
-					render.SetMaterial( s_mat )
-					render.DrawSprite( LightPos, s_size, s_size,  Color( s_col["r"], s_col["g"], s_col["b"],  s_col["a"] * Visible) )
-				end
-			end
-		end
-	end
-
-
-	if (self.LightsFMarker) then
-		for i = 1, table.Count( self.LightsFMarker ) do
-			if (isvector(self.LightsFMarker[i])) then
-				local LightPos = self:LocalToWorld( self.LightsFMarker[i] )
-				local Visible = util.PixelVisible( LightPos, 4, self.PixVisFMarker[i] )
-				
-				if Visible and Visible >= 0.6 then
-					Visible = (Visible - 0.6) / 0.4
-					
-					render.SetMaterial( self.mat )
-					render.DrawSprite( LightPos, 12, 12,  Color( 200, 100, 0,  150 * Visible) )
-				end
-			end
-		end
-	end
-	if (self.LightsRMarker) then
-		for i = 1, table.Count( self.LightsRMarker ) do
-			if (isvector(self.LightsRMarker[i])) then
-				local LightPos = self:LocalToWorld( self.LightsRMarker[i] )
-				local Visible = util.PixelVisible( LightPos, 4, self.PixVisRMarker[i] )
-				
-				if Visible and Visible >= 0.6 then
-					Visible = (Visible - 0.6) / 0.4
-					
-					render.SetMaterial( self.mat )
-					render.DrawSprite( LightPos, 12, 12,  Color( 205, 0, 0,  150 * Visible) )
-				end
-			end
-		end
-	end
-end
-
 function ENT:SetUpLights(vname)	
 	local vehiclelist = list.Get( "simfphys_lights" )[vname]
 	if (!vehiclelist) then return end
 	
-	self.Lights = vehiclelist.Headlight_sprites or false
-	self.Lights_h = vehiclelist.Headlamp_sprites or false
-	self.Lights_f = vehiclelist.FogLight_sprites or false
-	self.LightsRear = vehiclelist.Rearlight_sprites or false
-	self.LightsBrake = vehiclelist.Brakelight_sprites or false
-	self.LightsReverse = vehiclelist.Reverselight_sprites or false
-	self.LightsFMarker = vehiclelist.FrontMarker_sprites or false
-	self.LightsRMarker = vehiclelist.RearMarker_sprites or false
 	self.LightsEMS  = vehiclelist.ems_sprites or false 
-	
-	self.PixVis = {}
-	self.PixVisEMS = {}
-	self.PixVis_h = {}
-	self.PixVis_f = {}
-	self.PixVisRear = {}
-	self.PixVisBrake = {}
-	self.PixVisReverse = {}
-	self.PixVisFMarker = {}
-	self.PixVisRMarker = {}
-	
 	self.hl_col = vehiclelist.ModernLights and {215,240,255} or {220,205,160}
 	
-	if (self.Lights) then
-		for i = 1, table.Count( self.Lights ) do
-			self.PixVis[i] = util.GetPixelVisibleHandle()
-			
-			if (!isvector(self.Lights[i])) then
-				self.Lights[i].color = self.Lights[i].color or Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  255)
-				self.Lights[i].material = self.Lights[i].material and Material( self.Lights[i].material ) or self.mat2
-				self.Lights[i].size = self.Lights[i].size or 16
-			end
-		end
-	end
-	if (self.LightsEMS) then
-		for i = 1, table.Count( self.LightsEMS ) do
+	if istable(vehiclelist.ems_sprites) then
+		self.PixVisEMS = {}
+		for i = 1, table.Count( vehiclelist.ems_sprites ) do
 			self.PixVisEMS[i] = util.GetPixelVisibleHandle()
 			
 			self.LightsEMS[i].material = self.LightsEMS[i].material and Material( self.LightsEMS[i].material ) or self.mat2
 		end
 	end
-	if (self.Lights_h) then
-		for i = 1, table.Count( self.Lights_h ) do
-			self.PixVis_h[i] = util.GetPixelVisibleHandle()
+	
+	if istable( vehiclelist.Headlight_sprites ) then
+		for _, data in pairs( vehiclelist.Headlight_sprites ) do
+			local s = {}
+			s.PixVis = util.GetPixelVisibleHandle()
+			s.trigger = 1
 			
-			if (!isvector(self.Lights_h[i])) then
-				self.Lights_h[i].color = self.Lights_h[i].color and self.Lights_h[i].color or Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  255)
-				self.Lights_h[i].material = self.Lights_h[i].material and Material( self.Lights_h[i].material ) or self.mat2
-				self.Lights_h[i].size = self.Lights_h[i].size and self.Lights_h[i].size or 16
+			if !isvector(data) then
+				s.color = data.color and data.color or Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  255)
+				s.material = data.material and Material( data.material ) or self.mat2
+				s.size = data.size and data.size or 16
+				s.pos = data.pos
+				if (data.OnBodyGroups) then s.bodygroups = data.OnBodyGroups end
+				table.insert(self.Sprites, s)
+			else
+				s.pos = data
+				s.color = Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  255)
+				s.material = self.mat
+				s.size = 16
+				table.insert(self.Sprites, s)
+				
+				local s2 = {}
+				s2.PixVis = s.PixVis
+				s2.trigger = 1
+				s2.pos = data
+				s2.color = Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  150)
+				s2.material = self.mat2
+				s2.size = 64
+				table.insert(self.Sprites, s2)
 			end
 		end
 	end
-	if (self.Lights_f) then
-		for i = 1, table.Count( self.Lights_f ) do
-			self.PixVis_f[i] = util.GetPixelVisibleHandle()
-		
-			if (!isvector(self.Lights_f[i])) then
-				self.Lights_f[i].color = self.Lights_f[i].color and self.Lights_f[i].color or Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  255)
-				self.Lights_f[i].material = self.Lights_f[i].material and Material( self.Lights_f[i].material ) or self.mat2
-				self.Lights_f[i].size = self.Lights_f[i].size and self.Lights_f[i].size or 32
-			end
-		end
-	end
-	if (self.LightsRear) then
-		for i = 1, table.Count( self.LightsRear ) do
-			self.PixVisRear[i] = util.GetPixelVisibleHandle()
+	
+	if istable( vehiclelist.Rearlight_sprites ) then
+		for _, data in pairs( vehiclelist.Rearlight_sprites ) do
+			local s = {}
+			s.PixVis = util.GetPixelVisibleHandle()
+			s.trigger = 1
 			
-			if (!isvector(self.LightsRear[i])) then
-				self.LightsRear[i].material = self.LightsRear[i].material and Material( self.LightsRear[i].material ) or self.mat2
-				self.LightsRear[i].color = self.LightsRear[i].color and self.LightsRear[i].color or Color( 255, 0, 0,  125)
-				self.LightsRear[i].size =  self.LightsRear[i].size and self.LightsRear[i].size or 16
+			if !isvector(data) then
+				s.color = data.color and data.color or Color( 255, 0, 0,  125)
+				s.material = data.material and Material( data.material ) or self.mat2
+				s.size = data.size and data.size or 16
+				s.pos = data.pos
+				if (data.OnBodyGroups) then s.bodygroups = data.OnBodyGroups end
+				table.insert(self.Sprites, s)
+			else
+				local s2 = {}
+				s2.PixVis = s.PixVis
+				s2.trigger = 1
+				s2.pos = data
+				s2.color = Color( 255, 120, 0,  125 )
+				s2.material = self.mat2
+				s2.size = 12
+				table.insert(self.Sprites, s2)
+				
+				s.pos = data
+				s.color = Color( 255, 0, 0,  90 )
+				s.material = self.mat
+				s.size = 32
+				table.insert(self.Sprites, s)
 			end
 		end
 	end
-	if (self.LightsBrake) then
-		for i = 1, table.Count( self.LightsBrake ) do
-			self.PixVisBrake[i] = util.GetPixelVisibleHandle()
+	
+	if istable( vehiclelist.Brakelight_sprites ) then
+		for _, data in pairs( vehiclelist.Brakelight_sprites ) do
+			local s = {}
+			s.PixVis = util.GetPixelVisibleHandle()
+			s.trigger = 4
 			
-			if (!isvector(self.LightsBrake[i])) then
-				self.LightsBrake[i].color = self.LightsBrake[i].color and self.LightsBrake[i].color or Color( 255, 0, 0,  125)
-				self.LightsBrake[i].material = self.LightsBrake[i].material and Material( self.LightsBrake[i].material ) or self.mat2
-				self.LightsBrake[i].size = self.LightsBrake[i].size and self.LightsBrake[i].size or 16
+			if !isvector(data) then
+				s.color = data.color and data.color or Color( 255, 0, 0,  125)
+				s.material = data.material and Material( data.material ) or self.mat2
+				s.size = data.size and data.size or 16
+				s.pos = data.pos
+				if (data.OnBodyGroups) then s.bodygroups = data.OnBodyGroups end
+				table.insert(self.Sprites, s)
+			else
+				s.pos = data
+				s.color = Color( 255, 0, 0,  90 )
+				s.material = self.mat
+				s.size = 32
+				table.insert(self.Sprites, s)
+				
+				local s2 = {}
+				s2.PixVis = s.PixVis
+				s2.trigger = 4
+				s2.pos = data
+				s2.color = Color( 255, 120, 0,  125 ) 
+				s2.material = self.mat2
+				s2.size = 12
+				table.insert(self.Sprites, s2)
 			end
 		end
 	end
-	if (self.LightsReverse) then
-		for i = 1, table.Count( self.LightsReverse ) do
-			self.PixVisReverse[i] = util.GetPixelVisibleHandle()
+	
+	if istable( vehiclelist.Reverselight_sprites ) then
+		for _, data in pairs( vehiclelist.Reverselight_sprites ) do
+			local s = {}
+			s.PixVis = util.GetPixelVisibleHandle()
+			s.trigger = 5
 			
-			if (!isvector(self.LightsReverse[i])) then
-				self.LightsReverse[i].color = self.LightsReverse[i].color and self.LightsReverse[i].color or Color( 255, 255, 255,  255)
-				self.LightsReverse[i].material = self.LightsReverse[i].material and Material( self.LightsReverse[i].material ) or self.mat2
-				self.LightsReverse[i].size = self.LightsReverse[i].size and self.LightsReverse[i].size or 16
+			if !isvector(data) then
+				s.color = data.color and data.color or Color( 255, 255, 255,  255)
+				s.material = data.material and Material( data.material ) or self.mat2
+				s.size = data.size and data.size or 16
+				s.pos = data.pos
+				if (data.OnBodyGroups) then s.bodygroups = data.OnBodyGroups end
+				table.insert(self.Sprites, s)
+			else
+				s.pos = data
+				s.color = Color( 255, 255, 255,  255)
+				s.material = self.mat
+				s.size = 12
+				table.insert(self.Sprites, s)
+				
+				local s2 = {}
+				s2.PixVis = s.PixVis
+				s2.trigger = 5
+				s2.pos = data
+				s2.color =  Color( 255, 255, 255,  150 )
+				s2.material = self.mat2
+				s2.size = 16
+				table.insert(self.Sprites, s2)
 			end
 		end
 	end
-	if (self.LightsFMarker) then
-		for i = 1, table.Count( self.LightsFMarker ) do
-			self.PixVisFMarker[i] = util.GetPixelVisibleHandle()
+	
+	if istable( vehiclelist.FrontMarker_sprites ) then
+		for _, data in pairs( vehiclelist.FrontMarker_sprites ) do
+			local s = {}
+			s.PixVis = util.GetPixelVisibleHandle()
+			s.trigger = 1
+			
+			if isvector(data) then
+				s.pos = data
+				s.color = Color( 200, 100, 0,  150)
+				s.material = self.mat
+				s.size = 12
+				table.insert(self.Sprites, s)
+			end
 		end
 	end
-	if (self.LightsRMarker) then
-		for i = 1, table.Count( self.LightsRMarker ) do
-			self.PixVisRMarker[i] = util.GetPixelVisibleHandle()
+	
+	if istable( vehiclelist.RearMarker_sprites ) then
+		for _, data in pairs( vehiclelist.RearMarker_sprites ) do
+			local s = {}
+			s.PixVis = util.GetPixelVisibleHandle()
+			s.trigger = 1
+			
+			if isvector(data) then
+				s.pos = data
+				s.color = Color( 205, 0, 0,  150 )
+				s.material = self.mat
+				s.size = 12
+				table.insert(self.Sprites, s)
+			end
+		end
+	end
+	
+	if istable( vehiclelist.Headlamp_sprites ) then
+		for _, data in pairs( vehiclelist.Headlamp_sprites ) do
+			local s = {}
+			s.PixVis = util.GetPixelVisibleHandle()
+			s.trigger = 2
+			
+			if !isvector(data) then
+				s.color = data.color and data.color or Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  255)
+				s.material = data.material and Material( data.material ) or self.mat2
+				s.size = data.size and data.size or 16
+				s.pos = data.pos
+				if (data.OnBodyGroups) then s.bodygroups = data.OnBodyGroups end
+				table.insert(self.Sprites, s)
+			else
+				s.pos = data
+				s.color = Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  255)
+				s.material = self.mat
+				s.size = 16
+				table.insert(self.Sprites, s)
+				
+				local s2 = {}
+				s2.PixVis = s.PixVis
+				s2.trigger = 2
+				s2.pos = data
+				s2.color = Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  150)
+				s2.material = self.mat2
+				s2.size = 64
+				table.insert(self.Sprites, s2)
+			end
+		end
+	end
+	
+	if istable( vehiclelist.FogLight_sprites ) then
+		for _, data in pairs( vehiclelist.FogLight_sprites ) do
+			local s = {}
+			s.PixVis = util.GetPixelVisibleHandle()
+			s.trigger = 3
+			
+			if !isvector(data) then
+				s.color = data.color and data.color or Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  255)
+				s.material = data.material and Material( data.material ) or self.mat2
+				s.size = data.size and data.size or 32
+				s.pos = data.pos
+				if (data.OnBodyGroups) then s.bodygroups = data.OnBodyGroups end
+				table.insert(self.Sprites, s)
+			else
+				s.pos = data
+				s.color = Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  200)
+				s.material = self.mat2
+				s.size = 32
+				table.insert(self.Sprites, s)
+			end
 		end
 	end
 	
 	self.EnableLights = 1
 end
+
 
 function ENT:SetSoundPreset(index)
 	if (index == -1) then

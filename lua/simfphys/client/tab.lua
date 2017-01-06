@@ -5,7 +5,7 @@ local ctenable = CreateClientConVar( "cl_simfphys_ctenable", 1 , true, true )
 local ctmul = CreateClientConVar( "cl_simfphys_ctmul", 0.7 , true, true )
 local ctang = CreateClientConVar( "cl_simfphys_ctang", 15 , true, true )
 local hud = CreateClientConVar( "cl_simfphys_hud", "1", true, false )
-local alt_hud = CreateClientConVar( "cl_simfphys_althud", "1", true, false )
+local alt_hud = CreateClientConVar( "cl_simfphys_althud", "0", true, false )
 local hud_mph = CreateClientConVar( "cl_simfphys_hudmph", "0", true, false )
 local hud_realspeed = CreateClientConVar( "cl_simfphys_hudrealspeed", "0", true, false )
 
@@ -133,9 +133,9 @@ local function buildclientsettingsmenu( self )
 	
 	createcheckbox(25,25,"Show Hud","cl_simfphys_hud",self.PropPanel,hud:GetInt())
 	
-	createcheckbox(240,25,"Alternative Hud","cl_simfphys_althud",self.PropPanel,alt_hud:GetInt())
-	createcheckbox(240,45,"MPH instead of KMH","cl_simfphys_hudmph",self.PropPanel,hud_mph:GetInt())
-	createcheckbox(240,65,"Speed relative to \nplayersize instead \nworldsize","cl_simfphys_hudrealspeed",self.PropPanel,hud_realspeed:GetInt())
+	createcheckbox(220,25,"Alternative Hud (fps killer)","cl_simfphys_althud",self.PropPanel,alt_hud:GetInt())
+	createcheckbox(220,45,"MPH instead of KMH","cl_simfphys_hudmph",self.PropPanel,hud_mph:GetInt())
+	createcheckbox(220,65,"Speed relative to \nplayersize instead \nworldsize","cl_simfphys_hudrealspeed",self.PropPanel,hud_realspeed:GetInt())
 	
 	createcheckbox(25,45,"Hide Sprites","cl_simfphys_hidesprites",self.PropPanel,0)
 	createcheckbox(25,65,"Debug Wheels","cl_simfphys_debugwheels",self.PropPanel,0)
