@@ -5,7 +5,7 @@ local ctenable = CreateClientConVar( "cl_simfphys_ctenable", 1 , true, true )
 local ctmul = CreateClientConVar( "cl_simfphys_ctmul", 0.7 , true, true )
 local ctang = CreateClientConVar( "cl_simfphys_ctang", 15 , true, true )
 local hud = CreateClientConVar( "cl_simfphys_hud", "1", true, false )
-local alt_hud = CreateClientConVar( "cl_simfphys_althud", "0", true, false )
+local alt_hud = CreateClientConVar( "cl_simfphys_althud", "1", true, false )
 local hud_mph = CreateClientConVar( "cl_simfphys_hudmph", "0", true, false )
 local hud_realspeed = CreateClientConVar( "cl_simfphys_hudrealspeed", "0", true, false )
 
