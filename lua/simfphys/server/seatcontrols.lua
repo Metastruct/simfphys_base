@@ -25,6 +25,8 @@ local function handleseatswitching( length, ply )
 						
 						ply:EnterVehicle( vehicle.DriverSeat )
 						ply:SetAllowWeaponsInVehicle( false ) 
+						local angles = Angle(0,90,0)
+						ply:SetEyeAngles( angles )
 					end)
 				end
 			end

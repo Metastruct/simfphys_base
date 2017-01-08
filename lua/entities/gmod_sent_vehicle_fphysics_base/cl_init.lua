@@ -490,8 +490,8 @@ function ENT:SetUpLights(vname)
 				table.insert(self.Sprites, s)
 				
 				local s2 = {}
-				s2.PixVis = s.PixVis
-				s2.trigger = 1
+				s2.PixVis = util.GetPixelVisibleHandle()
+				s2.trigger = s.trigger
 				s2.pos = data
 				s2.color = Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  150)
 				s2.material = self.mat2
@@ -516,8 +516,8 @@ function ENT:SetUpLights(vname)
 				table.insert(self.Sprites, s)
 			else
 				local s2 = {}
-				s2.PixVis = s.PixVis
-				s2.trigger = 1
+				s2.PixVis = util.GetPixelVisibleHandle()
+				s2.trigger = s.trigger
 				s2.pos = data
 				s2.color = Color( 255, 120, 0,  125 )
 				s2.material = self.mat2
@@ -554,8 +554,8 @@ function ENT:SetUpLights(vname)
 				table.insert(self.Sprites, s)
 				
 				local s2 = {}
-				s2.PixVis = s.PixVis
-				s2.trigger = 4
+				s2.PixVis = util.GetPixelVisibleHandle()
+				s2.trigger = s.trigger
 				s2.pos = data
 				s2.color = Color( 255, 120, 0,  125 ) 
 				s2.material = self.mat2
@@ -586,8 +586,8 @@ function ENT:SetUpLights(vname)
 				table.insert(self.Sprites, s)
 				
 				local s2 = {}
-				s2.PixVis = s.PixVis
-				s2.trigger = 5
+				s2.PixVis = util.GetPixelVisibleHandle()
+				s2.trigger = s.trigger
 				s2.pos = data
 				s2.color =  Color( 255, 255, 255,  150 )
 				s2.material = self.mat2
@@ -650,8 +650,8 @@ function ENT:SetUpLights(vname)
 				table.insert(self.Sprites, s)
 				
 				local s2 = {}
-				s2.PixVis = s.PixVis
-				s2.trigger = 2
+				s2.PixVis = util.GetPixelVisibleHandle()
+				s2.trigger = s.trigger
 				s2.pos = data
 				s2.color = Color( self.hl_col[1], self.hl_col[2], self.hl_col[3],  150)
 				s2.material = self.mat2
