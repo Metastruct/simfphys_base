@@ -79,6 +79,7 @@ function ENT:SetupDataTables()
 		self:NetworkVarNotify( "TurboCharged", self.OnTurboCharged )
 		self:NetworkVarNotify( "SuperCharged", self.OnSuperCharged )
 		self:NetworkVarNotify( "IsBraking", self.OnIsBrakingChanged )
+		self:NetworkVarNotify( "Active", self.OnActiveChanged )
 	end
 end
 
