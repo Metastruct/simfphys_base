@@ -56,6 +56,7 @@ entity:GetSoundoverride() -- returns an string
 
 
 -- server
+entity:DisableLights()  -- removes all lights from the inbuild lighting system
 entity:Destroy()  -- destroys the vehicle
 entity:SteerVehicle( number ) -- sets the angle of the steering
 entity:Lock()  -- locks the vehicle

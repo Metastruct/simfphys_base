@@ -277,11 +277,13 @@ function ENT:SimulateVehicle( curtime )
 	self.MoveDir = math.acos( math.Clamp( self.Forward:Dot(self.VelNorm) ,-1,1) ) * (180 / math.pi)
 	self.ForwardSpeed = math.cos(self.MoveDir * (math.pi / 180)) * self.Vel:Length()
 	
-	if (self.poseon) then
-		self.cpose = self.cpose or self.LightsPP.min
-		local anglestep = math.abs(math.max(self.LightsPP.max or self.LightsPP.min)) / 3
-		self.cpose = self.cpose + math.Clamp(self.poseon - self.cpose,-anglestep,anglestep)
-		self:SetPoseParameter(self.LightsPP.name, self.cpose)
+	if self.poseon then
+		if !self.LightsDisabled then
+			self.cpose = self.cpose or self.LightsPP.min
+			local anglestep = math.abs(math.max(self.LightsPP.max or self.LightsPP.min)) / 3
+			self.cpose = self.cpose + math.Clamp(self.poseon - self.cpose,-anglestep,anglestep)
+			self:SetPoseParameter(self.LightsPP.name, self.cpose)
+		end
 	end
 	
 	self:SetPoseParameter("vehicle_guage", (math.abs(self.ForwardSpeed) * 0.0568182 * 0.75) / (self.SpeedoMax or 120))
@@ -2220,7 +2222,7 @@ numpad.Register( "k_hrn", function( pl, ent, keydown )
 	
 	if (keydown) then
 		ent.HornKeyIsDown = true
-		if (v_list and v_list.ems_sounds) then
+		if (v_list and v_list.ems_sounds and !ent.LightsDisabled) then
 			if (!ent.emson) then
 				timer.Simple( 0.1, function()
 					if (!IsValid(ent) or !ent.HornKeyIsDown) then return end
@@ -2238,6 +2240,8 @@ numpad.Register( "k_hrn", function( pl, ent, keydown )
 			ent.horn:Stop()
 		end
 	end
+	
+	if ent.LightsDisabled then return end
 	
 	if (!v_list) then return end
 	
@@ -2334,7 +2338,7 @@ numpad.Register( "k_flgts", function( pl, ent, keydown )
 end)
 
 numpad.Register( "k_lgts", function( pl, ent, keydown )
-	if (!IsValid(pl) or !IsValid(ent) or !ent.LightsTable) then return false end
+	if (!IsValid(pl) or !IsValid(ent) or !ent.LightsTable or ent.LightsDisabled) then return false end
 	local Time = CurTime()
 	
 	if (keydown) then
@@ -2470,9 +2474,34 @@ function ENT:ControlLights( active )
 	end
 end
 
+function ENT:DisableLights()
+	self:SetNWBool( "lights_disabled", true)
+	self.LightsDisabled = true
+	
+	if (self.ems) then
+		self.ems:Stop()
+		self.ems = nil
+	end
+	
+	if IsValid(self.Headlight_L) then
+		self.Headlight_L:Remove()
+	end
+	if IsValid(self.Headlight_R) then
+		self.Headlight_R:Remove()
+	end
+	if IsValid(self.Taillight_L) then
+		self.Taillight_L:Remove()
+	end
+	if IsValid(self.Taillight_R) then
+		self.Taillight_R:Remove()
+	end
+end
+
 function ENT:CreateLights()
+	if self.LightsDisabled then return end
+	
 	local vehiclelist = list.Get( "simfphys_lights" )[self.LightsTable] or false
-	if (!vehiclelist) then return end
+	if !vehiclelist then return end
 	
 	if (vehiclelist.PoseParameters) then
 		self.LightsPP = vehiclelist.PoseParameters

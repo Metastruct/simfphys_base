@@ -308,6 +308,13 @@ hook.Add( "Think", "simfphys_sprites_managment", function()
 	if NextCheck < curtime then
 		NextCheck = curtime + checkinterval
 		
+		for i, ent in pairs(simfphys.vtable) do
+			if ent:GetNWBool( "lights_disabled" ) then
+				simfphys.vtable[i] = nil
+				ent.EnableLights = true
+			end
+		end
+		
 		for i, ent in pairs( ents.FindByClass( "gmod_sent_vehicle_fphysics_base" ) ) do
 			if (ent.EnableLights == true) then return end
 			local listname = ent:GetLights_List()
