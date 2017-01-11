@@ -18,7 +18,7 @@ entity:GetTurboCharged() -- returns a bool
 entity:GetSuperCharged() -- returns a bool
 entity:GetBackFire() -- returns a bool
 entity:GetDoNotStall() -- returns a bool
-entity:GetFlyWheelRPM() -- returns a number
+entity:GetRPM() -- returns a number
 
 entity:GetClutch() -- returns a number
 entity:GetThrottle() -- returns a number
@@ -60,7 +60,7 @@ entity:Destroy()  -- destroys the vehicle
 entity:SteerVehicle( number ) -- sets the angle of the steering
 entity:Lock()  -- locks the vehicle
 entity:UnLock() -- unlocks the vehicle
-
+entity:StallAndRestart()  -- stalls the engine and restarts it after a short time
 
 
 entity:SetControl( table ) -- controls the vehicle (only works without driver when the vehicle is active)
@@ -93,4 +93,3 @@ available controls are:
 "Shift" = halfthrottle
 "Alt" = clutch
 "Space" = handbrake
-		

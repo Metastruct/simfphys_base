@@ -51,6 +51,11 @@ function ENT:Think()
 	return true
 end
 
+function ENT:GetRPM()
+	local RPM = self.SmoothRPM and self.SmoothRPM or 0
+	return RPM
+end
+
 function ENT:ManageSounds(Active)
 	local FlyWheelRPM = self:GetFlyWheelRPM()
 	local Active = Active and (FlyWheelRPM != 0)
@@ -75,7 +80,7 @@ function ENT:ManageSounds(Active)
 		self.OldThrottle2 = Throttle
 		if (Throttle == 0) then
 			if (self.SmoothRPM > LimitRPM * 0.6) then
-				self:HandleBackFiring()
+				self:Backfire()
 			end
 		end
 	end
@@ -84,7 +89,7 @@ function ENT:ManageSounds(Active)
 		if ((self.SmoothRPM >= LimitRPM - 200) and self.FadeThrottle > 0) then
 			self.SmoothRPM = self.SmoothRPM - 1200
 			self.FadeThrottle = 0.2
-			self:HandleBackFiring()
+			self:Backfire()
 		end
 	end
 	
@@ -169,7 +174,7 @@ function ENT:ManageSounds(Active)
 								if (math.Round(math.random(0,4),1) >= 3) then
 									timer.Simple(0.4, function()
 										if (!IsValid(self)) then return end
-										self:HandleBackFiring()
+										self:Backfire()
 									end)
 								end
 							end
@@ -219,7 +224,7 @@ function ENT:ManageSounds(Active)
 								if (math.Round(math.random(0,4),1) >= 3) then
 									timer.Simple(0.4, function()
 										if (!IsValid(self)) then return end
-										self:HandleBackFiring()
+										self:Backfire()
 									end)
 								end
 							end
@@ -256,7 +261,7 @@ function ENT:ManageSounds(Active)
 	end
 end
 
-function ENT:HandleBackFiring()
+function ENT:Backfire()
 	if (!self:GetBackFire()) then return end
 	
 	local vehiclelist = list.Get( "simfphys_vehicles" )[self:GetSpawn_List()]

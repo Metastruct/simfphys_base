@@ -85,6 +85,9 @@ function ENT:OnActiveChanged( name, old, new)
 	if self.EnableSuspension != 1 then return end
 	
 	if new == true then
+		local TurboCharged = self:GetTurboCharged()
+		local SuperCharged = self:GetSuperCharged()
+		
 		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
 		self:ControlLights( self.LightsActivated )
 		
@@ -906,6 +909,11 @@ function ENT:WheelOnGround()
 	elseif (self.FrontWheelPowered and !self.RearWheelPowered) then
 		self.DriveWheelsOnGround = self.VehicleData[ "onGround_1" ] and self.VehicleData[ "onGround_2" ]
 	end
+end
+
+function ENT:GetRPM()
+	local RPM = self.EngineRPM and self.EngineRPM or 0
+	return RPM
 end
 
 function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time,tilt_forward,tilt_back)
