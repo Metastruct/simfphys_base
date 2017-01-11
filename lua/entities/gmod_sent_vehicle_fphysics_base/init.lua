@@ -46,26 +46,12 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-	if (IsValid(self.DriverSeat)) then
-		self.Driver = self.DriverSeat:GetDriver()
-	end
-	
-	self.IsValidDriver = IsValid(self.Driver)
 	local Time = CurTime()
-	
-	if (self.IsValidDriver != self.WasValid) then
-		if (!self.ValidDriver) then
-			self.WasValid = self.IsValidDriver
-			self.EngineIsOn = self.Healthpoints > 0 and 1 or 0
-			
-			if (self.EnableSuspension == 1) then
-				for i = 1, table.Count( self.Wheels ) do
-					local Wheel = self.Wheels[ i ]
-					if (IsValid(Wheel)) then
-						Wheel:SetOnGround( 0 )
-					end
-				end
-			end
+	if IsValid(self.DriverSeat) then
+		local Driver = self.DriverSeat:GetDriver()
+		if self:GetDriver() != Driver then
+			self:SetDriver( Driver )
+			self:SetActive( IsValid( Driver ) )
 		end
 	end
 	
@@ -75,7 +61,6 @@ function ENT:Think()
 		self:ControlLighting( Time )
 		self:ControlDamage()
 		self:ControlExFx()
-		self:ControlSeatSwitching( Time )
 		
 		self.NextWaterCheck = self.NextWaterCheck or 0
 		if (self.NextWaterCheck < Time) then
@@ -83,7 +68,7 @@ function ENT:Think()
 			self:WaterPhysics()
 		end
 		
-		if (self:GetActive()) then
+		if self:GetActive() then
 			self:SetPhysics( ((math.abs(self.ForwardSpeed) < 50) and (self.Brake > 0 or self.HandBrake > 0)) )
 		else
 			self:SetPhysics( true )
@@ -94,40 +79,104 @@ function ENT:Think()
 	return true
 end
 
-function ENT:ControlSeatSwitching( curtime )
-	if (!self.PassengerSeats) then return end
-	for i = 1, table.Count( self.pSeat ) do
-		local seat = self.pSeat[i]
-		if (IsValid(seat)) then
-			local driver = seat:GetDriver()
-			if (IsValid(driver)) then
-				driver.NextSeatSwitch = driver.NextSeatSwitch or 0
-				if (driver.NextSeatSwitch < curtime) then
-					local Next = driver:KeyDown( IN_MOVELEFT  )
-					local Previous = driver:KeyDown( IN_MOVERIGHT )
-					
-					local NextSeat = i + (Next and 1 or 0) - (Previous and 1 or 0)
-					if (NextSeat > table.Count( self.pSeat )) then
-						NextSeat = 1
-					end
-					if (NextSeat < 1) then
-						NextSeat =  table.Count( self.pSeat )
-					end
-					
-					local HasPassenger = IsValid(self.pSeat[NextSeat]:GetDriver())
-					if (!HasPassenger) then
-						driver:ExitVehicle()
-						driver.NextSeatSwitch = curtime + 0.5
-						
-						timer.Simple( 0.05, function()
-							if (!IsValid(self)) then return end
-							if (!IsValid(driver)) then return end
-							driver:EnterVehicle( self.pSeat[NextSeat] )
-							local angles = Angle(0,90,0)
-							driver:SetEyeAngles( angles )
-						end)
-					end
-				end
+function ENT:OnActiveChanged( name, old, new)
+	if (new == old) then return end
+	
+	if self.EnableSuspension != 1 then return end
+	
+	if new == true then
+		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
+		self:ControlLights( self.LightsActivated )
+		
+		if (self:GetEMSEnabled()) then
+			if (self.ems) then
+				self.ems:Play()
+			end
+		end
+		
+		if (self.Enginedamage) then
+			self.Enginedamage:Play()
+		end
+		
+		if (TurboCharged) then
+			self.Turbo = CreateSound(self, self.snd_spool or "simulated_vehicles/turbo_spin.wav")
+			self.Turbo:PlayEx(0,0)
+		end
+		
+		if (SuperCharged) then
+			self.Blower = CreateSound(self, self.snd_bloweroff or "simulated_vehicles/blower_spin.wav")
+			self.BlowerWhine = CreateSound(self, self.snd_bloweron or "simulated_vehicles/blower_gearwhine.wav")
+			
+			self.Blower:PlayEx(0,0)
+			self.BlowerWhine:PlayEx(0,0)
+		end
+		
+		if IsValid( self:GetDriver() ) then
+			self:SetupControls( self:GetDriver() )
+		end
+		
+		self.CurrentGear = 2
+		
+		if !self.IsInWater then
+			self.EngineRPM = self:GetEngineData().IdleRPM
+			self.EngineIsOn = 1
+		else
+			if self:GetDoNotStall() then
+				self.EngineRPM = self:GetEngineData().IdleRPM
+				self.EngineIsOn = 1
+			end
+		end
+	else
+		self.EngineRPM = 0
+		self.EngineIsOn = 0
+		
+		self:ControlLights( false )
+
+		self.IsLocked = false
+		
+		if (self.ems) then
+			self.ems:Stop()
+		end
+		
+		if (self.Enginedamage) then
+			self.Enginedamage:Stop()
+		end
+		if (self.horn) then
+			self.horn:Stop()
+		end
+		if (TurboCharged) then
+			self.Turbo:Stop()
+		end
+		
+		if (SuperCharged) then
+			self.Blower:Stop()
+			self.BlowerWhine:Stop()
+		end
+		
+		if (self.PressedKeys) then
+			for k,v in pairs(self.PressedKeys) do
+				self.PressedKeys[k] = false
+			end
+		end
+		
+		if (self.keys) then
+			for i = 1, table.Count( self.keys ) do
+				numpad.Remove( self.keys[i] )
+			end
+		end
+		
+		self:SetIsBraking( false )
+		self:SetGear( 2 )
+		self:SetFlyWheelRPM( 0 )
+		
+		self:SetIsCruiseModeOn( false )
+	end
+	
+	if istable(self.Wheels) then
+		for i = 1, table.Count( self.Wheels ) do
+			local Wheel = self.Wheels[ i ]
+			if (IsValid(Wheel)) then
+				Wheel:SetOnGround( 0 )
 			end
 		end
 	end
@@ -135,7 +184,7 @@ end
 
 function ENT:WaterPhysics()
 	if (self:WaterLevel() <= 1) then self.IsInWater = false return end
-	if (self:GetDoNotStall() == true) then return end
+	if self:GetDoNotStall() == true then return end
 	
 	if (!self.IsInWater) then
 		if (self.EngineIsOn == 1) then
@@ -189,95 +238,31 @@ function ENT:ControlLighting( curtime )
 	end
 end
 
+function ENT:GetEngineData()
+	local LimitRPM = math.max(self:GetLimitRPM(),4)
+	local Powerbandend = math.Clamp(self:GetPowerBandEnd(),3,LimitRPM - 1)
+	local Powerbandstart = math.Clamp(self:GetPowerBandStart(),2,Powerbandend - 1)
+	local IdleRPM = math.Clamp(self:GetIdleRPM(),1,Powerbandstart - 1)
+	local Data = {
+		IdleRPM = IdleRPM,
+		Powerbandstart = Powerbandstart,
+		Powerbandend = Powerbandend,
+		LimitRPM = LimitRPM,
+	}
+	return Data
+end
+
 function ENT:SimulateVehicle( curtime )
 	local Active = self:GetActive()
 	local TurboCharged = self:GetTurboCharged()
 	local SuperCharged = self:GetSuperCharged()
 	
-	local LimitRPM = math.max(self:GetLimitRPM(),4)
-	local Powerbandend = math.Clamp(self:GetPowerBandEnd(),3,LimitRPM - 1)
-	local Powerbandstart = math.Clamp(self:GetPowerBandStart(),2,Powerbandend - 1)
-	local IdleRPM = math.Clamp(self:GetIdleRPM(),1,Powerbandstart - 1)
+	local EngineData = self:GetEngineData()
 	
-	if (self.IsValidDriver != Active) then
-		self:SetActive( self.IsValidDriver )
-		self:SetDriver( self.Driver )
-		self.CurrentGear = 2
-		if (!self.IsInWater) then
-			self.EngineRPM = IdleRPM
-			self.EngineIsOn = 1
-		else
-			if (self:GetDoNotStall() == false) then
-				self.EngineRPM = 0
-				self.EngineIsOn = 0
-			end
-		end
-		
-		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
-		self:SetupControls( self.Driver )
-		
-		if (self.IsValidDriver) then
-			if (self.Enginedamage) then
-				self.Enginedamage:Play()
-			end
-			
-			if (TurboCharged) then
-				self.Turbo = CreateSound(self, self.snd_spool or "simulated_vehicles/turbo_spin.wav")
-				self.Turbo:PlayEx(0,0)
-			end
-			
-			if (SuperCharged) then
-				self.Blower = CreateSound(self, self.snd_bloweroff or "simulated_vehicles/blower_spin.wav")
-				self.BlowerWhine = CreateSound(self, self.snd_bloweron or "simulated_vehicles/blower_gearwhine.wav")
-				
-				self.Blower:PlayEx(0,0)
-				self.BlowerWhine:PlayEx(0,0)
-			end
-			
-			if (self:GetEMSEnabled()) then
-				if (self.ems) then
-					self.ems:Play()
-				end
-			end
-			
-			self:ControlLights( self.LightsActivated )
-		else
-			self:ControlLights( false )
-
-			self.IsLocked = false
-			
-			if (self.ems) then
-				self.ems:Stop()
-			end
-			
-			if (self.Enginedamage) then
-				self.Enginedamage:Stop()
-			end
-			if (self.horn) then
-				self.horn:Stop()
-			end
-			if (TurboCharged) then
-				self.Turbo:Stop()
-			end
-			
-			if (SuperCharged) then
-				self.Blower:Stop()
-				self.BlowerWhine:Stop()
-			end
-			
-			if (self.PressedKeys) then
-				for k,v in pairs(self.PressedKeys) do
-					self.PressedKeys[k] = false
-				end
-			end
-			
-			self:SetIsBraking( false )
-			self:SetGear( 2 )
-			self:SetFlyWheelRPM( 0 )
-			
-			self.CruiseControlEnabled = false
-		end
-	end
+	local LimitRPM = EngineData.LimitRPM
+	local Powerbandend = EngineData.Powerbandend
+	local Powerbandstart = EngineData.Powerbandstart
+	local IdleRPM = EngineData.IdleRPM
 	
 	self.Forward =  self:LocalToWorldAngles( self.VehicleData.LocalAngForward ):Forward() 
 	self.Right = self:LocalToWorldAngles( self.VehicleData.LocalAngRight ):Forward() 
@@ -314,8 +299,9 @@ function ENT:SimulateVehicle( curtime )
 	end
 	
 	
-	if (self.IsValidDriver) then
-		local ply = self.Driver
+	if Active then
+		local ply = self:GetDriver()
+		local IsValidDriver = IsValid( ply )
 		
 		local GearUp = self.PressedKeys["M1"] and 1 or 0
 		local GearDown = self.PressedKeys["M2"] and 1 or 0
@@ -325,21 +311,22 @@ function ENT:SimulateVehicle( curtime )
 		local S = self.PressedKeys["S"] and 1 or 0
 		local D = self.PressedKeys["D"] and 1 or 0
 		
+		if IsValidDriver then self:PlayerSteerVehicle( ply, A, D ) end
+		
 		local aW = self.PressedKeys["aW"] and 1 or 0
 		local aA = self.PressedKeys["aA"] and 1 or 0
 		local aS = self.PressedKeys["aS"] and 1 or 0
 		local aD = self.PressedKeys["aD"] and 1 or 0
 		
-		local cruise = self.CruiseControlEnabled
-		self:SetIsCruiseModeOn( cruise )
+		local cruise = self:GetIsCruiseModeOn()
 		
-		local k_sanic = ply:GetInfoNum( "cl_simfphys_sanic", 0 )
+		local k_sanic =  IsValidDriver and ply:GetInfoNum( "cl_simfphys_sanic", 0 ) or 1
 		local sanicmode = isnumber( k_sanic ) and k_sanic or 0
 		local k_Shift = self.PressedKeys["Shift"]
 		local Shift = (sanicmode == 1) and (k_Shift and 0 or 1) or (k_Shift and 1 or 0)
 		
-		local sportsmode = ply:GetInfoNum( "cl_simfphys_sport", 0 )
-		local k_auto = ply:GetInfoNum( "cl_simfphys_auto", 0 )
+		local sportsmode = IsValidDriver and ply:GetInfoNum( "cl_simfphys_sport", 0 ) or 1
+		local k_auto = IsValidDriver and ply:GetInfoNum( "cl_simfphys_auto", 0 ) or 1
 		local transmode = (k_auto == 1)
 		
 		local Alt = self.PressedKeys["Alt"] and 1 or 0
@@ -347,7 +334,7 @@ function ENT:SimulateVehicle( curtime )
 		
 		local boost = (TurboCharged and self:SimulateTurbo(LimitRPM) or 0) * 0.3 + (SuperCharged and self:SimulateBlower(LimitRPM) or 0)
 		
-		if (cruise) then
+		if cruise then
 			if (k_Shift) then
 				self.cc_speed = math.Round(self:GetVelocity():Length(),0) + 70
 			end
@@ -370,6 +357,12 @@ function ENT:SimulateVehicle( curtime )
 		self:PhysicalSteer()
 	else
 		self:SetWheelHeight()
+	end
+end
+
+function ENT:SetControl( Data )
+	for k,v in pairs(Data) do
+		self.PressedKeys[k] = v
 	end
 end
 
@@ -425,7 +418,7 @@ function ENT:SetupControls( ply )
 		end
 	end
 
-	if (IsValid(ply)) then
+	if IsValid(ply) then
 		local W = ply:GetInfoNum( "cl_simfphys_keyforward", 0 )
 		local A = ply:GetInfoNum( "cl_simfphys_keyleft", 0 )
 		local S = ply:GetInfoNum( "cl_simfphys_keyreverse", 0 )
@@ -550,7 +543,7 @@ function ENT:ControlDamage()
 		return
 	end
 	
-	local ply = self.Driver
+	local ply = self:GetDriver()
 	local Active = self:GetActive()
 	local LimitRPM = self:GetLimitRPM()
 	local Health = self.Healthpoints
@@ -678,8 +671,8 @@ function ENT:Destroy()
 		end
 	end
 	
-	if (IsValid(self.Driver)) then
-		self.Driver:Kill()
+	if IsValid(self:GetDriver()) then
+		self:GetDriver():Kill()
 	end
 	
 	if (self.PassengerSeats) then
@@ -848,7 +841,7 @@ function ENT:PhysicalSteer()
 			physobj:EnableMotion(false)
 		end
 		
-		self.SteerMaster:SetAngles( self:LocalToWorldAngles( Angle(0,math.Clamp(-self.SmoothAng,-self.CustomSteerAngle,self.CustomSteerAngle),0) ) )
+		self.SteerMaster:SetAngles( self:LocalToWorldAngles( Angle(0,math.Clamp(-self.VehicleData[ "SteerAngle" ],-self.CustomSteerAngle,self.CustomSteerAngle),0) ) )
 	end
 	
 	if (IsValid(self.SteerMaster2)) then
@@ -859,7 +852,7 @@ function ENT:PhysicalSteer()
 			physobj:EnableMotion(false)
 		end
 		
-		self.SteerMaster2:SetAngles( self:LocalToWorldAngles( Angle(0,math.Clamp(self.SmoothAng,-self.CustomSteerAngle,self.CustomSteerAngle),0) ) )
+		self.SteerMaster2:SetAngles( self:LocalToWorldAngles( Angle(0,math.Clamp(self.VehicleData[ "SteerAngle" ],-self.CustomSteerAngle,self.CustomSteerAngle),0) ) )
 	end
 end
 
@@ -916,8 +909,6 @@ function ENT:WheelOnGround()
 end
 
 function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time,tilt_forward,tilt_back)
-	if (!self.IsValidDriver) then return end
-	
 	local PObj = self:GetPhysicsObject()
 
 	local Throttle = self:GetThrottle()
@@ -994,7 +985,7 @@ function ENT:StallAndRestart()
 		self.Enginedamage:ChangeVolume( 0 )
 	end
 	self.EngineIsOn = 0
-	self.CruiseControlEnabled = false
+	self:SetIsCruiseModeOn( false )
 	self.CurrentGear = 2
 	
 	self:EmitSound( "vehicles/jetski/jetski_off.wav" )
@@ -1010,7 +1001,7 @@ end
 
 function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_handbrake,k_gearup,k_geardown,isauto,IdleRPM,Powerbandstart,Powerbandend,shiftmode,cruisecontrol,curtime)
 	local GearsCount = table.Count( self.Gears ) 
-	local ply = self.Driver
+	local ply = self:GetDriver()
 	local cruiseThrottle = math.min( math.max(self.cc_speed - math.abs(self.ForwardSpeed),0) / 10 ^ 2, 1)
 	
 	if (!isauto) then
@@ -1113,18 +1104,15 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 end
 
 function ENT:SimulateWheels(left,right,k_clutch,LimitRPM)
-	
-	self:SteerVehicle(left,right)
-	
 	local SteerAngForward = self.Forward:Angle()
 	local SteerAngRight = self.Right:Angle()
 	local SteerAngForward2 = self.Forward:Angle()
 	local SteerAngRight2 = self.Right:Angle()
 	
-	SteerAngForward:RotateAroundAxis(-self.Up, self.SmoothAng) 
-	SteerAngRight:RotateAroundAxis(-self.Up, self.SmoothAng) 
-	SteerAngForward2:RotateAroundAxis(-self.Up, -self.SmoothAng) 
-	SteerAngRight2:RotateAroundAxis(-self.Up, -self.SmoothAng) 
+	SteerAngForward:RotateAroundAxis(-self.Up, self.VehicleData[ "SteerAngle" ]) 
+	SteerAngRight:RotateAroundAxis(-self.Up, self.VehicleData[ "SteerAngle" ]) 
+	SteerAngForward2:RotateAroundAxis(-self.Up, -self.VehicleData[ "SteerAngle" ]) 
+	SteerAngRight2:RotateAroundAxis(-self.Up, -self.VehicleData[ "SteerAngle" ]) 
 	
 	local SteerForward = SteerAngForward:Forward()
 	local SteerRight = SteerAngRight:Forward()
@@ -1255,9 +1243,8 @@ function ENT:SimulateWheels(left,right,k_clutch,LimitRPM)
 	end	
 end
 
-function ENT:SteerVehicle(left,right)
-	if (self.IsValidDriver) then
-		local ply = self.Driver
+function ENT:PlayerSteerVehicle( ply, left, right )
+	if IsValid(ply) then
 		local CounterSteeringEnabled = (ply:GetInfoNum( "cl_simfphys_ctenable", 0 ) or 1) == 1
 		local CounterSteeringMul =  math.Clamp(ply:GetInfoNum( "cl_simfphys_ctmul", 0 ) or 0.7,0.1,2)
 		local MaxHelpAngle = math.Clamp(ply:GetInfoNum( "cl_simfphys_ctang", 0 ) or 15,1,90)
@@ -1300,7 +1287,13 @@ function ENT:SteerVehicle(left,right)
 		else
 			self.SmoothAng = self.SmoothAng + math.Clamp((Steer - CounterSteer) - self.SmoothAng,-TurnSpeed,TurnSpeed)
 		end
+		
+		self:SteerVehicle( self.SmoothAng )
 	end
+end
+
+function ENT:SteerVehicle( steer )
+	self.VehicleData[ "SteerAngle" ] = steer
 	
 	local pp_steer = self.SmoothAng / self.VehicleData["steerangle"]
 	self:SetVehicleSteer( pp_steer )
@@ -1322,7 +1315,7 @@ function ENT:Use( ply )
 		return
 	end
 	
-	if (!IsValid(self.Driver) and !ply:KeyDown(IN_WALK )) then
+	if !IsValid(self:GetDriver()) and !ply:KeyDown(IN_WALK ) then
 		ply:SetAllowWeaponsInVehicle( false ) 
 		if (IsValid(self.DriverSeat)) then
 			ply:EnterVehicle( self.DriverSeat )
@@ -1373,7 +1366,6 @@ function ENT:GetVehicleData()
 	
 	timer.Simple( 0.15, function()
 		if (!IsValid(self)) then return end
-		self.posepositions = {}
 		self.posepositions["Pose0_Steerangle"] = self.CustomWheels and Angle(0,0,0) or self:GetAttachment( self:LookupAttachment( "wheel_fl" ) ).Ang
 		self.posepositions["Pose0_Pos_FL"] = self.CustomWheels and self:LocalToWorld( self.CustomWheelPosFL ) or self:GetAttachment( self:LookupAttachment( "wheel_fl" ) ).Pos
 		self.posepositions["Pose0_Pos_FR"] = self.CustomWheels and self:LocalToWorld( self.CustomWheelPosFR ) or self:GetAttachment( self:LookupAttachment( "wheel_fr" ) ).Pos
@@ -1415,6 +1407,7 @@ function ENT:SetValues()
 	self.Steer = 0
 	self.EngineIsOn = 0
 	self.Healthpoints = 1000
+	self.EngineTorque = 0
 	
 	self.pSeat = {}
 	self.exfx = {}
@@ -1423,6 +1416,8 @@ function ENT:SetValues()
 	self.GhostWheels = {}
 	self.PressedKeys = {}
 	self.ColorableProps = {}
+	
+	self.posepositions = {}
 	
 	self.HandBrakePower = 0
 	self.DriveWheelsOnGround = 0
@@ -1447,10 +1442,30 @@ function ENT:SetValues()
 	self.SmoothBlower = 0
 	self.OldThrottle = 0
 	self.cc_speed = 0
-	self.CruiseControlEnabled = false
 	self.LightsActivated = false
 	self.SmoothMouse = 0
 	self.SmoothMouseX = 0
+
+	self.VehicleData = {}
+	self.VehicleData[ "spin_1" ] = 0
+	self.VehicleData[ "spin_2" ] = 0
+	self.VehicleData[ "spin_3" ] = 0
+	self.VehicleData[ "spin_4" ] = 0
+	self.VehicleData[ "spin_5" ] = 0
+	self.VehicleData[ "spin_6" ] = 0
+	self.VehicleData[ "SurfaceMul_1" ] = 1
+	self.VehicleData[ "SurfaceMul_2" ] = 1
+	self.VehicleData[ "SurfaceMul_3" ] = 1
+	self.VehicleData[ "SurfaceMul_4" ] = 1
+	self.VehicleData[ "SurfaceMul_5" ] = 1
+	self.VehicleData[ "SurfaceMul_6" ] = 1
+	self.VehicleData[ "onGround_1" ] = 0
+	self.VehicleData[ "onGround_2" ] = 0
+	self.VehicleData[ "onGround_3" ] = 0
+	self.VehicleData[ "onGround_4" ] = 0
+	self.VehicleData[ "onGround_5" ] = 0
+	self.VehicleData[ "onGround_6" ] = 0
+	self.VehicleData[ "SteerAngle" ] = 0
 end
 
 function ENT:WriteVehicleDataTable()	
@@ -1472,7 +1487,6 @@ function ENT:WriteVehicleDataTable()
 		self.posepositions["PoseL_Pos_RL"] = self:WorldToLocal( self.posepositions.Pose1_Pos_RL )
 		self.posepositions["PoseL_Pos_RR"] = self:WorldToLocal( self.posepositions.Pose1_Pos_RR )
 		
-		self.VehicleData = {}
 		self.VehicleData["suspensiontravel_fl"] = self.CustomWheels and self.FrontHeight or math.Round( (self.posepositions.Pose0_Pos_FL - self.posepositions.Pose1_Pos_FL):Length() , 2)
 		self.VehicleData["suspensiontravel_fr"] = self.CustomWheels and self.FrontHeight or math.Round( (self.posepositions.Pose0_Pos_FR - self.posepositions.Pose1_Pos_FR):Length() , 2)
 		self.VehicleData["suspensiontravel_rl"] = self.CustomWheels and self.RearHeight or math.Round( (self.posepositions.Pose0_Pos_RL - self.posepositions.Pose1_Pos_RL):Length() , 2)
@@ -1496,24 +1510,6 @@ function ENT:WriteVehicleDataTable()
 		self.VehicleData[ "pp_spin_2" ] = "vehicle_wheel_fr_spin"
 		self.VehicleData[ "pp_spin_3" ] = "vehicle_wheel_rl_spin"
 		self.VehicleData[ "pp_spin_4" ] = "vehicle_wheel_rr_spin"
-		self.VehicleData[ "spin_1" ] = 0
-		self.VehicleData[ "spin_2" ] = 0
-		self.VehicleData[ "spin_3" ] = 0
-		self.VehicleData[ "spin_4" ] = 0
-		self.VehicleData[ "spin_5" ] = 0
-		self.VehicleData[ "spin_6" ] = 0
-		self.VehicleData[ "SurfaceMul_1" ] = 1
-		self.VehicleData[ "SurfaceMul_2" ] = 1
-		self.VehicleData[ "SurfaceMul_3" ] = 1
-		self.VehicleData[ "SurfaceMul_4" ] = 1
-		self.VehicleData[ "SurfaceMul_5" ] = 1
-		self.VehicleData[ "SurfaceMul_6" ] = 1
-		self.VehicleData[ "onGround_1" ] = 0
-		self.VehicleData[ "onGround_2" ] = 0
-		self.VehicleData[ "onGround_3" ] = 0
-		self.VehicleData[ "onGround_4" ] = 0
-		self.VehicleData[ "onGround_5" ] = 0
-		self.VehicleData[ "onGround_6" ] = 0
 		
 		self.HealthMax = self.MaxHealth and self.MaxHealth or self.Healthpoints + self:GetPhysicsObject():GetMass() / 3
 		self.Healthpoints = self.HealthMax
@@ -1789,7 +1785,7 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	Rope2.DoNotDuplicate = true
 end
 
-function ENT:OnIsBrakingChanged( name, old, new)
+function ENT:OnIsBraking( name, old, new)
 	if (new == old) then return end
 	local lColor = new and "50" or "30"
 	
@@ -2041,12 +2037,12 @@ function ENT:OnTakeDamage( dmginfo )
 	
 	self.Healthpoints = math.max(self.Healthpoints - Damage * ((Type == DMG_BLAST) and 10 or 2.5),0)
 	
-	if (IsValid(self.Driver)) then
-		local Distance = (DamagePos - self.Driver:GetPos()):Length() 
+	if IsValid(self:GetDriver()) then
+		local Distance = (DamagePos - self:GetDriver():GetPos()):Length() 
 		if (Distance < 70) then
 			local Damage = (70 - Distance) / 22
 			dmginfo:ScaleDamage( Damage )
-			self.Driver:TakeDamageInfo( dmginfo )
+			self:GetDriver():TakeDamageInfo( dmginfo )
 		end
 	end
 	
@@ -2083,8 +2079,8 @@ function ENT:PhysicsCollide( data, physobj )
 end
 
 function ENT:HurtPlayers( damage )
-	if (IsValid(self.Driver)) then
-		self.Driver:TakeDamage(damage, Entity(0), self )
+	if IsValid(self:GetDriver()) then
+		self:GetDriver():TakeDamage(damage, Entity(0), self )
 	end
 	
 	if (self.PassengerSeats) then
@@ -2103,8 +2099,8 @@ numpad.Register( "k_forward", function( pl, ent, keydown )
 	if (ent.PressedKeys) then
 		ent.PressedKeys["W"] = keydown
 	end
-	if (keydown and ent.CruiseControlEnabled) then
-		ent.CruiseControlEnabled = false
+	if (keydown and ent:GetIsCruiseModeOn()) then
+		ent:SetIsCruiseModeOn( false )
 	end
 end )
 numpad.Register( "k_reverse", function( pl, ent, keydown ) 
@@ -2112,8 +2108,8 @@ numpad.Register( "k_reverse", function( pl, ent, keydown )
 	if (ent.PressedKeys) then
 		ent.PressedKeys["S"] = keydown
 	end
-	if (keydown and ent.CruiseControlEnabled) then
-		ent.CruiseControlEnabled = false
+	if (keydown and ent:GetIsCruiseModeOn()) then
+		ent:SetIsCruiseModeOn( false )
 	end
 end )
 numpad.Register( "k_left", function( pl, ent, keydown ) 
@@ -2157,8 +2153,8 @@ numpad.Register( "k_gup", function( pl, ent, keydown )
 	if (ent.PressedKeys) then
 		ent.PressedKeys["M1"] = keydown
 	end
-	if (keydown and ent.CruiseControlEnabled) then
-		ent.CruiseControlEnabled = false
+	if (keydown and ent:GetIsCruiseModeOn()) then
+		ent:SetIsCruiseModeOn( false )
 	end
 end )
 numpad.Register( "k_gdn", function( pl, ent, keydown )
@@ -2166,8 +2162,8 @@ numpad.Register( "k_gdn", function( pl, ent, keydown )
 	if (ent.PressedKeys) then
 		ent.PressedKeys["M2"] = keydown
 	end
-	if (keydown and ent.CruiseControlEnabled) then
-		ent.CruiseControlEnabled = false
+	if (keydown and ent:GetIsCruiseModeOn()) then
+		ent:SetIsCruiseModeOn( false )
 	end
 end )
 numpad.Register( "k_wot", function( pl, ent, keydown )
@@ -2187,18 +2183,18 @@ numpad.Register( "k_hbrk", function( pl, ent, keydown )
 	if (ent.PressedKeys) then
 		ent.PressedKeys["Space"] = keydown
 	end
-	if (keydown and ent.CruiseControlEnabled) then
-		ent.CruiseControlEnabled = false
+	if (keydown and ent:GetIsCruiseModeOn()) then
+		ent:SetIsCruiseModeOn( false )
 	end
 end )
 
 numpad.Register( "k_ccon", function( pl, ent, keydown )
 	if (!IsValid(pl) or !IsValid(ent)) then return false end
 	if (keydown) then
-		if (ent.CruiseControlEnabled) then
-			ent.CruiseControlEnabled = false
+		if ent:GetIsCruiseModeOn() then
+			ent:SetIsCruiseModeOn( false )
 		else
-			ent.CruiseControlEnabled = true
+			ent:SetIsCruiseModeOn( true )
 			ent.cc_speed = math.Round(ent:GetVelocity():Length(),0)
 		end
 	end
