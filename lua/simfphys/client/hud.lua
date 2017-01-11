@@ -94,10 +94,9 @@ local function drawsimfphysHUD(vehicle)
 	if (!ShowHud) then return end
 	
 	local maxrpm = vehicle:GetLimitRPM()
-	local flywheelrpm = vehicle:GetFlyWheelRPM()
+	local rpm = vehicle:GetRPM()
 	local throttle = math.Round(vehicle:GetThrottle() * 100,0)
 	local revlimiter = vehicle:GetRevlimiter() and (maxrpm > 2500) and (throttle > 0)
-	local rpm = math.Round(((flywheelrpm >= maxrpm - 200) and revlimiter) and math.Round(flywheelrpm - 200 + math.sin(CurTime() * 50) * 200,0) or flywheelrpm,0)
 	
 	local powerbandend = math.min(vehicle:GetPowerBandEnd(), maxrpm)
 	local redline = math.max(rpm - powerbandend,0) / (maxrpm - powerbandend)
@@ -119,7 +118,7 @@ local function drawsimfphysHUD(vehicle)
 		local HandBrakeOn = vehicle:GetHandBrakeEnabled()
 		
 		s_smoothrpm = s_smoothrpm or 0
-		s_smoothrpm = math.Clamp(s_smoothrpm + (rpm - s_smoothrpm) * 0.15,0,maxrpm)
+		s_smoothrpm = math.Clamp(s_smoothrpm + (rpm - s_smoothrpm) * 0.3,0,maxrpm)
 		
 		surface.SetDrawColor( 255, 255, 255, 255 )
 		
