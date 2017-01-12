@@ -21,6 +21,7 @@ if SERVER then
 	include("simfphys/server/resource.lua")
 	include("simfphys/server/spawner.lua")
 	include("simfphys/server/seatcontrols.lua")
+	include("simfphys/server/damage.lua")
 end
 	
 if CLIENT then

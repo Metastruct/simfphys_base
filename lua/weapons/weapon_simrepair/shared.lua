@@ -49,9 +49,9 @@ function SWEP:PrimaryAttack()
 	local Trace = self.Owner:GetEyeTrace()
 	local ent = Trace.Entity
 	
-	if (!IsValid(ent)) then return end
+	if !IsValid(ent) then return end
 	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
+	local IsVehicle = ent:GetClass():lower() == "gmod_sent_vehicle_fphysics_base"
 	
 	if (IsVehicle) then
 		local Dist = (Trace.HitPos - self.Owner:GetPos()):Length()
@@ -61,8 +61,11 @@ function SWEP:PrimaryAttack()
 			self.Owner:SetAnimation( PLAYER_ATTACK1 )
 			
 			if (SERVER) then
-				if (ent.Healthpoints < ent.HealthMax) then
-					ent.Healthpoints = math.min(ent.Healthpoints + 30,ent.HealthMax)
+				local MaxHealth = ent:GetNWFloat( "MaxHealth", 0 )
+				local Health = ent:GetNWFloat( "Health", 0 )
+				if Health < MaxHealth then
+					ent:SetNWFloat( "Health", math.min(Health + 30,MaxHealth) )
+					
 					local effect = ents.Create("env_spark")
 						effect:SetKeyValue("targetname", "target")
 						effect:SetPos( Trace.HitPos + Trace.HitNormal * 2 )
@@ -103,11 +106,12 @@ function SWEP:DrawHUD()
 		return
 	end
 	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
+	local IsVehicle = ent:GetClass():lower() == "gmod_sent_vehicle_fphysics_base"
 	
 	if (IsVehicle) then
-		local MaxHealth = ent:GetMaxHealth()
-		local Health = ent:GetHealthp()
+		local MaxHealth = ent:GetNWFloat( "MaxHealth", 0 )
+		local Health = ent:GetNWFloat( "Health", 0 )
+		
 		draw.RoundedBox( 0, xpos, ypos, ((sizex * 0.118) / MaxHealth) * Health, sizey * 0.02, Color( (Health < MaxHealth * 0.7) and 255 or 0, (Health >= MaxHealth * 0.2) and 255 or 0, 0, 100 ) )
 		
 		draw.SimpleText( Health.." / "..MaxHealth, "simfphysfont", xpos + sizex * 0.059, ypos + sizey * 0.01, Color( 255, 235, 0, 255 ), 1, 1 )

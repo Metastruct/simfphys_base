@@ -316,15 +316,16 @@ hook.Add( "Think", "simfphys_sprites_managment", function()
 		end
 		
 		for i, ent in pairs( ents.FindByClass( "gmod_sent_vehicle_fphysics_base" ) ) do
-			if (ent.EnableLights == true) then return end
-			local listname = ent:GetLights_List()
-			
-			if (!listname) then return end
-			
-			if (listname != "no_lights") then
-				SetUpLights( listname, ent )
-			else
-				ent.EnableLights = true
+			if ent.EnableLights != true then
+				local listname = ent:GetLights_List()
+				
+				if (listname) then
+					if (listname != "no_lights") then
+						SetUpLights( listname, ent )
+					else
+						ent.EnableLights = true
+					end
+				end
 			end
 		end
 	end

@@ -2,12 +2,6 @@ AddCSLuaFile( "shared.lua" )
 AddCSLuaFile( "cl_init.lua" )
 include('shared.lua')
 
-local DamageEnabled = false
-cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue, newValue )
-	DamageEnabled = ( tonumber( newValue )~=0 )
-end)
-DamageEnabled = GetConVar( "sv_simfphys_enabledamage" ):GetBool()
-
 function ENT:PostEntityPaste( ply , ent , createdEntities )
 	self:SetValues()
 	
@@ -59,7 +53,6 @@ function ENT:Think()
 		self:SetColors()
 		self:SimulateVehicle( Time )
 		self:ControlLighting( Time )
-		self:ControlDamage()
 		self:ControlExFx()
 		
 		self.NextWaterCheck = self.NextWaterCheck or 0
@@ -84,10 +77,10 @@ function ENT:OnActiveChanged( name, old, new)
 	
 	if self.EnableSuspension != 1 then return end
 	
+	local TurboCharged = self:GetTurboCharged()
+	local SuperCharged = self:GetSuperCharged()
+	
 	if new == true then
-		local TurboCharged = self:GetTurboCharged()
-		local SuperCharged = self:GetSuperCharged()
-		
 		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
 		self:ControlLights( self.LightsActivated )
 		
@@ -95,10 +88,6 @@ function ENT:OnActiveChanged( name, old, new)
 			if (self.ems) then
 				self.ems:Play()
 			end
-		end
-		
-		if (self.Enginedamage) then
-			self.Enginedamage:Play()
 		end
 		
 		if (TurboCharged) then
@@ -140,17 +129,15 @@ function ENT:OnActiveChanged( name, old, new)
 		if (self.ems) then
 			self.ems:Stop()
 		end
-		
-		if (self.Enginedamage) then
-			self.Enginedamage:Stop()
-		end
+
 		if (self.horn) then
 			self.horn:Stop()
 		end
+		
 		if (TurboCharged) then
 			self.Turbo:Stop()
 		end
-		
+
 		if (SuperCharged) then
 			self.Blower:Stop()
 			self.BlowerWhine:Stop()
@@ -197,14 +184,6 @@ function ENT:WaterPhysics()
 		self.EngineIsOn = 0
 		self.EngineRPM = 0
 		self:SetFlyWheelRPM( 0 )
-		
-		local Health = self.Healthpoints
-		if (Health <= (self.HealthMax * 0.2)) then
-			if (Health <= (self.HealthMax * 0.2)) then
-				self.Healthpoints = self.HealthMax * 0.2 + 1
-				self:Extinguish()
-			end
-		end
 	end
 	
 	local phys = self:GetPhysicsObject()
@@ -542,160 +521,6 @@ function ENT:PlayAnimation( animation )
 	self:SetSequence( sequence )
 end
 
-function ENT:ControlDamage()
-	if (!DamageEnabled) then 
-		self.Healthpoints = self.HealthMax
-		return
-	end
-	
-	local ply = self:GetDriver()
-	local Active = self:GetActive()
-	local LimitRPM = self:GetLimitRPM()
-	local Health = self.Healthpoints
-	local Throttle = self:GetThrottle()
-	
-	self.ToggleDamageSounds = self.ToggleDamageSounds or 0
-	self.DamageSounds = self.DamageSounds or 0
-	self.OldHealth = self.OldHealth or 0
-	
-	if (self.OldHealth != Health) then
-		self:SetHealthp( self.Healthpoints )
-		
-		self.OldHealth = Health
-		if (Health <= (self.HealthMax * 0.7)) then
-			if (Health <= (self.HealthMax * 0.5)) then
-				if (Health <= (self.HealthMax * 0.2)) then
-					self.DamageSounds = 2
-				else
-					self.DamageSounds = 1
-				end
-			else
-				self.DamageSounds = 0.5
-			end
-		else
-			self.DamageSounds = 0
-		end
-		if (Health <= 0) then
-			self.EngineIsOn = 0
-		end
-	end
-	
-	if (Health <= (self.HealthMax * 0.2)) then
-		self.Healthpoints = math.max(self.Healthpoints - 0.1,0)
-	end
-	
-	if (self.DamageSounds != self.ToggleDamageSounds) then
-		self.ToggleDamageSounds = self.DamageSounds
-		if (self.DamageSounds == 0.5) then
-			self.Enginedamage = CreateSound(self, "simulated_vehicles/engine_damaged.wav")
-			if (active) then
-				self.Enginedamage:Play()
-			end
-		elseif (self.DamageSounds == 1) then
-			if (!self.Enginedamage) then
-				self.Enginedamage = CreateSound(self, "simulated_vehicles/engine_damaged.wav")
-				if (active) then
-					self.Enginedamage:Play()
-				end
-			end
-			self:StallAndRestart()
-			
-		elseif (self.DamageSounds == 2) then
-			if (!self.Enginedamage) then
-				self.Enginedamage = CreateSound(self, "simulated_vehicles/engine_damaged.wav")
-				if (active) then
-					self.Enginedamage:Play()
-				end
-			end
-			self:StallAndRestart()
-			self:Ignite( 100 )
-		else
-			self:Extinguish()
-			if (self.Enginedamage) then
-				self.Enginedamage:Stop()
-				self.Enginedamage = nil
-			end
-		end
-	end
-	
-	if (self.DamageSounds and self.Enginedamage) then
-		self.SmoothdmgSound = (self.EngineRPM / LimitRPM) * 500
-		
-		local Volume = math.Clamp( -0.35 + (self.SmoothdmgSound / 550) * (1 - 1 * Throttle) ,0, 1)
-		
-		self.Enginedamage:ChangeVolume( Volume )
-	end
-	
-	if (Health <= 0) then
-		self:Destroy()
-	end
-end
-
-function ENT:Destroy()
-	util.BlastDamage( self, self, self:GetPos(), 300,200 )
-	util.ScreenShake( self:GetPos(), 50, 50, 1.5, 700 )
-	
-	local bprop = ents.Create( "gmod_sent_simfphys_gib" )
-	bprop:SetModel( self:GetModel() )			
-	bprop:SetPos( self:LocalToWorld( Vector(0,0,0) ) )
-	bprop:SetAngles( self:LocalToWorldAngles( Angle(0,0,0) ) )
-	bprop:Spawn()
-	bprop:Activate()
-	bprop:GetPhysicsObject():SetVelocity( self:GetVelocity() + Vector(math.random(-5,5),math.random(-5,5),math.random(150,250)) ) 
-	bprop:GetPhysicsObject():SetMass( self.Mass * 0.75 )
-	bprop.DoNotDuplicate = true
-	bprop.MakeSound = true
-	self:s_MakeOwner( bprop )
-	
-	if (IsValid( self.EntityOwner )) then
-		undo.Create( "Gib" )
-		undo.SetPlayer( self.EntityOwner )
-		undo.AddEntity( bprop )
-		undo.Finish( "Gib" )
-		self.EntityOwner:AddCleanup( "Gibs", bprop )
-	end
-	
-	if (self.CustomWheels) then
-		for i = 1, table.Count( self.GhostWheels ) do
-			local Wheel = self.GhostWheels[i]
-			if (IsValid(Wheel)) then
-				local prop = ents.Create( "gmod_sent_simfphys_gib" )
-				prop:SetModel( Wheel:GetModel() )			
-				prop:SetPos( Wheel:LocalToWorld( Vector(0,0,0) ) )
-				prop:SetAngles( Wheel:LocalToWorldAngles( Angle(0,0,0) ) )
-				prop:SetOwner( bprop )
-				prop:Spawn()
-				prop:Activate()
-				prop:GetPhysicsObject():SetVelocity( self:GetVelocity() + Vector(math.random(-5,5),math.random(-5,5),math.random(0,25)) )
-				prop:GetPhysicsObject():SetMass( 20 )
-				prop.DoNotDuplicate = true
-				bprop:DeleteOnRemove( prop )
-				
-				self:s_MakeOwner( prop )
-			end
-		end
-	end
-	
-	if IsValid(self:GetDriver()) then
-		self:GetDriver():Kill()
-	end
-	
-	if (self.PassengerSeats) then
-		for i = 1, table.Count( self.PassengerSeats ) do
-			local Passenger = self.pSeat[i]:GetDriver()
-			if (IsValid(Passenger)) then
-				Passenger:Kill()
-			end
-		end
-	end
-	
-	if (self.Enginedamage) then
-		self.Enginedamage:Stop()
-	end
-	self:Extinguish() 
-	self:Remove()
-end
-
 function ENT:InitializeVehicle()
 	if (!IsValid(self)) then return end
 	
@@ -991,9 +816,6 @@ function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRP
 end
 
 function ENT:StallAndRestart()
-	if (self.Enginedamage) then
-		self.Enginedamage:ChangeVolume( 0 )
-	end
 	self.EngineIsOn = 0
 	self:SetIsCruiseModeOn( false )
 	self.CurrentGear = 2
@@ -1002,7 +824,7 @@ function ENT:StallAndRestart()
 	
 	timer.Simple( 1, function()
 		if !IsValid(self) then return end
-		if (self.Healthpoints > 0 and !self.IsInWater) then
+		if !self.IsInWater then
 			self.EngineIsOn = 1
 			self.EngineRPM = self:GetIdleRPM()
 		end
@@ -1305,7 +1127,7 @@ end
 function ENT:SteerVehicle( steer )
 	self.VehicleData[ "SteerAngle" ] = steer
 	
-	local pp_steer = self.SmoothAng / self.VehicleData["steerangle"]
+	local pp_steer = steer / self.VehicleData["steerangle"]
 	self:SetVehicleSteer( pp_steer )
 	
 	self:SetPoseParameter("vehicle_steer",pp_steer) 
@@ -1416,7 +1238,6 @@ function ENT:SetValues()
 	self.SmoothAng = 0
 	self.Steer = 0
 	self.EngineIsOn = 0
-	self.Healthpoints = 1000
 	self.EngineTorque = 0
 	
 	self.pSeat = {}
@@ -1520,12 +1341,6 @@ function ENT:WriteVehicleDataTable()
 		self.VehicleData[ "pp_spin_2" ] = "vehicle_wheel_fr_spin"
 		self.VehicleData[ "pp_spin_3" ] = "vehicle_wheel_rl_spin"
 		self.VehicleData[ "pp_spin_4" ] = "vehicle_wheel_rr_spin"
-		
-		self.HealthMax = self.MaxHealth and self.MaxHealth or self.Healthpoints + self:GetPhysicsObject():GetMass() / 3
-		self.Healthpoints = self.HealthMax
-		
-		self:SetMaxHealth( self.HealthMax )
-		self:SetHealthp( self.Healthpoints )
 		
 		self.Turbo = CreateSound(self, "")
 		self.Blower = CreateSound(self, "")
@@ -2026,81 +1841,11 @@ function ENT:OnRemove()
 	if (self.BlowerWhine) then
 		self.BlowerWhine:Stop()
 	end
-	if (self.Enginedamage) then
-		self.Enginedamage:Stop()
-	end
 	if (self.horn) then
 		self.horn:Stop()
 	end
 	if (self.ems) then
 		self.ems:Stop()
-	end
-end
-
-function ENT:OnTakeDamage( dmginfo )
-	self:TakePhysicsDamage( dmginfo )
-	if (self.EnableSuspension != 1) then return end
-	
-	local Damage = dmginfo:GetDamage() 
-	local DamagePos = dmginfo:GetDamagePosition() 
-	local Type = dmginfo:GetDamageType()
-	
-	self.Healthpoints = math.max(self.Healthpoints - Damage * ((Type == DMG_BLAST) and 10 or 2.5),0)
-	
-	if IsValid(self:GetDriver()) then
-		local Distance = (DamagePos - self:GetDriver():GetPos()):Length() 
-		if (Distance < 70) then
-			local Damage = (70 - Distance) / 22
-			dmginfo:ScaleDamage( Damage )
-			self:GetDriver():TakeDamageInfo( dmginfo )
-		end
-	end
-	
-	if (self.PassengerSeats) then
-		for i = 1, table.Count( self.PassengerSeats ) do
-			local Passenger = self.pSeat[i]:GetDriver()
-			
-			if (IsValid(Passenger)) then
-				local Distance = (DamagePos - Passenger:GetPos()):Length()
-				local Damage = (70 - Distance) / 22
-				if (Distance < 70) then
-					dmginfo:ScaleDamage( Damage )
-					Passenger:TakeDamageInfo( dmginfo )
-				end
-			end
-		end
-	end
-end
-
-
-function ENT:PhysicsCollide( data, physobj )
-	if ( data.Speed > 60 && data.DeltaTime > 0.2 ) then
-		if (data.Speed > 1000) then
-			self:EmitSound( "MetalVehicle.ImpactHard" )
-			self:HurtPlayers(5)
-			self.Healthpoints = math.max(self.Healthpoints - (data.Speed / 8),0)
-		else
-			self:EmitSound( "MetalVehicle.ImpactSoft" )
-			if (data.Speed > 700) then
-				self:HurtPlayers(2)
-			end
-		end
-	end
-end
-
-function ENT:HurtPlayers( damage )
-	if IsValid(self:GetDriver()) then
-		self:GetDriver():TakeDamage(damage, Entity(0), self )
-	end
-	
-	if (self.PassengerSeats) then
-		for i = 1, table.Count( self.PassengerSeats ) do
-			local Passenger = self.pSeat[i]:GetDriver()
-			
-			if (IsValid(Passenger)) then
-				Passenger:TakeDamage(damage, Entity(0), self )
-			end
-		end
 	end
 end
 
