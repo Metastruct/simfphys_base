@@ -15,7 +15,8 @@ function ENT:Initialize()
 	self.LowRPM = CreateSound(self, "")
 	self.Idle = CreateSound(self, "")
 	self.Valves = CreateSound(self, "")
-		
+	self.DamageSnd = CreateSound(self, "simulated_vehicles/engine_damaged.wav")
+	
 	self.Materials = {
 		"particle/smokesprites_0001",
 		"particle/smokesprites_0002",
@@ -102,6 +103,13 @@ function ENT:ManageSounds(Active)
 		self.OldActive = Active
 		
 		if (Active) then
+			local MaxHealth = self:GetNWFloat( "MaxHealth", 0 )
+			local Health = self:GetNWFloat( "Health", 0 )
+			
+			if Health <= (MaxHealth * 0.5) then
+				self.DamageSnd:PlayEx(0,0)
+			end
+			
 			if (self.SoundMode == 2) then
 				self.HighRPM = CreateSound(self, self.EngineSounds[ "HighRPM" ] )
 				self.LowRPM = CreateSound(self, self.EngineSounds[ "LowRPM" ])
@@ -141,12 +149,18 @@ function ENT:ManageSounds(Active)
 			self.LowRPM:Stop()
 			self.Idle:Stop()
 			self.Valves:Stop()
+			self.DamageSnd:Stop()
 		end
 	end
 	
 	if (Active) then		
 		local Volume = 0.25 + 0.25 * ((self.SmoothRPM / LimitRPM) ^ 1.5) + self.FadeThrottle * 0.5
 		local Pitch = math.Clamp( (20 + self.SmoothRPM / 50 - self.PitchOffset) * self.PitchMulAll,0,255)
+		
+		if self.DamageSnd then
+			self.DamageSnd:ChangeVolume( (self.SmoothRPM / LimitRPM) * 0.7 ^ 1.5 )
+			self.DamageSnd:ChangePitch( 100 ) 
+		end
 		
 		if (self.SoundMode == 2) then
 			if (self.FadeThrottle != self.OldThrottle) then
@@ -654,6 +668,7 @@ function ENT:OnRemove()
 	self.LowRPM:Stop()
 	self.Idle:Stop()
 	self.Valves:Stop()
+	self.DamageSnd:Stop()
 end
 
 function ENT:BodyGroupIsValid( bodygroups )
