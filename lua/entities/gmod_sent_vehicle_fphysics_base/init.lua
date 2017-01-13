@@ -82,7 +82,6 @@ function ENT:OnActiveChanged( name, old, new)
 	
 	if new == true then
 		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
-		self:ControlLights( self.LightsActivated )
 		
 		if (self:GetEMSEnabled()) then
 			if (self.ems) then
@@ -121,8 +120,6 @@ function ENT:OnActiveChanged( name, old, new)
 	else
 		self.EngineRPM = 0
 		self.EngineIsOn = 0
-		
-		self:ControlLights( false )
 
 		self.IsLocked = false
 		
@@ -212,10 +209,7 @@ function ENT:ControlLighting( curtime )
 			self.DoCheck = self.LightsActivated
 			if (self.LightsActivated) then
 				self:SetLightsEnabled(true)
-			else
-				self:ControlLamps( false )
 			end
-			self:ControlLights( self:GetActive() and self.LightsActivated )
 		end
 	end
 end
@@ -525,7 +519,12 @@ function ENT:InitializeVehicle()
 	if (!IsValid(self)) then return end
 	
 	if (self.LightsTable) then
-		self:CreateLights()
+		local vehiclelist = list.Get( "simfphys_lights" )[self.LightsTable] or false
+		if (!vehiclelist) then return end
+		
+		if (vehiclelist.PoseParameters) then
+			self.LightsPP = vehiclelist.PoseParameters
+		end
 	end
 	
 	self:GetPhysicsObject():SetDragCoefficient( self.AirFriction or -250 )
@@ -1151,6 +1150,12 @@ function ENT:Use( ply )
 		ply:SetAllowWeaponsInVehicle( false ) 
 		if (IsValid(self.DriverSeat)) then
 			ply:EnterVehicle( self.DriverSeat )
+			timer.Simple( 0.01, function()
+				if IsValid(ply) then
+					local angles = Angle(0,90,0)
+					ply:SetEyeAngles( angles )
+				end
+			end)
 		end
 	else
 		if (self.PassengerSeats) then
@@ -1610,19 +1615,6 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	Rope2.DoNotDuplicate = true
 end
 
-function ENT:OnIsBraking( name, old, new)
-	if (new == old) then return end
-	local lColor = new and "50" or "30"
-	
-	if (IsValid(self.Taillight_L)) then
-		self.Taillight_L:SetKeyValue( "lightcolor", lColor.." 0 0 "..lColor )
-	end
-	
-	if (IsValid(self.Taillight_R)) then
-		self.Taillight_R:SetKeyValue( "lightcolor", lColor.." 0 0 "..lColor )
-	end
-end
-
 function ENT:OnFrontSuspensionHeightChanged( name, old, new )
 	if ( old == new ) then return end
 	if (!self.CustomWheels and (new > 0)) then new = 0 end
@@ -1847,14 +1839,6 @@ function ENT:OnRemove()
 	if (self.ems) then
 		self.ems:Stop()
 	end
-end
-
-
-function ENT:OnTakeDamage( dmginfo )
-	self:TakePhysicsDamage( dmginfo )
-end
-
-function ENT:PhysicsCollide( data, physobj )
 end
 
 numpad.Register( "k_forward", function( pl, ent, keydown )
@@ -2110,8 +2094,6 @@ numpad.Register( "k_lgts", function( pl, ent, keydown )
 				ent:EmitSound( "buttons/lightswitch2.wav" )
 				ent.LampsActivated = false
 				ent:SetLampsEnabled( ent.LampsActivated )
-				
-				ent:ControlLights( false )
 			else
 				ent.NextLightCheck = Time + (vehiclelist.DelayOn or 0)
 				ent.LightsActivated = true
@@ -2125,6 +2107,7 @@ numpad.Register( "k_lgts", function( pl, ent, keydown )
 				if (vehiclelist.Animation) then
 					ent:PlayAnimation( vehiclelist.Animation.On )
 				end
+				print(ent.LightsPP)
 				if (ent.LightsPP) then
 					ent:PlayPP(ent.LightsActivated)
 				end
@@ -2148,19 +2131,6 @@ numpad.Register( "k_lgts", function( pl, ent, keydown )
 				ent.LampsActivated = true
 			end
 			
-			local svlightinfo = GetConVar("sv_simfphys_lightmode"):GetInt()
-			if (svlightinfo >= 3) then
-				local Enable = ent.LampsActivated and "TurnOn" or "TurnOff"
-				
-				if (IsValid(ent.Headlight_L)) then
-					ent.Headlight_L:Fire(Enable, "",0)
-				end
-				if (IsValid(ent.Headlight_R)) then
-					ent.Headlight_R:Fire(Enable, "",0) 
-				end
-			end
-			
-			ent:ControlLamps( ent.LampsActivated or svlightinfo >= 3 )
 			ent:SetLampsEnabled( ent.LampsActivated )
 			
 			ent:EmitSound( "items/flashlight1.wav" )
@@ -2172,61 +2142,6 @@ function ENT:PlayPP( On )
 	self.poseon = On and self.LightsPP.max or self.LightsPP.min
 end
 
-function ENT:ControlLamps( active )
-	local Mat = active and "effects/flashlight/headlight_highbeam" or "effects/flashlight/headlight_lowbeam"
-	local dist = active and 3000 or 1000
-	
-	if (IsValid(self.Headlight_L)) then
-		self.Headlight_L:Input( "SpotlightTexture", NULL, NULL, Mat )
-		self.Headlight_L:SetKeyValue( "farz", dist )
-	end
-	if (IsValid(self.Headlight_R)) then
-		self.Headlight_R:Input( "SpotlightTexture", NULL, NULL, Mat )
-		self.Headlight_R:SetKeyValue( "farz", dist )
-	end
-end
-
-function ENT:ControlLights( active )
-	local svlightinfo = GetConVar("sv_simfphys_lightmode"):GetInt()
-	local Enable = svlightinfo >= 1 and (active and "TurnOn" or "TurnOff") or "TurnOff"
-	local rearEnable = svlightinfo == 2 and Enable or "TurnOff"
-	
-	if (IsValid(self.Taillight_L)) then
-		self.Taillight_L:Fire(rearEnable, "",0) 
-	end
-	if (IsValid(self.Taillight_R)) then
-		self.Taillight_R:Fire(rearEnable, "",0) 
-	end
-	
-	if (svlightinfo == 3) then
-		if (active) then
-			if (self.LampsActivated) then
-				if (IsValid(self.Headlight_L)) then
-					self.Headlight_L:Fire("TurnOn", "",0)
-				end
-				if (IsValid(self.Headlight_R)) then
-					self.Headlight_R:Fire("TurnOn", "",0) 
-				end
-			end
-		else
-			if (IsValid(self.Headlight_L)) then
-				self.Headlight_L:Fire("TurnOff", "",0)
-			end
-			if (IsValid(self.Headlight_R)) then
-				self.Headlight_R:Fire("TurnOff", "",0) 
-			end
-		end
-		return
-	end
-	
-	if (IsValid(self.Headlight_L)) then
-		self.Headlight_L:Fire(Enable, "",0)
-	end
-	if (IsValid(self.Headlight_R)) then
-		self.Headlight_R:Fire(Enable, "",0) 
-	end
-end
-
 function ENT:DisableLights()
 	self:SetNWBool( "lights_disabled", true)
 	self.LightsDisabled = true
@@ -2234,104 +2149,6 @@ function ENT:DisableLights()
 	if (self.ems) then
 		self.ems:Stop()
 		self.ems = nil
-	end
-	
-	if IsValid(self.Headlight_L) then
-		self.Headlight_L:Remove()
-	end
-	if IsValid(self.Headlight_R) then
-		self.Headlight_R:Remove()
-	end
-	if IsValid(self.Taillight_L) then
-		self.Taillight_L:Remove()
-	end
-	if IsValid(self.Taillight_R) then
-		self.Taillight_R:Remove()
-	end
-end
-
-function ENT:CreateLights()
-	if self.LightsDisabled then return end
-	
-	local vehiclelist = list.Get( "simfphys_lights" )[self.LightsTable] or false
-	if !vehiclelist then return end
-	
-	if (vehiclelist.PoseParameters) then
-		self.LightsPP = vehiclelist.PoseParameters
-	end
-	
-	local Color = vehiclelist.ModernLights and "215 240 255 520" or "220 205 160 400"
-	
-	if (vehiclelist.L_HeadLampPos and vehiclelist.L_HeadLampAng) then
-		self.Headlight_L = ents.Create( "env_projectedtexture" )
-		self.Headlight_L:SetParent( self.Entity )
-		self.Headlight_L:SetLocalPos( vehiclelist.L_HeadLampPos )
-		self.Headlight_L:SetLocalAngles( vehiclelist.L_HeadLampAng )
-		self.Headlight_L:SetKeyValue( "enableshadows", 0 )
-		self.Headlight_L:SetKeyValue( "farz", 100 )
-		self.Headlight_L:SetKeyValue( "nearz", 65 )
-		self.Headlight_L:SetKeyValue( "lightfov", 80 )
-		self.Headlight_L:SetKeyValue( "lightcolor", Color )
-		self.Headlight_L:Spawn()
-		self.Headlight_L:Input( "SpotlightTexture", NULL, NULL, "effects/flashlight/headlight_lowbeam" )
-		self.Headlight_L:Fire("TurnOff", "",0)
-		self.Headlight_L.DoNotDuplicate = true
-		self:s_MakeOwner( self.Headlight_L )
-	end
-	
-	if (vehiclelist.R_HeadLampPos and vehiclelist.R_HeadLampAng) then
-		self.Headlight_R = ents.Create( "env_projectedtexture" )
-		self.Headlight_R:SetParent( self.Entity )
-		self.Headlight_R:SetLocalPos( vehiclelist.R_HeadLampPos )
-		self.Headlight_R:SetLocalAngles( vehiclelist.R_HeadLampAng )
-		self.Headlight_R:SetKeyValue( "enableshadows", 0 )
-		self.Headlight_R:SetKeyValue( "farz", 100 )
-		self.Headlight_R:SetKeyValue( "nearz", 65 )
-		self.Headlight_R:SetKeyValue( "lightfov", 80 )
-		self.Headlight_R:SetKeyValue( "lightcolor", Color )
-		self.Headlight_R:Spawn()
-		self.Headlight_R:Input( "SpotlightTexture", NULL, NULL, "effects/flashlight/headlight_lowbeam" )
-		self.Headlight_R:Fire("TurnOff", "",0)
-		self.Headlight_R.DoNotDuplicate = true
-		self:s_MakeOwner( self.Headlight_R )
-	end
-	
-	if (vehiclelist.L_RearLampPos  and vehiclelist.L_RearLampAng) then
-		self.Taillight_L = ents.Create( "env_projectedtexture" )
-		self.Taillight_L:SetParent( self.Entity )
-		self.Taillight_L:SetLocalPos( vehiclelist.L_RearLampPos )
-		self.Taillight_L:SetLocalAngles( vehiclelist.L_RearLampAng )
-		self.Taillight_L:SetKeyValue( "enableshadows", 0 )
-		self.Taillight_L:SetKeyValue( "farz", 80 )
-		self.Taillight_L:SetKeyValue( "nearz", 40 )
-		self.Taillight_L:SetKeyValue( "lightfov", 140 )
-		self.Taillight_L:SetKeyValue( "lightcolor", "30 0 0 30" )
-		self.Taillight_L:Spawn()
-		self.Taillight_L:Input( "SpotlightTexture", NULL, NULL, "effects/flashlight/soft" )
-		self.Taillight_L.DoNotDuplicate = true
-		self.Taillight_L:Fire("TurnOff", "",0)
-		self:s_MakeOwner( self.Taillight_L )
-	end
-	
-	if (vehiclelist.R_RearLampPos  and vehiclelist.R_RearLampAng) then
-		self.Taillight_R = ents.Create( "env_projectedtexture" )
-		self.Taillight_R:SetParent( self.Entity )
-		self.Taillight_R:SetLocalPos( vehiclelist.R_RearLampPos )
-		self.Taillight_R:SetLocalAngles( vehiclelist.R_RearLampAng )
-		self.Taillight_R:SetKeyValue( "enableshadows", 0 )
-		self.Taillight_R:SetKeyValue( "farz", 80 )
-		self.Taillight_R:SetKeyValue( "nearz", 40 )
-		self.Taillight_R:SetKeyValue( "lightfov", 140 )
-		self.Taillight_R:SetKeyValue( "lightcolor", "30 0 0 30" )
-		self.Taillight_R:Spawn()
-		self.Taillight_R:Input( "SpotlightTexture", NULL, NULL, "effects/flashlight/soft" )
-		self.Taillight_R.DoNotDuplicate = true
-		self.Taillight_R:Fire("TurnOff", "",0)
-		self:s_MakeOwner( self.Taillight_R )
-	end
-	
-	if (vehiclelist.BodyGroups) then
-		self:SetBodygroup(vehiclelist.BodyGroups.Off[1], vehiclelist.BodyGroups.Off[2] )
 	end
 end
 
@@ -2357,7 +2174,7 @@ function ENT:DamageLoop()
 	
 	self:TakeDamage(1, Entity(0), Entity(0) )
 	
-	timer.Simple( 0.075, function()
+	timer.Simple( 0.125, function()
 		if IsValid(self) then
 			self:DamageLoop()
 		end

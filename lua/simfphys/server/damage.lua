@@ -1,3 +1,6 @@
+util.AddNetworkString( "simfphys_spritedamage" )
+util.AddNetworkString( "simfphys_lightsfixall" )
+
 local DamageEnabled = false
 cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue, newValue )
 	DamageEnabled = ( tonumber( newValue )~=0 )
@@ -134,20 +137,41 @@ local function HurtPlayers( ent, damage )
 	end
 end
 
+local function bcDamage( vehicle , position , cdamage )
+	if !DamageEnabled then return end
+	
+	cdamage = cdamage or false
+	net.Start( "simfphys_spritedamage" )
+		net.WriteEntity( vehicle )
+		net.WriteVector( position ) 
+		net.WriteBool( cdamage ) 
+	net.Broadcast()
+end
+
 local function onColide( ent, data )
 	if ( data.Speed > 60 && data.DeltaTime > 0.2 ) then
+		
+		local pos = data.HitPos
+		
+		local hitent = data.HitEntity:IsPlayer()
+		if !hitent then
+			bcDamage( ent , ent:WorldToLocal( pos ) , true )
+		end
+		
 		if (data.Speed > 1000) then
-			Spark( data.HitPos , data.HitNormal , "MetalVehicle.ImpactHard" )
+			Spark( pos , data.HitNormal , "MetalVehicle.ImpactHard" )
 			
 			HurtPlayers( ent , 5 )
 			
-			DamageVehicle( ent , data.Speed / 6 )
+			ent:TakeDamage(data.Speed / 16, Entity(0), Entity(0) )
+			
 		else
-			Spark( data.HitPos , data.HitNormal , "MetalVehicle.ImpactSoft" )
+			Spark( pos , data.HitNormal , "MetalVehicle.ImpactSoft" )
 			
 			if (data.Speed > 700) then
 				HurtPlayers( ent , 2 )
-				DamageVehicle( ent , data.Speed / 6 )
+				
+				ent:TakeDamage(data.Speed / 16, Entity(0), Entity(0) )
 			end
 		end
 	end
@@ -162,6 +186,8 @@ local function OnDamage( ent, dmginfo )
 	local DamagePos = dmginfo:GetDamagePosition() 
 	local Type = dmginfo:GetDamageType()
 	local Driver = ent:GetDriver()
+	
+	bcDamage( ent , ent:WorldToLocal( DamagePos ) )
 	
 	DamageVehicle( ent , Damage * ((Type == DMG_BLAST) and 10 or 2.5) )
 	

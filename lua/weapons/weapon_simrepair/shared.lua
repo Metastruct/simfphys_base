@@ -94,6 +94,9 @@ function SWEP:PrimaryAttack()
 				else 
 					self.Weapon:SetNextPrimaryFire( CurTime() + 0.5 )	
 					sound.Play(Sound( "hl1/fvox/beep.wav" ), self:GetPos(), 75)
+					net.Start( "simfphys_lightsfixall" )
+						net.WriteEntity( ent )
+					net.Broadcast()
 				end
 			end
 		end
