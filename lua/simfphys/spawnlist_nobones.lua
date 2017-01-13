@@ -123,6 +123,8 @@ local V = {
 		Mass = 4800,
 		MaxHealth = 2800,
 		
+		EnginePos = Vector(-16.1,-81.68,47.25),
+		
 		LightsTable = "conapc",
 		
 		CustomWheels = true,
@@ -315,6 +317,8 @@ local V = {
 	Members = {
 		Mass = 1700,
 		
+		EnginePos = Vector(65.01,0,35),
+		
 		LightsTable = "alfons",
 		
 		CustomWheels = true,
@@ -431,6 +435,8 @@ local V = {
 
 	Members = {
 		Mass = 1700,
+		
+		EnginePos = Vector(69.61,0,15),
 		
 		LightsTable = "dukes",
 		

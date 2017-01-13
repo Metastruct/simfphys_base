@@ -12,6 +12,8 @@ local V = {
 	Members = {
 		Mass = 800,
 		
+		EnginePos = Vector(54.27,0,37.26),
+		
 		LightsTable = "golf",
 		
 		CustomWheels = true,
@@ -108,6 +110,8 @@ local V = {
 	Members = {
 		Mass = 2500,
 		
+		EnginePos = Vector(89.98,0,51.3),
+		
 		LightsTable = "van",
 		
 		CustomWheels = true,
@@ -202,6 +206,8 @@ local V = {
 
 	Members = {
 		Mass = 1350,
+		
+		EnginePos = Vector(55.76,0,44.4),
 		
 		LightsTable = "moskvich",
 		
@@ -300,6 +306,8 @@ local V = {
 	Members = {
 		Mass = 850,
 		
+		EnginePos = Vector(0.6,56.38,38.7),
+		
 		LightsTable = "trabbi",
 		
 		CustomWheels = true,
@@ -391,6 +399,8 @@ local V = {
 	Members = {
 		Mass = 850,
 		
+		EnginePos = Vector(0,56.38,38.7),
+		
 		LightsTable = "trabbi",
 		
 		CustomWheels = true,
@@ -481,6 +491,8 @@ local V = {
 
 	Members = {
 		Mass = 1350,
+		
+		EnginePos = Vector(65.39,0,44.84),
 		
 		LightsTable = "volga",
 		
@@ -587,6 +599,8 @@ local V = {
 	Members = {
 		Mass = 1150,
 		
+		EnginePos = Vector(63.64,0,47.96),
+		
 		LightsTable = "zaz",
 		
 		CustomWheels = true,
@@ -691,6 +705,8 @@ local V = {
 	Members = {
 		Mass = 3000,
 		
+		EnginePos = Vector(0,61.23,76.81),
+		
 		LightsTable = "gaz",
 		
 		CustomWheels = true,
@@ -777,6 +793,8 @@ local V = {
 
 	Members = {
 		Mass = 3000,
+		
+		EnginePos = Vector(-1.75,-0.56,51.17),
 		
 		LightsTable = "liaz",
 		
@@ -870,6 +888,8 @@ local V = {
 
 	Members = {
 		Mass = 2500,
+		
+		EnginePos = Vector(49.37,-2.41,44.13),
 		
 		LightsTable = "avia",
 		

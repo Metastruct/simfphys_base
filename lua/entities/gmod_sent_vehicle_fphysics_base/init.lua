@@ -1849,6 +1849,14 @@ function ENT:OnRemove()
 	end
 end
 
+
+function ENT:OnTakeDamage( dmginfo )
+	self:TakePhysicsDamage( dmginfo )
+end
+
+function ENT:PhysicsCollide( data, physobj )
+end
+
 numpad.Register( "k_forward", function( pl, ent, keydown )
 	if (!IsValid(pl) or !IsValid(ent)) then return false end
 	if (ent.PressedKeys) then
@@ -2327,6 +2335,19 @@ function ENT:CreateLights()
 	end
 end
 
+function ENT:GetEnginePos()
+	local Attachment = self:GetAttachment( self:LookupAttachment( "vehicle_engine" ) )
+	local pos = self:GetPos()
+	if Attachment then
+		pos = Attachment.Pos
+	end
+	if isvector(self.EnginePos) then
+		pos = self:LocalToWorld( self.EnginePos )
+	end
+	
+	return pos
+end
+
 function ENT:DamageLoop()
 	if !self.IamOnFire then return end
 	
@@ -2349,23 +2370,20 @@ function ENT:SetOnFire( bOn )
 	
 	if bOn then
 		if !IsValid(self.EngineFire) then
-			local Attachment = self:GetAttachment( self:LookupAttachment( "vehicle_engine" ) )
-			local pos = self:GetPos()
-			if Attachment then
-				pos = Attachment.Pos
-			end
+			local pos = self:GetEnginePos()
 		
 			self.EngineFire = ents.Create( "info_particle_system" )
-			self.EngineFire:SetKeyValue( "effect_name" , "fire_small_03_static")
+			--self.EngineFire:SetKeyValue( "effect_name" , "fire_small_04_static")
+			self.EngineFire:SetKeyValue( "effect_name" , "burning_engine_01")
 			self.EngineFire:SetKeyValue( "start_active" , 1)
 			self.EngineFire:SetOwner( self )
 			self.EngineFire:SetPos( pos )
-			self.EngineFire:SetAngles( self:GetAngles() )
+			self.EngineFire:SetAngles( self.Forward:Angle() )
 			self.EngineFire:Spawn()
 			self.EngineFire:Activate()
 			self.EngineFire:SetParent( self )
 			self.EngineFire.DoNotDuplicate = true
-			--self.EngineFire:EmitSound( "ambient/fire/mtov_flame2.wav" )
+			self.EngineFire:EmitSound( "ambient/fire/mtov_flame2.wav" )
 			
 			self:s_MakeOwner( self.EngineFire )
 			
@@ -2400,19 +2418,15 @@ function ENT:SetOnSmoke( bOn )
 	
 	if bOn then
 		if !IsValid(self.EngineSmoke) then
-			local Attachment = self:GetAttachment( self:LookupAttachment( "vehicle_engine" ) )
-			local pos = self:GetPos()
-			if Attachment then
-				pos = Attachment.Pos
-			end
+			local pos = self:GetEnginePos()
 			
 			self.EngineSmoke = ents.Create( "info_particle_system" )
-			self.EngineSmoke:SetKeyValue( "effect_name" , "smoke_burning_engine_01")
-			--self.EngineSmoke:SetKeyValue( "effect_name" , "smoke_gib_01")
+			--self.EngineSmoke:SetKeyValue( "effect_name" , "smoke_burning_engine_01")
+			self.EngineSmoke:SetKeyValue( "effect_name" , "smoke_gib_01")
 			self.EngineSmoke:SetKeyValue( "start_active" , 1)
 			self.EngineSmoke:SetOwner( self )
 			self.EngineSmoke:SetPos( pos )
-			self.EngineSmoke:SetAngles( self:GetAngles() )
+			self.EngineSmoke:SetAngles( self.Forward:Angle() )
 			self.EngineSmoke:Spawn()
 			self.EngineSmoke:Activate()
 			self.EngineSmoke:SetParent( self )

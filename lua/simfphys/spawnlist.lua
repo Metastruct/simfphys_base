@@ -15,6 +15,8 @@ local V = {
 		--FrontWheelMass = 50,
 		--RearWheelMass = 50,
 		
+		--EnginePos = Vector(65.01,0,31.83),   -- used for the smoke and fire effects. if not defined the script will use the attechment pos "vehicle_engine". if there is no attachment it will use the vehicles position instead
+		
 		--MaxHealth = 1000,    -- overrides max health
 		--AirFriction = -250,
 		LightsTable = "jeep",  --wich list we want to use for our light positions. You can comment this variable out if you dont want lights.  lights are defined in simfphys_lights.lua 

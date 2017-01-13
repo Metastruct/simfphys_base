@@ -1,5 +1,3 @@
-local BaseHealth = 1000
-
 local DamageEnabled = false
 cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue, newValue )
 	DamageEnabled = ( tonumber( newValue )~=0 )
@@ -143,12 +141,13 @@ local function onColide( ent, data )
 			
 			HurtPlayers( ent , 5 )
 			
-			DamageVehicle( ent , data.Speed / 8 )
+			DamageVehicle( ent , data.Speed / 6 )
 		else
 			Spark( data.HitPos , data.HitNormal , "MetalVehicle.ImpactSoft" )
 			
 			if (data.Speed > 700) then
 				HurtPlayers( ent , 2 )
+				DamageVehicle( ent , data.Speed / 6 )
 			end
 		end
 	end
@@ -195,10 +194,10 @@ end
 
 hook.Add( "OnEntityCreated", "memes", function( ent )
 	if ent:GetClass() == "gmod_sent_vehicle_fphysics_base" then
-		timer.Simple( 0.5, function()
+		timer.Simple( 0.2, function()
 			if !IsValid(ent) then return end
 			
-			local Health = ent.MaxHealth and ent.MaxHealth or BaseHealth + ent:GetPhysicsObject():GetMass() / 3
+			local Health = math.floor(ent.MaxHealth and ent.MaxHealth or (1000 + ent:GetPhysicsObject():GetMass() / 3))
 			
 			ent:SetNWFloat( "MaxHealth", Health )
 			ent:SetNWFloat( "Health", Health )
