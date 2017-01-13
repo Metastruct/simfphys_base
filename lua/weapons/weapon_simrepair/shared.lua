@@ -63,8 +63,23 @@ function SWEP:PrimaryAttack()
 			if (SERVER) then
 				local MaxHealth = ent:GetNWFloat( "MaxHealth", 0 )
 				local Health = ent:GetNWFloat( "Health", 0 )
+				
 				if Health < MaxHealth then
-					ent:SetNWFloat( "Health", math.min(Health + 30,MaxHealth) )
+					local NewHealth = math.min(Health + 30,MaxHealth)
+					
+					if NewHealth > (MaxHealth * 0.5) then
+						ent:SetOnFire( false )
+						ent:SetOnSmoke( false )
+					end
+				
+					if NewHealth > (MaxHealth * 0.2) then
+						ent:SetOnFire( false )
+						if NewHealth <= (MaxHealth * 0.5) then
+							ent:SetOnSmoke( true )
+						end
+					end
+					
+					ent:SetNWFloat( "Health", NewHealth )
 					
 					local effect = ents.Create("env_spark")
 						effect:SetKeyValue("targetname", "target")

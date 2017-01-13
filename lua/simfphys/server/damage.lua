@@ -1,15 +1,28 @@
 local BaseHealth = 1000
+
 local DamageEnabled = false
 cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue, newValue )
 	DamageEnabled = ( tonumber( newValue )~=0 )
 end)
 DamageEnabled = GetConVar( "sv_simfphys_enabledamage" ):GetBool()
 
-local function Spark( pos , normal, speed )
+local function SetEntOwner( ply , entity )
+	if CPPI then
+		if IsValid( ply ) then
+			entity:CPPISetOwner( ply )
+		end
+	end
+end
+
+local function Spark( pos , normal , snd )
 	local effectdata = EffectData()
 	effectdata:SetOrigin( pos - normal )
 	effectdata:SetNormal( -normal )
 	util.Effect( "stunstickimpact", effectdata, true, true )
+	
+	if snd then
+		sound.Play(Sound( snd ), pos, 75)
+	end
 end
 
 local function BloodEffect( pos )
@@ -18,14 +31,91 @@ local function BloodEffect( pos )
 	util.Effect( "BloodImpact", effectdata, true, true )
 end
 
+local function DestroyVehicle( ent )
+	if !IsValid( ent ) then return end
+	
+	local ply = ent.EntityOwner
+	
+	local bprop = ents.Create( "gmod_sent_simfphys_gib" )
+	bprop:SetModel( ent:GetModel() )			
+	bprop:SetPos( ent:GetPos() )
+	bprop:SetAngles( ent:GetAngles() )
+	bprop:Spawn()
+	bprop:Activate()
+	bprop:GetPhysicsObject():SetVelocity( ent:GetVelocity() + Vector(math.random(-5,5),math.random(-5,5),math.random(150,250)) ) 
+	bprop:GetPhysicsObject():SetMass( ent.Mass * 0.75 )
+	bprop.DoNotDuplicate = true
+	bprop.MakeSound = true
+	SetEntOwner( ply , bprop )
+	
+	if IsValid( ply ) then
+		undo.Create( "Gib" )
+		undo.SetPlayer( ply )
+		undo.AddEntity( bprop )
+		undo.SetCustomUndoText( "Undone Gib" )
+		undo.Finish( "Gib" )
+		ply:AddCleanup( "Gibs", bprop )
+	end
+	
+	if ent.CustomWheels == true then
+		for i = 1, table.Count( ent.GhostWheels ) do
+			local Wheel = ent.GhostWheels[i]
+			if IsValid(Wheel) then
+				local prop = ents.Create( "gmod_sent_simfphys_gib" )
+				prop:SetModel( Wheel:GetModel() )			
+				prop:SetPos( Wheel:LocalToWorld( Vector(0,0,0) ) )
+				prop:SetAngles( Wheel:LocalToWorldAngles( Angle(0,0,0) ) )
+				prop:SetOwner( bprop )
+				prop:Spawn()
+				prop:Activate()
+				prop:GetPhysicsObject():SetVelocity( ent:GetVelocity() + Vector(math.random(-5,5),math.random(-5,5),math.random(0,25)) )
+				prop:GetPhysicsObject():SetMass( 20 )
+				prop.DoNotDuplicate = true
+				bprop:DeleteOnRemove( prop )
+				
+				SetEntOwner( ply , prop )
+			end
+		end
+	end
+	
+	if IsValid(ent:GetDriver()) then
+		ent:GetDriver():Kill()
+	end
+	
+	if ent.PassengerSeats then
+		for i = 1, table.Count( ent.PassengerSeats ) do
+			local Passenger = ent.pSeat[i]:GetDriver()
+			if IsValid(Passenger) then
+				Passenger:Kill()
+			end
+		end
+	end
+	
+	ent:Extinguish() 
+	ent:Remove()
+end
+
 local function DamageVehicle( ent , damage )
-	if !DamageEnabled then return end
+	if not DamageEnabled then return end
 	
-	--local MaxHealth = ent:GetNWFloat( "MaxHealth", 0 )
+	local MaxHealth = ent:GetNWFloat( "MaxHealth", 0 )
 	local CurHealth = ent:GetNWFloat( "Health", 0 )
+	if CurHealth <= 0 then return end
 	
+	local NewHealth = math.max( math.Round(CurHealth - damage,0) , 0 )
 	
-	ent:SetNWFloat( "Health", math.max( math.Round(CurHealth - damage,0) , 0 ) )
+	if NewHealth <= (MaxHealth * 0.5) then
+		if NewHealth <= (MaxHealth * 0.2) then
+			ent:SetOnFire( true )
+			ent:SetOnSmoke( false )
+		else
+			ent:SetOnSmoke( true )
+		end
+	end
+	
+	if NewHealth <= 0 then DestroyVehicle( ent ) return end
+	
+	ent:SetNWFloat( "Health", NewHealth )
 end
 
 local function HurtPlayers( ent, damage )
@@ -49,15 +139,13 @@ end
 local function onColide( ent, data )
 	if ( data.Speed > 60 && data.DeltaTime > 0.2 ) then
 		if (data.Speed > 1000) then
-			ent:EmitSound( "MetalVehicle.ImpactHard" )
-			Spark( data.HitPos , data.HitNormal , data.Speed )
+			Spark( data.HitPos , data.HitNormal , "MetalVehicle.ImpactHard" )
 			
 			HurtPlayers( ent , 5 )
 			
 			DamageVehicle( ent , data.Speed / 8 )
 		else
-			ent:EmitSound( "MetalVehicle.ImpactSoft" )
-			Spark( data.HitPos , data.HitNormal , data.Speed )
+			Spark( data.HitPos , data.HitNormal , "MetalVehicle.ImpactSoft" )
 			
 			if (data.Speed > 700) then
 				HurtPlayers( ent , 2 )

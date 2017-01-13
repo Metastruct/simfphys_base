@@ -13,9 +13,6 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 ENT.Editable = (GetConVar("sv_simfphys_devmode"):GetInt() or 1) >= 1
 ENT.IsSimfphyscar = true
 
-game.AddParticles("particles/fire_01.pcf")
-PrecacheParticleSystem("fire_large_01")
-
 function ENT:SetupDataTables()
 	self:NetworkVar( "Float",1, "SteerSpeed",				{ KeyName = "steerspeed",			Edit = { type = "Float",		order = 1,min = 1, max = 16,		category = "Steering"} } )
 	self:NetworkVar( "Float",2, "FastSteerConeFadeSpeed",	{ KeyName = "faststeerconefadespeed",	Edit = { type = "Float",		order = 2,min = 1, max = 5000,		category = "Steering"} } )

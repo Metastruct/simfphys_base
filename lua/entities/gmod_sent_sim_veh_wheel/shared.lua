@@ -9,9 +9,6 @@ ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
 ENT.DoNotDuplicate = true
 
-game.AddParticles("particles/vehicle.pcf")
-PrecacheParticleSystem("WheelDust")
-
 function ENT:SetupDataTables()
 	self:NetworkVar( "Float", 1, "OnGround" )
 	self:NetworkVar( "String", 2, "SurfaceMaterial" )

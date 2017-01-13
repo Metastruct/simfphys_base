@@ -36,9 +36,6 @@ entity:GetMaxTraction() -- returns a number
 entity:GetTractionBias() -- returns a number
 entity:GetTireSmokeColor() -- returns a vector
 
-entity:GetHealthp() -- returns a number
-entity:GetMaxHealth() -- returns a number
-
 entity:GetIsCruiseModeOn() -- returns a bool,  is the cruise control enabled?
 entity:GetIsBraking() -- returns true when braking
 entity:GetLightsEnabled() -- returns true when the lowbeams are active
@@ -63,7 +60,6 @@ entity:GetSoundoverride() -- returns an string
 
 -- server
 entity:DisableLights()  -- removes all lights from the inbuild lighting system
-entity:Destroy()  -- destroys the vehicle
 entity:SteerVehicle( number ) -- sets the angle of the steering
 entity:Lock()  -- locks the vehicle
 entity:UnLock() -- unlocks the vehicle

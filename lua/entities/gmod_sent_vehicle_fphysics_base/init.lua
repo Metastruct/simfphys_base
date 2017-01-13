@@ -2327,6 +2327,122 @@ function ENT:CreateLights()
 	end
 end
 
+function ENT:DamageLoop()
+	if !self.IamOnFire then return end
+	
+	local CurHealth = self:GetNWFloat( "Health", 0 )
+	
+	if CurHealth <= 0 then return end
+	
+	self:TakeDamage(1, Entity(0), Entity(0) )
+	
+	timer.Simple( 0.075, function()
+		if IsValid(self) then
+			self:DamageLoop()
+		end
+	end)
+end
+
+function ENT:SetOnFire( bOn )
+	if bOn == self.IamOnFire then return end
+	self.IamOnFire = bOn
+	
+	if bOn then
+		if !IsValid(self.EngineFire) then
+			local Attachment = self:GetAttachment( self:LookupAttachment( "vehicle_engine" ) )
+			local pos = self:GetPos()
+			if Attachment then
+				pos = Attachment.Pos
+			end
+		
+			self.EngineFire = ents.Create( "info_particle_system" )
+			self.EngineFire:SetKeyValue( "effect_name" , "fire_small_03_static")
+			self.EngineFire:SetKeyValue( "start_active" , 1)
+			self.EngineFire:SetOwner( self )
+			self.EngineFire:SetPos( pos )
+			self.EngineFire:SetAngles( self:GetAngles() )
+			self.EngineFire:Spawn()
+			self.EngineFire:Activate()
+			self.EngineFire:SetParent( self )
+			self.EngineFire.DoNotDuplicate = true
+			--self.EngineFire:EmitSound( "ambient/fire/mtov_flame2.wav" )
+			
+			self:s_MakeOwner( self.EngineFire )
+			
+			self.EngineFire.snd = CreateSound(self, "ambient/fire/fire_small1.wav")
+			self.EngineFire.snd:Play()
+			
+			self.EngineFire:CallOnRemove( "stopdemfiresounds", function( vehicle )
+				if IsValid(self.EngineFire) then
+					if self.EngineFire.snd then
+						self.EngineFire.snd:Stop()
+					end
+				end
+			end)
+			
+			self:StallAndRestart()
+			self:DamageLoop()
+		end
+	else
+		if IsValid(self.EngineFire) then
+			if self.EngineFire.snd then
+				self.EngineFire.snd:Stop()
+			end
+			self.EngineFire:Remove()
+			self.EngineFire = nil
+		end
+	end
+end
+
+function ENT:SetOnSmoke( bOn )
+	if bOn == self.IamOnSmoke then return end
+	self.IamOnSmoke = bOn
+	
+	if bOn then
+		if !IsValid(self.EngineSmoke) then
+			local Attachment = self:GetAttachment( self:LookupAttachment( "vehicle_engine" ) )
+			local pos = self:GetPos()
+			if Attachment then
+				pos = Attachment.Pos
+			end
+			
+			self.EngineSmoke = ents.Create( "info_particle_system" )
+			self.EngineSmoke:SetKeyValue( "effect_name" , "smoke_burning_engine_01")
+			--self.EngineSmoke:SetKeyValue( "effect_name" , "smoke_gib_01")
+			self.EngineSmoke:SetKeyValue( "start_active" , 1)
+			self.EngineSmoke:SetOwner( self )
+			self.EngineSmoke:SetPos( pos )
+			self.EngineSmoke:SetAngles( self:GetAngles() )
+			self.EngineSmoke:Spawn()
+			self.EngineSmoke:Activate()
+			self.EngineSmoke:SetParent( self )
+			self.EngineSmoke.DoNotDuplicate = true
+			self:s_MakeOwner( self.EngineSmoke )
+			
+			self.EngineSmoke.snd = CreateSound(self, "ambient/gas/steam2.wav")
+			self.EngineSmoke.snd:PlayEx(0.3,90)
+			
+			self.EngineSmoke:CallOnRemove( "stopdemsmokesounds", function( vehicle )
+				if IsValid(self.EngineSmoke) then
+					if self.EngineSmoke.snd then
+						self.EngineSmoke.snd:Stop()
+					end
+				end
+			end)
+			
+			self:StallAndRestart()
+		end
+	else
+		if IsValid(self.EngineSmoke) then
+			if self.EngineSmoke.snd then
+				self.EngineSmoke.snd:Stop()
+			end
+			self.EngineSmoke:Remove()
+			self.EngineSmoke = nil
+		end
+	end
+end
+
 function ENT:s_MakeOwner( entity )
 	if CPPI then
 		if (IsValid( self.EntityOwner )) then

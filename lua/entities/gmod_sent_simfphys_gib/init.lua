@@ -53,13 +53,13 @@ function ENT:Initialize()
 			Light:Fire( "TurnOn", "", "0" )
 			timer.Simple( 120, function()
 				if !IsValid(self) then return end
-				if (IsValid(Light)) then
+				if IsValid(Light) then
 					Light:Remove()
 				end
-				if (IsValid(self.particleeffect)) then
+				if IsValid(self.particleeffect) then
 					self.particleeffect:Remove()
 				end
-				if (self.FireSound) then
+				if self.FireSound then
 					self.FireSound:Stop()
 				end
 			end)
@@ -83,6 +83,20 @@ function ENT:Initialize()
 				effectdata:SetEntity( self )
 				effectdata:SetFlags( 4 ) 
 				util.Effect( "Explosion", effectdata, true, true )
+				
+			util.ScreenShake( self:GetPos(), 50, 50, 1.5, 700 )
+			util.BlastDamage( self, Entity(0), self:GetPos(), 300,200 )
+		else
+			self.particleeffect = ents.Create( "info_particle_system" )
+			self.particleeffect:SetKeyValue( "effect_name" , "fire_small_03")
+			self.particleeffect:SetKeyValue( "start_active" , 1)
+			self.particleeffect:SetOwner( self )
+			self.particleeffect:SetPos( self:LocalToWorld( self:GetPhysicsObject():GetMassCenter() ) )
+			self.particleeffect:SetAngles( self:GetAngles() )
+			self.particleeffect:Spawn()
+			self.particleeffect:Activate()
+			self.particleeffect:SetParent( self )
+			self.particleeffect:Fire( "Stop", "", math.random(0.5,3) )
 		end
 		
 	end)
