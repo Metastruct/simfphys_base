@@ -181,6 +181,9 @@ function ENT:WaterPhysics()
 		self.EngineIsOn = 0
 		self.EngineRPM = 0
 		self:SetFlyWheelRPM( 0 )
+		
+		self:SetOnFire( false )
+		self:SetOnSmoke( false )
 	end
 	
 	local phys = self:GetPhysicsObject()
@@ -2172,9 +2175,9 @@ function ENT:DamageLoop()
 	
 	if CurHealth <= 0 then return end
 	
-	self:TakeDamage(1, Entity(0), Entity(0) )
+	self:TakeDamage(0.5, Entity(0), Entity(0) )
 	
-	timer.Simple( 0.125, function()
+	timer.Simple( 0.15, function()
 		if IsValid(self) then
 			self:DamageLoop()
 		end
