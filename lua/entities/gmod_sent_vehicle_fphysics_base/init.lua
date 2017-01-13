@@ -793,6 +793,7 @@ function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRP
 	if (self:GetDoNotStall() != true) then
 		if (self.EngineIsOn == 1) then
 			if (self.EngineRPM <= IdleRPM * 0.2) then
+				self.CurrentGear = 2
 				self:StallAndRestart()
 			end
 		end
@@ -820,7 +821,6 @@ end
 function ENT:StallAndRestart()
 	self.EngineIsOn = 0
 	self:SetIsCruiseModeOn( false )
-	self.CurrentGear = 2
 	
 	self:EmitSound( "vehicles/jetski/jetski_off.wav" )
 	

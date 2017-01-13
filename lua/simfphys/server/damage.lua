@@ -105,8 +105,8 @@ local function DamageVehicle( ent , damage )
 	
 	local NewHealth = math.max( math.Round(CurHealth - damage,0) , 0 )
 	
-	if NewHealth <= (MaxHealth * 0.5) then
-		if NewHealth <= (MaxHealth * 0.2) then
+	if NewHealth <= (MaxHealth * 0.6) then
+		if NewHealth <= (MaxHealth * 0.3) then
 			ent:SetOnFire( true )
 			ent:SetOnSmoke( false )
 		else
@@ -163,15 +163,14 @@ local function onColide( ent, data )
 			
 			HurtPlayers( ent , 5 )
 			
-			ent:TakeDamage(data.Speed / 16, Entity(0), Entity(0) )
+			ent:TakeDamage(data.Speed / 12, Entity(0), Entity(0) )
 			
 		else
 			Spark( pos , data.HitNormal , "MetalVehicle.ImpactSoft" )
 			
-			if (data.Speed > 700) then
+			if (data.Speed > 500) then
 				HurtPlayers( ent , 2 )
-				
-				ent:TakeDamage(data.Speed / 16, Entity(0), Entity(0) )
+				ent:TakeDamage(data.Speed / 30, Entity(0), Entity(0) )
 			end
 		end
 	end

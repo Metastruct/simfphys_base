@@ -440,28 +440,16 @@ local function spriterepair( length )
 	local veh = net.ReadEntity()
 	if !IsValid(veh) then return end
 	
-	local repairs = false
-	
 	if istable(veh.Sprites) then
 		for i, sprite in pairs( veh.Sprites ) do
-			if veh.Sprites[i].Damaged then
-				veh.Sprites[i].Damaged = false
-				repairs = true
-			end
+			veh.Sprites[i].Damaged = false
 		end
 	end
 	
 	if istable(veh.LightsEMS) then
 		for i = 1, table.Count( veh.LightsEMS ) do
-			if veh.LightsEMS[i].Damaged then
-				veh.LightsEMS[i].Damaged = false
-				repairs = true
-			end
+			veh.LightsEMS[i].Damaged = false
 		end
-	end
-	
-	if repairs then
-		LocalPlayer():PrintMessage( HUD_PRINTTALK, "Lights repaired" )
 	end
 end
 net.Receive("simfphys_lightsfixall", spriterepair)

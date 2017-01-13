@@ -67,14 +67,14 @@ function SWEP:PrimaryAttack()
 				if Health < MaxHealth then
 					local NewHealth = math.min(Health + 30,MaxHealth)
 					
-					if NewHealth > (MaxHealth * 0.5) then
+					if NewHealth > (MaxHealth * 0.6) then
 						ent:SetOnFire( false )
 						ent:SetOnSmoke( false )
 					end
 				
-					if NewHealth > (MaxHealth * 0.2) then
+					if NewHealth > (MaxHealth * 0.3) then
 						ent:SetOnFire( false )
-						if NewHealth <= (MaxHealth * 0.5) then
+						if NewHealth <= (MaxHealth * 0.6) then
 							ent:SetOnSmoke( true )
 						end
 					end
@@ -130,7 +130,7 @@ function SWEP:DrawHUD()
 		local MaxHealth = ent:GetNWFloat( "MaxHealth", 0 )
 		local Health = ent:GetNWFloat( "Health", 0 )
 		
-		draw.RoundedBox( 0, xpos, ypos, ((sizex * 0.118) / MaxHealth) * Health, sizey * 0.02, Color( (Health < MaxHealth * 0.7) and 255 or 0, (Health >= MaxHealth * 0.2) and 255 or 0, 0, 100 ) )
+		draw.RoundedBox( 0, xpos, ypos, ((sizex * 0.118) / MaxHealth) * Health, sizey * 0.02, Color( (Health < MaxHealth * 0.6) and 255 or 0, (Health >= MaxHealth * 0.3) and 255 or 0, 0, 100 ) )
 		
 		draw.SimpleText( Health.." / "..MaxHealth, "simfphysfont", xpos + sizex * 0.059, ypos + sizey * 0.01, Color( 255, 235, 0, 255 ), 1, 1 )
 	else 
