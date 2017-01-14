@@ -177,7 +177,7 @@ function ENT:OnThrottleChanged( name, old, new)
 	local Active = self.EngineIsOn == 1
 	
 	if new == 1 then
-		if Health < MaxHealth * 0.5 then
+		if Health < MaxHealth * 0.6 then
 			if Active then
 				if math.Round(math.random(0,4),0) == 1 then
 					self:DamagedStall()
