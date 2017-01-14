@@ -5,6 +5,7 @@ if SERVER then
 	AddCSLuaFile("simfphys/client/hud.lua")
 	AddCSLuaFile("simfphys/client/seatcontrols.lua")
 	AddCSLuaFile("simfphys/client/lighting.lua")
+	AddCSLuaFile("simfphys/client/damage.lua")
 	
 	AddCSLuaFile("simfphys/anim.lua")
 	AddCSLuaFile("simfphys/convars.lua")
@@ -34,6 +35,7 @@ if CLIENT then
 	include("simfphys/client/hud.lua")
 	include("simfphys/client/seatcontrols.lua")
 	include("simfphys/client/lighting.lua")
+	include("simfphys/client/damage.lua")
 end
 
 include("simfphys/anim.lua")

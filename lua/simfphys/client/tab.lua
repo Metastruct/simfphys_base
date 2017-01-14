@@ -128,35 +128,49 @@ local function buildclientsettingsmenu( self )
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
 	Shape:SetPos( 20, 20 )
-	Shape:SetSize( 350, 150 )
+	Shape:SetSize( 350, 90 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
-	
 	createcheckbox(25,25,"Show Hud","cl_simfphys_hud",self.PropPanel,hud:GetInt())
-	
-	createcheckbox(220,25,"Alternative Hud (fps killer)","cl_simfphys_althud",self.PropPanel,alt_hud:GetInt())
-	createcheckbox(220,45,"MPH instead of KMH","cl_simfphys_hudmph",self.PropPanel,hud_mph:GetInt())
-	createcheckbox(220,65,"Speed relative to \nplayersize instead \nworldsize","cl_simfphys_hudrealspeed",self.PropPanel,hud_realspeed:GetInt())
-	
-	createcheckbox(25,45,"Hide Sprites","cl_simfphys_hidesprites",self.PropPanel,0)
-	createcheckbox(25,65,"Debug Wheels","cl_simfphys_debugwheels",self.PropPanel,0)
-	createcheckbox(25,105,"Always Fullthrottle","cl_simfphys_sanic",self.PropPanel,sanic:GetInt())
-	createcheckbox(25,125,"Automatic Transmission","cl_simfphys_auto",self.PropPanel,auto:GetInt())
-	createcheckbox(25,145,"Automatic Sportmode (late up and downshifts)","cl_simfphys_sport",self.PropPanel,sport:GetInt())
+	createcheckbox(120,25,"Alternative Hud (NO MULTICORE SUPPORT)","cl_simfphys_althud",self.PropPanel,alt_hud:GetInt())
+	createcheckbox(25,45,"MPH instead of KMH","cl_simfphys_hudmph",self.PropPanel,hud_mph:GetInt())
+	createcheckbox(25,65,"Speed relative to \nplayersize instead \nworldsize","cl_simfphys_hudrealspeed",self.PropPanel,hud_realspeed:GetInt())
 	
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
-	Shape:SetPos( 20, 180 )
+	Shape:SetPos( 20, 120 )
+	Shape:SetSize( 350, 45 )
+	Shape:SetColor( Color( 0, 0, 0, 200 ) )
+	createcheckbox(25,125,"Hide Sprites","cl_simfphys_hidesprites",self.PropPanel,0)
+	createcheckbox(25,145,"Debug Wheels","cl_simfphys_debugwheels",self.PropPanel,0)
+	
+	local Shape = vgui.Create( "DShape", self.PropPanel)
+	Shape:SetType( "Rect" )
+	Shape:SetPos( 20, 175 )
+	Shape:SetSize( 350, 65 )
+	Shape:SetColor( Color( 0, 0, 0, 200 ) )
+	createcheckbox(25,180,"Always Fullthrottle","cl_simfphys_sanic",self.PropPanel,sanic:GetInt())
+	createcheckbox(25,200,"Automatic Transmission","cl_simfphys_auto",self.PropPanel,auto:GetInt())
+	createcheckbox(25,220,"Automatic Sportmode (late up and downshifts)","cl_simfphys_sport",self.PropPanel,sport:GetInt())
+	
+	local y = 250
+	local Shape = vgui.Create( "DShape", self.PropPanel)
+	Shape:SetType( "Rect" )
+	Shape:SetPos( 20, y )
 	Shape:SetSize( 350, 115 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	
-	local ctitem_1 = createcheckbox(25,185,"Enable Countersteer","cl_simfphys_ctenable",self.PropPanel,ctenable:GetInt())
-	local ctitem_2 = createslider(25,200,350,40,"Countersteer Mul","cl_simfphys_ctmul",self.PropPanel,0.1,2,ctmul:GetFloat())
-	local ctitem_3 = createslider(25,225,350,40,"Countersteer MaxAng","cl_simfphys_ctang",self.PropPanel,1,90,ctang:GetFloat())
+	y = y + 5
+	local ctitem_1 = createcheckbox(25,y,"Enable Countersteer","cl_simfphys_ctenable",self.PropPanel,ctenable:GetInt())
+	y = y + 20
+	local ctitem_2 = createslider(25,y,350,40,"Countersteer Mul","cl_simfphys_ctmul",self.PropPanel,0.1,2,ctmul:GetFloat())
+	y = y + 20
+	local ctitem_3 = createslider(25,y,350,40,"Countersteer MaxAng","cl_simfphys_ctang",self.PropPanel,1,90,ctang:GetFloat())
 	
+	y = y + 40
 	local Reset = vgui.Create( "DButton" )
 	Reset:SetParent( self.PropPanel )
 	Reset:SetText( "Reset" )	
-	Reset:SetPos( 25, 265 )
+	Reset:SetPos( 25, y )
 	Reset:SetSize( 340, 25 )
 	Reset.DoClick = function()
 		ctitem_1:SetValue( 1 )

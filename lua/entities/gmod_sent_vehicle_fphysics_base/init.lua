@@ -169,6 +169,36 @@ function ENT:OnActiveChanged( name, old, new)
 	end
 end
 
+function ENT:OnThrottleChanged( name, old, new)
+	if (new == old) then return end
+	
+	local Health = self:GetCurHealth()
+	local MaxHealth = self:GetMaxHealth()
+	local Active = self.EngineIsOn == 1
+	
+	if new == 1 then
+		if Health < MaxHealth * 0.5 then
+			if Active then
+				if math.Round(math.random(0,4),0) == 1 then
+					self:DamagedStall()
+				end
+			end
+		end
+	end
+	
+	if new == 0 then
+		if self:GetTurboCharged() then
+			if (self.SmoothTurbo > 350) then
+				local Volume = math.Clamp( ((self.SmoothTurbo - 300) / 150) ,0, 1) * 0.5
+				self.SmoothTurbo = 0
+				self.BlowOff:Stop()
+				self.BlowOff = CreateSound(self, self.snd_blowoff or "simulated_vehicles/turbo_blowoff.wav")
+				self.BlowOff:PlayEx(Volume,100)
+			end
+		end
+	end
+end
+
 function ENT:WaterPhysics()
 	if (self:WaterLevel() <= 1) then self.IsInWater = false return end
 	if self:GetDoNotStall() == true then return end
@@ -528,6 +558,10 @@ function ENT:InitializeVehicle()
 		if (vehiclelist.PoseParameters) then
 			self.LightsPP = vehiclelist.PoseParameters
 		end
+		
+		if (vehiclelist.BodyGroups) then
+			self:SetBodygroup(vehiclelist.BodyGroups.Off[1], vehiclelist.BodyGroups.Off[2] )
+		end
 	end
 	
 	self:GetPhysicsObject():SetDragCoefficient( self.AirFriction or -250 )
@@ -818,13 +852,27 @@ function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRP
 	PObj:ApplyForceOffset( -TiltForce, PObj:GetMassCenter() - self.Up )
 end
 
-function ENT:StallAndRestart()
+function ENT:DamagedStall()
+	local rtimer = 0.8
+	timer.Simple( rtimer, function()
+		if (!IsValid(self)) then return end
+		net.Start( "simfphys_backfire" )
+			net.WriteEntity( self )
+		net.Broadcast()
+	end)
+	
+	self:StallAndRestart( rtimer )
+end
+
+function ENT:StallAndRestart( nTimer )
+	nTimer = nTimer or 1
+	
 	self.EngineIsOn = 0
 	self:SetIsCruiseModeOn( false )
 	
 	self:EmitSound( "vehicles/jetski/jetski_off.wav" )
 	
-	timer.Simple( 1, function()
+	timer.Simple( nTimer, function()
 		if !IsValid(self) then return end
 		if !self.IsInWater then
 			self.EngineIsOn = 1
@@ -1279,7 +1327,6 @@ function ENT:SetValues()
 	self.EngineWasOn = 0
 	self.SmoothTurbo = 0
 	self.SmoothBlower = 0
-	self.OldThrottle = 0
 	self.cc_speed = 0
 	self.LightsActivated = false
 	self.SmoothMouse = 0
@@ -1717,18 +1764,6 @@ function ENT:SimulateTurbo(LimitRPM)
 	local Volume = math.Clamp( ((self.SmoothTurbo - 300) / 150) ,0, 1) * 0.5
 	local Pitch = math.Clamp( self.SmoothTurbo / 7 , 0 , 255)
 	
-	if (Throttle != self.OldThrottle) then
-		self.OldThrottle = Throttle
-		if (Throttle == 0) then
-			if (self.SmoothTurbo > 350) then
-				self.SmoothTurbo = 0
-				self.BlowOff:Stop()
-				self.BlowOff = CreateSound(self, self.snd_blowoff or "simulated_vehicles/turbo_blowoff.wav")
-				self.BlowOff:PlayEx(Volume,100)
-			end
-		end
-	end
-	
 	local boost = math.Clamp( -0.25 + (self.SmoothTurbo / 500) ^ 5,0,1)
 	
 	self.Turbo:ChangeVolume( Volume )
@@ -2110,7 +2145,6 @@ numpad.Register( "k_lgts", function( pl, ent, keydown )
 				if (vehiclelist.Animation) then
 					ent:PlayAnimation( vehiclelist.Animation.On )
 				end
-				print(ent.LightsPP)
 				if (ent.LightsPP) then
 					ent:PlayPP(ent.LightsActivated)
 				end
@@ -2175,7 +2209,7 @@ function ENT:DamageLoop()
 	
 	if CurHealth <= 0 then return end
 	
-	self:TakeDamage(0.5, Entity(0), Entity(0) )
+	self:TakeDamage(1, Entity(0), Entity(0) )
 	
 	timer.Simple( 0.15, function()
 		if IsValid(self) then
@@ -2218,7 +2252,7 @@ function ENT:SetOnFire( bOn )
 				end
 			end)
 			
-			self:StallAndRestart()
+			self:DamagedStall()
 			self:DamageLoop()
 		end
 	else
@@ -2254,7 +2288,7 @@ function ENT:SetOnSmoke( bOn )
 			self:s_MakeOwner( self.EngineSmoke )
 			
 			self.EngineSmoke.snd = CreateSound(self, "ambient/gas/steam2.wav")
-			self.EngineSmoke.snd:PlayEx(0.3,90)
+			self.EngineSmoke.snd:PlayEx(0.2,90)
 			
 			self.EngineSmoke:CallOnRemove( "stopdemsmokesounds", function( vehicle )
 				if IsValid(self.EngineSmoke) then
@@ -2263,8 +2297,6 @@ function ENT:SetOnSmoke( bOn )
 					end
 				end
 			end)
-			
-			self:StallAndRestart()
 		end
 	else
 		if IsValid(self.EngineSmoke) then

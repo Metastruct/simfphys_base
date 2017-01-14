@@ -74,6 +74,7 @@ function ENT:SetupDataTables()
 		self:NetworkVarNotify( "TurboCharged", self.OnTurboCharged )
 		self:NetworkVarNotify( "SuperCharged", self.OnSuperCharged )
 		self:NetworkVarNotify( "Active", self.OnActiveChanged )
+		self:NetworkVarNotify( "Throttle", self.OnThrottleChanged )
 	end
 end
 
@@ -86,4 +87,24 @@ local OldIsVehicle = VehicleMeta.IsVehicle
 
 function VehicleMeta:IsVehicle()
 	return self.IsSimfphyscar and self:IsSimfphyscar() or OldIsVehicle(self)
+end
+
+function ENT:GetCurHealth()
+	return self:GetNWFloat( "Health", 0 )
+end
+
+function ENT:GetMaxHealth()
+	return self:GetNWFloat( "MaxHealth", 0 )
+end
+
+if SERVER then
+
+	function ENT:SetMaxHealth( nHealth )
+		self:SetNWFloat( "MaxHealth", nHealth )
+	end
+
+	function ENT:SetCurHealth( nHealth )
+		self:SetNWFloat( "Health", nHealth )
+	end
+
 end

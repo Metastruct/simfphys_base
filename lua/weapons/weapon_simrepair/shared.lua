@@ -61,8 +61,8 @@ function SWEP:PrimaryAttack()
 			self.Owner:SetAnimation( PLAYER_ATTACK1 )
 			
 			if (SERVER) then
-				local MaxHealth = ent:GetNWFloat( "MaxHealth", 0 )
-				local Health = ent:GetNWFloat( "Health", 0 )
+				local MaxHealth = ent:GetMaxHealth()
+				local Health = ent:GetCurHealth()
 				
 				if Health < MaxHealth then
 					local NewHealth = math.min(Health + 30,MaxHealth)
@@ -79,7 +79,7 @@ function SWEP:PrimaryAttack()
 						end
 					end
 					
-					ent:SetNWFloat( "Health", NewHealth )
+					ent:SetCurHealth( NewHealth )
 					
 					local effect = ents.Create("env_spark")
 						effect:SetKeyValue("targetname", "target")
@@ -127,8 +127,8 @@ function SWEP:DrawHUD()
 	local IsVehicle = ent:GetClass():lower() == "gmod_sent_vehicle_fphysics_base"
 	
 	if (IsVehicle) then
-		local MaxHealth = ent:GetNWFloat( "MaxHealth", 0 )
-		local Health = ent:GetNWFloat( "Health", 0 )
+		local MaxHealth = ent:GetMaxHealth()
+		local Health = ent:GetCurHealth()
 		
 		draw.RoundedBox( 0, xpos, ypos, ((sizex * 0.118) / MaxHealth) * Health, sizey * 0.02, Color( (Health < MaxHealth * 0.6) and 255 or 0, (Health >= MaxHealth * 0.3) and 255 or 0, 0, 100 ) )
 		

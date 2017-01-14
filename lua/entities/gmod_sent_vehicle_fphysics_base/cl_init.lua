@@ -103,10 +103,10 @@ function ENT:ManageSounds(Active)
 		self.OldActive = Active
 		
 		if (Active) then
-			local MaxHealth = self:GetNWFloat( "MaxHealth", 0 )
-			local Health = self:GetNWFloat( "Health", 0 )
+			local MaxHealth = self:GetMaxHealth()
+			local Health = self:GetCurHealth()
 			
-			if Health <= (MaxHealth * 0.5) then
+			if Health <= (MaxHealth * 0.6) then
 				self.DamageSnd:PlayEx(0,0)
 			end
 			
@@ -158,7 +158,7 @@ function ENT:ManageSounds(Active)
 		local Pitch = math.Clamp( (20 + self.SmoothRPM / 50 - self.PitchOffset) * self.PitchMulAll,0,255)
 		
 		if self.DamageSnd then
-			self.DamageSnd:ChangeVolume( (self.SmoothRPM / LimitRPM) * 0.7 ^ 1.5 )
+			self.DamageSnd:ChangeVolume( (self.SmoothRPM / LimitRPM) * 0.75 ^ 1.5 )
 			self.DamageSnd:ChangePitch( 100 ) 
 		end
 		
@@ -275,8 +275,8 @@ function ENT:ManageSounds(Active)
 	end
 end
 
-function ENT:Backfire()
-	if (!self:GetBackFire()) then return end
+function ENT:Backfire( damaged )
+	if (!self:GetBackFire() and !damaged) then return end
 	
 	local vehiclelist = list.Get( "simfphys_vehicles" )[self:GetSpawn_List()]
 	if (vehiclelist) then
@@ -284,16 +284,16 @@ function ENT:Backfire()
 		
 		if (expos) then
 			for i = 1, table.Count( expos ) do
-				if (math.Round(math.random(1,3),1) >= 2) then
+				if (math.Round(math.random(1,3),1) >= 2 or damaged) then
 					local Pos = expos[i].pos
 					local Ang = expos[i].ang - Angle(90,0,0)
 					
 					if (expos[i].OnBodyGroups) then
 						if (self:BodyGroupIsValid( expos[i].OnBodyGroups )) then
-							self:BfFx(Pos,Ang)
+							self:BfFx(Pos,Ang,damaged)
 						end
 					else
-						self:BfFx(Pos,Ang)
+						self:BfFx(Pos,Ang,damaged)
 					end
 				end
 			end
@@ -301,11 +301,14 @@ function ENT:Backfire()
 	end
 end
 
-function ENT:BfFx(lPos,lAng)
-	timer.Simple( math.random(0,0.4), function()
+function ENT:BfFx( lPos , lAng , bdamaged)
+	local Delay = bdamaged and 0 or math.random(0,0.4)
+	timer.Simple( Delay, function()
 		if (!IsValid(self)) then return end
 		
-		self:EmitSound( "simulated_vehicles/ex_backfire_"..math.Round(math.random(1,4),1)..".wav" )	
+		local snd = bdamaged and "simulated_vehicles/sfx/ex_backfire_damaged_"..math.Round(math.random(1,3),1)..".wav" or "simulated_vehicles/sfx/ex_backfire_"..math.Round(math.random(1,4),1)..".wav"
+		self:EmitSound( snd )	
+		
 		local Vel = self:GetVelocity() * (game.SinglePlayer() and 0 or 1)
 		local Pos = self:LocalToWorld( lPos )
 		local Ang = self:LocalToWorldAngles( lAng )
@@ -323,21 +326,21 @@ function ENT:BfFx(lPos,lAng)
 		end
 		
 		for i = 1, 10 do
-			local emitter = self:GetEmitter(i, Pos, false )
+			local emitter1 = self:GetEmitter(i, Pos, false )
 			local emitter2 = self:GetEmitter(i, Pos, false )
 
-			local particle = emitter:Add( "effects/muzzleflash2", Pos )
+			local particle1 = emitter1:Add( "effects/muzzleflash2", Pos )
 			local particle2 = emitter2:Add( self.Materials[math.Round(math.Rand(1, table.Count(self.Materials) ),0)], Pos )
 
-			if ( particle ) then
-				particle:SetVelocity( Vel + Ang:Forward() * 5 )
-				particle:SetDieTime( 0.1 )
-				particle:SetStartAlpha( 255 )
-				particle:SetStartSize( math.random(4,12) )
-				particle:SetEndSize( 0 )
-				particle:SetRoll( math.Rand( -1, 1 ) )
-				particle:SetColor( 255,255,255 )
-				particle:SetCollide( false )
+			if ( particle1 ) then
+				particle1:SetVelocity( Vel + Ang:Forward() * 5 )
+				particle1:SetDieTime( 0.1 )
+				particle1:SetStartAlpha( 255 )
+				particle1:SetStartSize( math.random(4,12) )
+				particle1:SetEndSize( 0 )
+				particle1:SetRoll( math.Rand( -1, 1 ) )
+				particle1:SetColor( 255,255,255 )
+				particle1:SetCollide( false )
 			end
 			
 			if ( particle2 ) then
@@ -349,6 +352,24 @@ function ENT:BfFx(lPos,lAng)
 				particle2:SetRoll( math.Rand( -1, 1 ) )
 				particle2:SetColor( 100,100,100 )
 				particle2:SetCollide( false )
+			end
+			
+			if bdamaged then
+				local emitter3 = self:GetEmitter(i, Pos, false )
+
+				local particle3 = emitter2:Add( self.Materials[math.Round(math.Rand(1, table.Count(self.Materials) ),0)], Pos )
+
+				if ( particle3 ) then
+					particle3:SetVelocity( Vel + Ang:Forward() * math.random(30,60) )
+					particle3:SetDieTime( 0.5 )
+					particle3:SetAirResistance( 20 ) 
+					particle3:SetStartAlpha( 100 )
+					particle3:SetStartSize( 0 )
+					particle3:SetEndSize( math.random(25,50) )
+					particle3:SetRoll( math.Rand( -1, 1 ) )
+					particle3:SetColor( 40,40,40 )
+					particle3:SetCollide( false )
+				end
 			end
 		end
 	end)

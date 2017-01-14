@@ -385,7 +385,7 @@ local function spritedamage( length )
 	if !IsValid(veh) then return end
 	
 	local pos = veh:LocalToWorld( net.ReadVector() )
-	local Rad = net.ReadBool() and 24 or 5
+	local Rad = net.ReadBool() and 22 or 6
 	local curtime = CurTime()
 	
 	veh.NextImpactsnd = veh.NextImpactsnd or 0
