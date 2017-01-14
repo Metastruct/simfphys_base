@@ -29,37 +29,15 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-	--local OnGround = self:GetOnGround()
-	--local G_Loss = self:GetGripLoss()
-	--local Mat = self:GetSurfaceMaterial()
-
 	self.SmokeTimer = self.SmokeTimer or 0	
 	if ( self.SmokeTimer < CurTime() ) then
 		self:ManageSmoke()
 		self.SmokeTimer = CurTime() + 0.005
 	end
 	
-	--[[
-	self.DecalTimer = self.DecalTimer or 0
-	if ( self.DecalTimer < CurTime() ) then
-		self:ManageDecals(OnGround,G_Loss,Mat)
-		self.DecalTimer = CurTime() + math.max(0.025 - self:GetVelocity():Length() ^ 2 / 50000000,0)
-	end
-	]]--
-	
 	self:NextThink(CurTime())
 	return true
 end
-
---[[
-function ENT:ManageDecals(WheelOnGround,GripLoss,Material)
-	if (Material != "concrete") then return end
-	if (self:GetSkidSound() <= 0.2) then return end
-	
-	local decalpos = self:GetPos() - self:GetUp() * ((self.Radius or 0) - 5)
-	util.Decal("fadingscorch", decalpos + self:GetUp() * 5, decalpos - self:GetUp() * 5)
-end
-]]--
 
 function ENT:ManageSmoke()
 	local WheelOnGround = self:GetOnGround()
@@ -83,25 +61,9 @@ function ENT:ManageSmoke()
 	end
 end
 
-local Debug = false
-cvars.AddChangeCallback( "cl_simfphys_debugwheels", function( convar, oldValue, newValue )
-	Debug = ( tonumber( newValue )~=0 )
-end)
-Debug = GetConVar( "cl_simfphys_debugwheels" ):GetBool()
-
 function ENT:Draw()
-	if (!Debug) then return false end
-	
-	render.SetMaterial(  Material( "sprites/grip" ) )
-
-	local size = self:OBBMaxs().x + 2
-	
-	render.SetColorMaterial()
-	render.DrawSphere( self:GetPos(), size, 30, 30, Color( 255, 255, 255, 255 ) )
-	
-	return true
+	return false
 end
-
 
 function ENT:MakeSmoke(Mul,Color)
 	local WheelSize = self.Radius or 0

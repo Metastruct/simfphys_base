@@ -1,23 +1,31 @@
 local simfphys = {}
 local checkinterval = 2
 local NextCheck = CurTime() + checkinterval
+
 local mat = Material( "sprites/light_ignorez" )
 local mat2 = Material( "sprites/light_glow02_add_noz" )
-if (file.Exists( "materials/sprites/glow_headlight_ignorez.vmt", "GAME" )) then
-	mat2 = Material( "sprites/glow_headlight_ignorez" )
-end
+if (file.Exists( "materials/sprites/glow_headlight_ignorez.vmt", "GAME" )) then mat2 = Material( "sprites/glow_headlight_ignorez" ) end
 
 local SpritesDisabled = false
-cvars.AddChangeCallback( "cl_simfphys_hidesprites", function( convar, oldValue, newValue )
-	SpritesDisabled = ( tonumber( newValue )~=0 )
-end)
+local AllowVisualDamage = true
+local FrontProjectedLights = true
+local RearProjectedLights = true
+local Shadows = false
+
+cvars.AddChangeCallback( "cl_simfphys_hidesprites", function( convar, oldValue, newValue ) SpritesDisabled = ( tonumber( newValue )~=0 ) end)
 SpritesDisabled = GetConVar( "cl_simfphys_hidesprites" ):GetBool()
 
-local AllowVisualDamage = true
-cvars.AddChangeCallback( "cl_simfphys_spritedamage", function( convar, oldValue, newValue )
-	AllowVisualDamage = ( tonumber( newValue )~=0 )
-end)
+cvars.AddChangeCallback( "cl_simfphys_spritedamage", function( convar, oldValue, newValue ) AllowVisualDamage = ( tonumber( newValue )~=0 ) end)
 AllowVisualDamage = GetConVar( "cl_simfphys_spritedamage" ):GetBool()
+
+cvars.AddChangeCallback( "cl_simfphys_frontlamps", function( convar, oldValue, newValue ) FrontProjectedLights = ( tonumber( newValue )~=0 ) end)
+FrontProjectedLights = GetConVar( "cl_simfphys_frontlamps" ):GetBool()
+
+cvars.AddChangeCallback( "cl_simfphys_rearlamps", function( convar, oldValue, newValue ) RearProjectedLights = ( tonumber( newValue )~=0 ) end)
+RearProjectedLights = GetConVar( "cl_simfphys_rearlamps" ):GetBool()
+
+cvars.AddChangeCallback( "cl_simfphys_shadows", function( convar, oldValue, newValue ) Shadows = ( tonumber( newValue )~=0 ) end)
+Shadows = GetConVar( "cl_simfphys_shadows" ):GetBool()
 
 if !simfphys.vtable then
 	simfphys.vtable = {}
@@ -51,7 +59,7 @@ local function ManageProjTextures()
 					local trigger = ent.triggers[proj.trigger]
 					local enable = ent.triggers[1] or trigger
 					
-					if proj.Damaged then 
+					if proj.Damaged or (proj.trigger == 2 and !FrontProjectedLights) or (proj.trigger == 4 and !RearProjectedLights) then 
 						trigger = false
 						enable = false
 					end
@@ -67,7 +75,7 @@ local function ManageProjTextures()
 							thelamp:SetBrightness( brightness ) 
 							thelamp:SetTexture( proj.mat )
 							thelamp:SetColor( proj.col ) 
-							thelamp:SetEnableShadows( false ) 
+							thelamp:SetEnableShadows( Shadows ) 
 							thelamp:SetFarZ( proj.FarZ ) 
 							thelamp:SetNearZ( proj.NearZ ) 
 							thelamp:SetFOV( proj.Fov )

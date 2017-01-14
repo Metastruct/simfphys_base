@@ -66,6 +66,7 @@ entity:SteerVehicle( number ) -- sets the angle of the steering
 entity:Lock()  -- locks the vehicle
 entity:UnLock() -- unlocks the vehicle
 entity:StallAndRestart( ntime = 1 )  -- stalls the engine and restarts it after set amount of time
+entity:DamagedStall() -- stalls the engine and restarts with backfiring
 entity:SetMaxHealth( nHealth ) -- sets the max health
 entity:SetCurHealth( nHealth ) -- sets the current health
 
