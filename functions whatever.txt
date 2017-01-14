@@ -1,3 +1,5 @@
+entity = the vehicle base entity, NOT THE SEAT
+
 
 ------ shared
 entity:GetSteerSpeed()	-- returns a number
