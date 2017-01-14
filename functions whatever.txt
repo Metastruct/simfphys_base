@@ -56,6 +56,8 @@ entity:GetLights_List() -- returns the lights listname as string
 
 entity:GetSoundoverride() -- returns an string
 
+entity:GetCurHealth()  -- returns the current health as number
+entity:GetMaxHealth()  -- returns the max health as number
 
 
 -- server
@@ -63,8 +65,9 @@ entity:DisableLights()  -- removes all lights from the inbuild lighting system
 entity:SteerVehicle( number ) -- sets the angle of the steering
 entity:Lock()  -- locks the vehicle
 entity:UnLock() -- unlocks the vehicle
-entity:StallAndRestart()  -- stalls the engine and restarts it after a short time
-
+entity:StallAndRestart( ntime = 1 )  -- stalls the engine and restarts it after set amount of time
+entity:SetMaxHealth( nHealth ) -- sets the max health
+entity:SetCurHealth( nHealth ) -- sets the current health
 
 entity:SetControl( table ) -- controls the vehicle (only works without driver when the vehicle is active)
 
