@@ -189,7 +189,16 @@ local function OnDamage( ent, dmginfo )
 	
 	bcDamage( ent , ent:WorldToLocal( DamagePos ) )
 	
-	DamageVehicle( ent , Damage * ((Type == DMG_BLAST) and 10 or 1) )
+	local Mul = 1
+	if Type == DMG_BLAST then
+		Mul = 10
+	end
+	
+	if Type == DMG_BULLET then
+		Mul = 2
+	end
+	
+	DamageVehicle( ent , Damage * Mul )
 	
 	if IsValid(Driver) then
 		local Distance = (DamagePos - Driver:GetPos()):Length() 
