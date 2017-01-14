@@ -1,17 +1,23 @@
 local simfphys = {}
 local checkinterval = 2
 local NextCheck = CurTime() + checkinterval
-local SpritesDisabled = false
 local mat = Material( "sprites/light_ignorez" )
 local mat2 = Material( "sprites/light_glow02_add_noz" )
 if (file.Exists( "materials/sprites/glow_headlight_ignorez.vmt", "GAME" )) then
 	mat2 = Material( "sprites/glow_headlight_ignorez" )
 end
 
+local SpritesDisabled = false
 cvars.AddChangeCallback( "cl_simfphys_hidesprites", function( convar, oldValue, newValue )
 	SpritesDisabled = ( tonumber( newValue )~=0 )
 end)
 SpritesDisabled = GetConVar( "cl_simfphys_hidesprites" ):GetBool()
+
+local AllowVisualDamage = true
+cvars.AddChangeCallback( "cl_simfphys_spritedamage", function( convar, oldValue, newValue )
+	AllowVisualDamage = ( tonumber( newValue )~=0 )
+end)
+AllowVisualDamage = GetConVar( "cl_simfphys_spritedamage" ):GetBool()
 
 if !simfphys.vtable then
 	simfphys.vtable = {}
@@ -27,6 +33,174 @@ local function BodyGroupIsValid( bodygroups, entity )
 	return false
 end
 
+local function ManageProjTextures()
+	if simfphys.vtable then
+		for i, ent in pairs(simfphys.vtable) do
+			if IsValid(ent) then
+				local vel = ent:GetVelocity() * RealFrameTime()
+				
+				ent.triggers = {
+					[1] = ent:GetLightsEnabled(),
+					[2] = ent:GetLampsEnabled(),
+					[3] = ent:GetFogLightsEnabled(),
+					[4] = ent:GetIsBraking(),
+					[5] = (ent:GetGear() == 1),
+				}
+				
+				for i, proj in pairs( ent.Projtexts ) do
+					local trigger = ent.triggers[proj.trigger]
+					local enable = ent.triggers[1] or trigger
+					
+					if proj.Damaged then 
+						trigger = false
+						enable = false
+					end
+					
+					if proj.Active != enable then
+						proj.Active = enable
+						
+						if enable then
+							proj.istriggered = trigger
+							local brightness = (trigger and proj.ontrigger.brightness) or proj.brightness
+							
+							local thelamp = ProjectedTexture()
+							thelamp:SetBrightness( brightness ) 
+							thelamp:SetTexture( proj.mat )
+							thelamp:SetColor( proj.col ) 
+							thelamp:SetEnableShadows( false ) 
+							thelamp:SetFarZ( proj.FarZ ) 
+							thelamp:SetNearZ( proj.NearZ ) 
+							thelamp:SetFOV( proj.Fov )
+							
+							proj.projector = thelamp
+						else
+							if IsValid( proj.projector ) then
+								proj.projector:Remove()
+								proj.projector = nil
+							end
+						end
+					end
+					
+					if IsValid( proj.projector ) then
+						local pos = ent:LocalToWorld( proj.pos )
+						local ang = ent:LocalToWorldAngles( proj.ang )
+						
+						if proj.istriggered != trigger then
+							proj.istriggered = trigger
+							
+							if proj.ontrigger.brightness then
+								local brightness = trigger and proj.ontrigger.brightness or proj.brightness
+								proj.projector:SetBrightness( brightness )
+							end
+							
+							if proj.ontrigger.mat then
+								local mat = trigger and proj.ontrigger.mat or proj.mat
+								proj.projector:SetTexture( mat )
+							end
+							
+							if proj.ontrigger.FarZ then
+								local FarZ = trigger and proj.ontrigger.FarZ or proj.FarZ
+								proj.projector:SetFarZ( FarZ ) 
+							end
+						end
+						
+						proj.projector:SetPos( pos + vel ) 
+						proj.projector:SetAngles( ang ) 
+						proj.projector:Update()
+					end
+				end
+			else
+				simfphys.vtable[i] = nil
+			end
+		end
+	end
+end
+
+local function SetupProjectedTextures( ent , vehiclelist )
+	ent.Projtexts = {}
+	
+	local proj_col = vehiclelist.ModernLights and Color(215,240,255) or Color(220,205,160)
+	
+	if isvector(vehiclelist.L_HeadLampPos) and isangle(vehiclelist.L_HeadLampAng) then
+		ent.Projtexts["FL"] = {
+			trigger = 2,
+			ontrigger = {
+				mat = "effects/flashlight/headlight_highbeam",
+				FarZ = 3000,
+			},
+			pos = vehiclelist.L_HeadLampPos,
+			ang = vehiclelist.L_HeadLampAng,
+			mat = "effects/flashlight/headlight_lowbeam",
+			col = proj_col,
+			brightness = 2,
+			FarZ = 1000,
+			NearZ = 75,
+			Fov = 80,
+		}
+	end
+	
+	if isvector(vehiclelist.R_HeadLampPos) and isangle(vehiclelist.R_HeadLampAng) then
+		ent.Projtexts["FR"] = {
+			trigger = 2,
+			ontrigger = {
+				mat = "effects/flashlight/headlight_highbeam",
+				FarZ = 3000,
+			},
+			pos = vehiclelist.R_HeadLampPos,
+			ang = vehiclelist.R_HeadLampAng,
+			mat = "effects/flashlight/headlight_lowbeam",
+			col = proj_col,
+			brightness = 2,
+			FarZ = 1000,
+			NearZ = 75,
+			Fov = 80,
+		}
+	end
+	
+	if isvector(vehiclelist.L_RearLampPos) and isangle(vehiclelist.L_RearLampAng) then
+		ent.Projtexts["RL"] = {
+			trigger = 4,
+			ontrigger = {
+				brightness = 1,
+			},
+			pos = vehiclelist.L_RearLampPos,
+			ang = vehiclelist.L_RearLampAng,
+			mat = "effects/flashlight/soft",
+			col = Color(30,0,0),
+			brightness = 0.2,
+			FarZ = 80,
+			NearZ = 45,
+			Fov = 140,
+		}
+	end
+	
+	if isvector(vehiclelist.R_RearLampPos) and isangle(vehiclelist.R_RearLampAng) then
+		ent.Projtexts["RR"] = {
+			trigger = 4,
+			ontrigger = {
+				brightness = 1,
+			},
+			pos = vehiclelist.R_RearLampPos,
+			ang = vehiclelist.R_RearLampAng,
+			mat = "effects/flashlight/soft",
+			col = Color(30,0,0),
+			brightness = 0.2,
+			FarZ = 80,
+			NearZ = 45,
+			Fov = 140,
+		}
+	end
+	
+	ent:CallOnRemove( "remove_projected_textures", function( vehicle )
+		for i, proj in pairs( ent.Projtexts ) do
+			local thelamp = proj.projector
+			if IsValid(thelamp) then
+				thelamp:Remove()
+			end
+		end
+	end)
+end
+
 local function SetUpLights( vname , ent )	
 	ent.Sprites = {}
 	
@@ -35,6 +209,8 @@ local function SetUpLights( vname , ent )
 	
 	ent.LightsEMS = vehiclelist.ems_sprites or false 
 	local hl_col = vehiclelist.ModernLights and {215,240,255} or {220,205,160}
+	
+	SetupProjectedTextures( ent , vehiclelist )
 	
 	if istable(vehiclelist.ems_sprites) then
 		ent.PixVisEMS = {}
@@ -303,8 +479,10 @@ local function DrawEMSLights( ent )
 	end
 end
 
-hook.Add( "Think", "simfphys_sprites_managment", function()
+hook.Add( "Think", "simfphys_lights_managment", function()
 	local curtime = CurTime()
+	
+	ManageProjTextures()
 	
 	if NextCheck < curtime then
 		NextCheck = curtime + checkinterval
@@ -341,19 +519,11 @@ hook.Add( "PostDrawTranslucentRenderables", "simfphys_draw_sprites", function()
 				end
 			
 				if SpritesDisabled then return end
-				
-				local triggers = {
-					[1] = ent:GetLightsEnabled(),
-					[2] = ent:GetLampsEnabled(),
-					[3] = ent:GetFogLightsEnabled(),
-					[4] = ent:GetIsBraking(),
-					[5] = (ent:GetGear() == 1),
-				}
+				if !istable( ent.triggers ) then return end
 				
 				for _, sprite in pairs( ent.Sprites ) do
 					if !sprite.Damaged then
-						local triggered = sprite.trigger
-						if triggers[triggered] then
+						if ent.triggers[ sprite.trigger ] then
 							local LightPos = ent:LocalToWorld( sprite.pos )
 							local Visible = util.PixelVisible( LightPos, 4, sprite.PixVis )
 							local s_col = sprite.color
@@ -372,8 +542,6 @@ hook.Add( "PostDrawTranslucentRenderables", "simfphys_draw_sprites", function()
 						end
 					end
 				end
-			else
-				simfphys.vtable[i] = nil
 			end
 		end
 	end
@@ -381,11 +549,13 @@ end )
 
 local glassimpact = Sound( "Glass.BulletImpact" )
 local function spritedamage( length )
+	if !AllowVisualDamage then return end
+	
 	local veh = net.ReadEntity()
 	if !IsValid(veh) then return end
 	
 	local pos = veh:LocalToWorld( net.ReadVector() )
-	local Rad = net.ReadBool() and 22 or 6
+	local Rad = net.ReadBool() and 26 or 8
 	local curtime = CurTime()
 	
 	veh.NextImpactsnd = veh.NextImpactsnd or 0
@@ -407,6 +577,19 @@ local function spritedamage( length )
 						veh.NextImpactsnd = curtime + 0.05
 						sound.Play(glassimpact, spritepos, 75)
 					end
+				end
+			end
+		end
+	end
+	
+	if istable(veh.Projtexts) then
+		for i, proj in pairs( veh.Projtexts ) do
+			if !proj.Damaged then 
+				local lamppos = veh:LocalToWorld( proj.pos )
+				local Dist = (lamppos - pos):Length() 
+				
+				if (Dist < Rad) then
+					veh.Projtexts[i].Damaged = true
 				end
 			end
 		end
@@ -443,6 +626,12 @@ local function spriterepair( length )
 	if istable(veh.Sprites) then
 		for i, sprite in pairs( veh.Sprites ) do
 			veh.Sprites[i].Damaged = false
+		end
+	end
+	
+	if istable(veh.Projtexts) then
+		for i, proj in pairs( veh.Projtexts ) do
+			veh.Projtexts[i].Damaged = false
 		end
 	end
 	

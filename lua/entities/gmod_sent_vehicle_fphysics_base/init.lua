@@ -853,6 +853,8 @@ function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRP
 end
 
 function ENT:DamagedStall()
+	if !self:GetActive() then return end
+	
 	local rtimer = 0.8
 	timer.Simple( rtimer, function()
 		if (!IsValid(self)) then return end
@@ -2297,6 +2299,8 @@ function ENT:SetOnSmoke( bOn )
 					end
 				end
 			end)
+			
+			self:DamagedStall()
 		end
 	else
 		if IsValid(self.EngineSmoke) then
