@@ -553,14 +553,14 @@ function ENT:InitializeVehicle()
 	
 	if (self.LightsTable) then
 		local vehiclelist = list.Get( "simfphys_lights" )[self.LightsTable] or false
-		if (!vehiclelist) then return end
-		
-		if (vehiclelist.PoseParameters) then
-			self.LightsPP = vehiclelist.PoseParameters
-		end
-		
-		if (vehiclelist.BodyGroups) then
-			self:SetBodygroup(vehiclelist.BodyGroups.Off[1], vehiclelist.BodyGroups.Off[2] )
+		if vehiclelist then
+			if (vehiclelist.PoseParameters) then
+				self.LightsPP = vehiclelist.PoseParameters
+			end
+			
+			if (vehiclelist.BodyGroups) then
+				self:SetBodygroup(vehiclelist.BodyGroups.Off[1], vehiclelist.BodyGroups.Off[2] )
+			end
 		end
 	end
 	
