@@ -135,6 +135,7 @@ local function SetupProjectedTextures( ent , vehiclelist )
 			ontrigger = {
 				mat = "effects/flashlight/headlight_highbeam",
 				FarZ = 3000,
+				brightness = 8,
 			},
 			pos = vehiclelist.L_HeadLampPos,
 			ang = vehiclelist.L_HeadLampAng,
@@ -153,6 +154,7 @@ local function SetupProjectedTextures( ent , vehiclelist )
 			ontrigger = {
 				mat = "effects/flashlight/headlight_highbeam",
 				FarZ = 3000,
+				brightness = 8,
 			},
 			pos = vehiclelist.R_HeadLampPos,
 			ang = vehiclelist.R_HeadLampAng,
