@@ -1,5 +1,5 @@
 -- Example script for vehicles WITH valves skeleton / animations / bones
--- if you want to use a model that doesnt have these then take a look at the simfphys_spawnlist_nobones.lua
+-- if you want to use a model that doesnt have these then take a look at the spawnlist_nobones.lua
 
 -- DO NOT JUST ADD YOUR VEHICLE HERE, MAKE A NEW FILE IN  LUA/AUTORUN  WITH A DIFFERENT NAME! IF YOU EDIT THIS FILE YOU WILL  OVERWRITE THE ORIGINAL VEHICLES!
 
@@ -19,7 +19,7 @@ local V = {
 		
 		--MaxHealth = 1000,    -- overrides max health
 		--AirFriction = -250,
-		LightsTable = "jeep",  --wich list we want to use for our light positions. You can comment this variable out if you dont want lights.  lights are defined in simfphys_lights.lua 
+		LightsTable = "jeep",  --wich list we want to use for our light positions. You can comment this variable out if you dont want lights.  lights are defined in spawnlist_lights.lua 
 		
 		FrontWheelRadius = 18,			--sadly, these cannot be measured from the model. you need to look in the vehicle script @ scripts/vehicles/XXX.txt and find "radius" for both front and rear axle
 		RearWheelRadius = 20,
