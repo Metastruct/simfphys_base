@@ -54,7 +54,8 @@ local V = {
 				material = "lights/white",
 				useVehicleColor = true,
 				pos = Vector(0.04,57.5,16.74),
-				ang = Angle(90,-90,0)
+				ang = Angle(90,-90,0),
+				IsGlass = false, 	-- set this to true if your glass is having rendering issues
 			},
 		}
 		]]--

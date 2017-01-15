@@ -667,6 +667,10 @@ function ENT:InitializeVehicle()
 				prop:SetColor( self.Attachments[i].color )
 			end
 			
+			if (self.Attachments[i].IsGlass == true) then
+				prop:SetDrawTranslucent( true )
+			end
+			
 			self:DeleteOnRemove( prop )
 		end
 	end

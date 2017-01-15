@@ -10,6 +10,10 @@ ENT.AdminSpawnable  = false
 
 ENT.RenderGroup = RENDERGROUP_BOTH
 
+function ENT:SetupDataTables()
+	self:NetworkVar( "Bool",1, "DrawTranslucent" )
+end
+
 if (SERVER) then return end
 
 function ENT:Draw()
@@ -18,7 +22,9 @@ end
 
 
 function ENT:DrawTranslucent()
-	--self:Draw()
+	if self:GetDrawTranslucent() then
+		self:Draw()
+	end
 end
 
 function ENT:Think()
