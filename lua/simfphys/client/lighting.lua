@@ -598,7 +598,7 @@ local function spritedamage( length )
 				local lamppos = veh:LocalToWorld( proj.pos )
 				local Dist = (lamppos - pos):Length() 
 				
-				if (Dist < Rad) then
+				if (Dist < Rad * 2) then
 					veh.Projtexts[i].Damaged = true
 				end
 			end
