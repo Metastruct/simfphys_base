@@ -149,15 +149,10 @@ local function bcDamage( vehicle , position , cdamage )
 	net.Broadcast()
 end
 
-local function onColide( ent, data )
+local function onCollide( ent, data )
 	if ( data.Speed > 60 && data.DeltaTime > 0.2 ) then
 		
 		local pos = data.HitPos
-		
-		local hitent = data.HitEntity:IsPlayer()
-		if !hitent then
-			bcDamage( ent , ent:WorldToLocal( pos ) , true )
-		end
 		
 		if (data.Speed > 1000) then
 			Spark( pos , data.HitNormal , "MetalVehicle.ImpactHard" )
@@ -166,8 +161,16 @@ local function onColide( ent, data )
 			
 			ent:TakeDamage(data.Speed / 7, Entity(0), Entity(0) )
 			
+			bcDamage( ent , ent:WorldToLocal( pos ) , true )
 		else
 			Spark( pos , data.HitNormal , "MetalVehicle.ImpactSoft" )
+			
+			if (data.Speed > 250) then
+				local hitent = data.HitEntity:IsPlayer()
+				if !hitent then
+					bcDamage( ent , ent:WorldToLocal( pos ) , true )
+				end
+			end
 			
 			if (data.Speed > 500) then
 				HurtPlayers( ent , 2 )
@@ -237,7 +240,7 @@ hook.Add( "OnEntityCreated", "simfphys_damagestuff", function( ent )
 			ent:SetMaxHealth( Health )
 			ent:SetCurHealth( Health )
 			
-			ent.PhysicsCollide = onColide
+			ent.PhysicsCollide = onCollide
 			ent.OnTakeDamage = OnDamage
 		end)
 	end
