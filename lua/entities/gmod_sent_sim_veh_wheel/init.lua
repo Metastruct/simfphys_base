@@ -246,6 +246,26 @@ function ENT:PhysicsCollide( data, physobj )
 	end
 end
 
+--[[
+function ENT:OnTakeDamage( dmginfo )
+	self:TakePhysicsDamage( dmginfo )
+	
+	local Damage = dmginfo:GetDamage() 
+	local DamagePos = dmginfo:GetDamagePosition() 
+	local Type = dmginfo:GetDamageType()
+	
+	if Damage > 1 then
+		timer.Simple( 0.2, function()
+			if (!IsValid(self)) then return end
+			self:EmitSound( "simulated_vehicles/sfx/tire_break.wav" )
+			
+			self:SetNotSolid( true )
+			self:Remove()
+		end)
+	end
+end
+]]--
+
 function ENT:s_MakeOwner( entity )
 	if CPPI then
 		if (IsValid( self.EntityOwner )) then
