@@ -158,7 +158,7 @@ function ENT:ManageSounds(Active)
 		local Pitch = math.Clamp( (20 + self.SmoothRPM / 50 - self.PitchOffset) * self.PitchMulAll,0,255)
 		
 		if self.DamageSnd then
-			self.DamageSnd:ChangeVolume( (self.SmoothRPM / LimitRPM) * 0.75 ^ 1.5 )
+			self.DamageSnd:ChangeVolume( (self.SmoothRPM / LimitRPM) * 0.6 ^ 1.5 )
 			self.DamageSnd:ChangePitch( 100 ) 
 		end
 		
