@@ -16,6 +16,12 @@ cvars.AddChangeCallback( "cl_simfphys_hud", function( convar, oldValue, newValue
 end)
 ShowHud = GetConVar( "cl_simfphys_hud" ):GetBool()
 
+local ShowHud_ms = false
+cvars.AddChangeCallback( "cl_simfphys_ms_hud", function( convar, oldValue, newValue )
+	ShowHud_ms = ( tonumber( newValue )~=0 )
+end)
+ShowHud_ms = GetConVar( "cl_simfphys_ms_hud" ):GetBool()
+
 local AltHud = false
 cvars.AddChangeCallback( "cl_simfphys_althud", function( convar, oldValue, newValue )
 	AltHud = ( tonumber( newValue )~=0 )
@@ -66,7 +72,7 @@ local hbrake_on = Material( "simfphys/hud/handbrake_on" )
 local hbrake_off = Material( "simfphys/hud/handbrake_off" )
 
 local function drawsimfphysHUD(vehicle)
-	if (isMouseSteer) then
+	if (isMouseSteer and ShowHud_ms) then
 		local MousePos = vehicle:GetMousePos()
 		local deadzone = vehicle:GetDeadZone()
 		local m_size = sizex * 0.15
