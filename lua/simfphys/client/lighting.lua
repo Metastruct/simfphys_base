@@ -1,4 +1,3 @@
-local simfphys = {}
 local checkinterval = 2
 local NextCheck = CurTime() + checkinterval
 
@@ -27,8 +26,8 @@ RearProjectedLights = GetConVar( "cl_simfphys_rearlamps" ):GetBool()
 cvars.AddChangeCallback( "cl_simfphys_shadows", function( convar, oldValue, newValue ) Shadows = ( tonumber( newValue )~=0 ) end)
 Shadows = GetConVar( "cl_simfphys_shadows" ):GetBool()
 
-if !simfphys.vtable then
-	simfphys.vtable = {}
+if !vtable then
+	vtable = {}
 end
 
 local function BodyGroupIsValid( bodygroups, entity )
@@ -42,8 +41,8 @@ local function BodyGroupIsValid( bodygroups, entity )
 end
 
 local function ManageProjTextures()
-	if simfphys.vtable then
-		for i, ent in pairs(simfphys.vtable) do
+	if vtable then
+		for i, ent in pairs(vtable) do
 			if IsValid(ent) then
 				local vel = ent:GetVelocity() * RealFrameTime()
 				
@@ -118,7 +117,7 @@ local function ManageProjTextures()
 					end
 				end
 			else
-				simfphys.vtable[i] = nil
+				vtable[i] = nil
 			end
 		end
 	end
@@ -447,7 +446,7 @@ local function SetUpLights( vname , ent )
 	end
 	
 	ent.EnableLights = true
-	table.insert(simfphys.vtable, ent)
+	table.insert(vtable, ent)
 end
 
 local function DrawEMSLights( ent )
@@ -497,9 +496,9 @@ hook.Add( "Think", "simfphys_lights_managment", function()
 	if NextCheck < curtime then
 		NextCheck = curtime + checkinterval
 		
-		for i, ent in pairs(simfphys.vtable) do
+		for i, ent in pairs(vtable) do
 			if ent:GetNWBool( "lights_disabled" ) then
-				simfphys.vtable[i] = nil
+				vtable[i] = nil
 				ent.EnableLights = true
 			end
 		end
@@ -521,8 +520,8 @@ hook.Add( "Think", "simfphys_lights_managment", function()
 end )
 
 hook.Add( "PostDrawTranslucentRenderables", "simfphys_draw_sprites", function()
-	if simfphys.vtable then
-		for i, ent in pairs(simfphys.vtable) do
+	if vtable then
+		for i, ent in pairs(vtable) do
 			if IsValid(ent) then
 				if (ent:GetEMSEnabled()) then
 					DrawEMSLights( ent )
