@@ -2,6 +2,12 @@ AddCSLuaFile( "shared.lua" )
 AddCSLuaFile( "cl_init.lua" )
 include('shared.lua')
 
+local DamageEnabled = false
+cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue, newValue )
+	DamageEnabled = ( tonumber( newValue )~=0 )
+end)
+DamageEnabled = GetConVar( "sv_simfphys_enabledamage" ):GetBool()
+
 function ENT:Initialize()	
 	self:SetModel( "models/props_vehicles/tire001c_car.mdl" )
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -331,7 +337,7 @@ end
 function ENT:OnTakeDamage( dmginfo )
 	self:TakePhysicsDamage( dmginfo )
 	
-	if self:GetDamaged() then return end
+	if self:GetDamaged() or !DamageEnabled then return end
 	
 	local Damage = dmginfo:GetDamage() 
 	local DamagePos = dmginfo:GetDamagePosition() 
