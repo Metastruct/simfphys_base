@@ -131,6 +131,8 @@ function SpawnSimfphysVehicle( Player, vname, tr )
 	Ent:SetBrakePower( Ent.BrakePower )
 	
 	Ent:SetLights_List( Ent.LightsTable or "no_lights" )
+	
+	Ent:SetBulletProofTires( Ent.BulletProofTires or false )
 
 	undo.Create( "Vehicle" )
 		undo.SetPlayer( Player )

@@ -2,6 +2,13 @@ AddCSLuaFile( "shared.lua" )
 AddCSLuaFile( "cl_init.lua" )
 include('shared.lua')
 
+local frictiondata = {
+	["ice"] = 0.35,
+	["friction_00"] = 0.1,
+	["gmod_ice"] = 0.1,
+	["snow"] = 0.7,
+}
+
 function ENT:PostEntityPaste( ply , ent , createdEntities )
 	self:SetValues()
 	
@@ -654,7 +661,7 @@ function ENT:InitializeVehicle()
 			prop:SetOwner( self )
 			prop:Spawn()
 			prop:Activate()
-			prop:DrawShadow( false )
+			prop:DrawShadow( true )
 			prop:SetNotSolid( true )
 			prop:SetParent( self )
 			prop.DoNotDuplicate = true
@@ -684,20 +691,27 @@ function ENT:SetWheelHeight()
 	local Ent_RL = self.Wheels[3]
 	local Ent_RR = self.Wheels[4]
 	
-	if (IsValid(Ent_FL)) then
-		local PoseFL = (self.posepositions.PoseL_Pos_FL.z - self:WorldToLocal( Ent_FL:GetPos()).z ) / self.VehicleData.suspensiontravel_fl
+	if IsValid(Ent_FL) then
+		local addPos = Ent_FL:GetDamaged() and Ent_FL.dRadius or 0
+		local PoseFL = (self.posepositions.PoseL_Pos_FL.z - self:WorldToLocal( Ent_FL:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_fl
 		self:SetPoseParameter("vehicle_wheel_fl_height",PoseFL) 
 	end
-	if (IsValid(Ent_FR)) then
-		local PoseFR = (self.posepositions.PoseL_Pos_FR.z - self:WorldToLocal( Ent_FR:GetPos()).z ) / self.VehicleData.suspensiontravel_fr
+	
+	if IsValid(Ent_FR) then
+		local addPos = Ent_FR:GetDamaged() and Ent_FR.dRadius or 0
+		local PoseFR = (self.posepositions.PoseL_Pos_FR.z - self:WorldToLocal( Ent_FR:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_fr
 		self:SetPoseParameter("vehicle_wheel_fr_height",PoseFR) 
 	end
-	if (IsValid(Ent_RL)) then
-		local PoseRL = (self.posepositions.PoseL_Pos_RL.z - self:WorldToLocal( Ent_RL:GetPos()).z ) / self.VehicleData.suspensiontravel_rl
+	
+	if IsValid(Ent_RL) then
+		local addPos = Ent_RL:GetDamaged() and Ent_RL.dRadius or 0
+		local PoseRL = (self.posepositions.PoseL_Pos_RL.z - self:WorldToLocal( Ent_RL:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_rl
 		self:SetPoseParameter("vehicle_wheel_rl_height",PoseRL) 
 	end
-	if (IsValid(Ent_RR)) then
-		local PoseRR = (self.posepositions.PoseL_Pos_RR .z- self:WorldToLocal( Ent_RR:GetPos()).z ) / self.VehicleData.suspensiontravel_rr
+	
+	if IsValid(Ent_RR) then
+		local addPos = Ent_RR:GetDamaged() and Ent_RR.dRadius or 0
+		local PoseRR = (self.posepositions.PoseL_Pos_RR .z- self:WorldToLocal( Ent_RR:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_rr
 		self:SetPoseParameter("vehicle_wheel_rr_height",PoseRR) 
 	end
 end
@@ -732,17 +746,12 @@ function ENT:WheelOnGround()
 	
 	for i = 1, table.Count( self.Wheels ) do
 		local Wheel = self.Wheels[i]		
-		if (IsValid(Wheel)) then
-			if (Wheel:GetSurfaceMaterial() == "ice") then
-				self.VehicleData[ "SurfaceMul_" .. i ] = 0.35
-			elseif (Wheel:GetSurfaceMaterial() == "friction_00" or Wheel:GetSurfaceMaterial() == "gmod_ice") then
-				self.VehicleData[ "SurfaceMul_" .. i ] = 0.1
-			elseif (Wheel:GetSurfaceMaterial() == "snow") then
-				self.VehicleData[ "SurfaceMul_" .. i ] = 0.7
-			else
-				self.VehicleData[ "SurfaceMul_" .. i ] = 1
-			end
-		
+		if IsValid(Wheel) then
+			local dmgMul = Wheel:GetDamaged() and 0.5 or 1
+			local surfacemul = frictiondata[Wheel:GetSurfaceMaterial()]
+			
+			self.VehicleData[ "SurfaceMul_" .. i ] = (surfacemul and surfacemul or 1) * dmgMul
+			
 			local IsFrontWheel = i == 1 or i == 2
 			local WheelRadius = IsFrontWheel and self.FrontWheelRadius or self.RearWheelRadius
 			local startpos = Wheel:GetPos()
@@ -1067,7 +1076,8 @@ function ENT:SimulateWheels(left,right,k_clutch,LimitRPM)
 			
 			local Force = -Right * math.Clamp(Fy,-GripRemaining,GripRemaining) + Forward * Power * SurfaceMultiplicator
 			
-			local TurnWheel = ((Fx + GripLoss * 35 * signEngineTorque * IsPoweredWheel) / WheelRadius * 1.85) + self.EngineRPM / 80 * (1 - OnGround) * IsPoweredWheel * (1 - k_clutch)
+			local wRad = Wheel:GetDamaged() and Wheel.dRadius or WheelRadius
+			local TurnWheel = ((Fx + GripLoss * 35 * signEngineTorque * IsPoweredWheel) / wRad * 1.85) + self.EngineRPM / 80 * (1 - OnGround) * IsPoweredWheel * (1 - k_clutch)
 			
 			Wheel.FX = Fx
 			Wheel.skid = ((MaxTraction - (MaxTraction - Vector(absFy,math.abs(ForwardForce * 10),0):Length())) / MaxTraction) - 10
@@ -1592,8 +1602,11 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	self.name:GetPhysicsObject():EnableMotion(false)
 	self.name:GetPhysicsObject():SetMass( WheelMass ) 
 	self.name:SetSmokeColor( self:GetTireSmokeColor() )
-	self.name.EntityOwner = self.EntityOwner
 	self:s_MakeOwner( self.name )
+	self.name.EntityOwner = self.EntityOwner
+	self.name.BaseEnt = self
+	self.name.Index = index
+	self.name.Radius = radius
 	
 	if (self.CustomWheels) then
 		local Model = (self.CustomWheelModel_R and (index == 3 or index == 4 or index == 5 or index == 6)) and self.CustomWheelModel_R or self.CustomWheelModel
@@ -1669,6 +1682,39 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	Ballsocket.DoNotDuplicate = true
 	Rope1.DoNotDuplicate = true
 	Rope2.DoNotDuplicate = true
+end
+
+function ENT:SetSuspension( index , bIsDamaged )
+	local bIsDamaged = bIsDamaged or false
+	
+	local h_mod = index <= 2 and self:GetFrontSuspensionHeight() or self:GetRearSuspensionHeight()
+	
+	local heights = {
+		[1] = self.FrontHeight + self.VehicleData.suspensiontravel_fl * -h_mod,
+		[2] = self.FrontHeight + self.VehicleData.suspensiontravel_fl * -h_mod,
+		[3] = self.RearHeight + self.VehicleData.suspensiontravel_rl * -h_mod,
+		[4] = self.RearHeight + self.VehicleData.suspensiontravel_rr * -h_mod,
+		[5] = self.RearHeight + self.VehicleData.suspensiontravel_rl * -h_mod,
+		[6] = self.RearHeight + self.VehicleData.suspensiontravel_rr * -h_mod
+	}
+	local Wheel = self.Wheels[index]
+	if !IsValid(Wheel) then return end
+	
+	local subRadius = bIsDamaged and Wheel.dRadius or 0
+	
+	local newheight = heights[index] + subRadius
+
+	local Elastic = self.Elastics[index]
+	if IsValid(Elastic) then
+		Elastic:Fire( "SetSpringLength", newheight )
+	end
+	
+	if self.StrengthenSuspension == true then
+		local Elastic2 = self.Elastics[index * 10]
+		if (IsValid(Elastic2)) then
+			Elastic2:Fire( "SetSpringLength", newheight )
+		end
+	end
 end
 
 function ENT:OnFrontSuspensionHeightChanged( name, old, new )

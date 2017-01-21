@@ -50,10 +50,12 @@ function SWEP:PrimaryAttack()
 	local ent = Trace.Entity
 	
 	if !IsValid(ent) then return end
+	local class = ent:GetClass():lower()
 	
-	local IsVehicle = ent:GetClass():lower() == "gmod_sent_vehicle_fphysics_base"
+	local IsVehicle = class == "gmod_sent_vehicle_fphysics_base"
+	local IsWheel = class == "gmod_sent_sim_veh_wheel"
 	
-	if (IsVehicle) then
+	if IsVehicle then
 		local Dist = (Trace.HitPos - self.Owner:GetPos()):Length()
 		
 		if (Dist <= 100) then
@@ -92,11 +94,51 @@ function SWEP:PrimaryAttack()
 						effect:Fire( "SparkOnce" )
 						effect:Fire("kill","",0.08)
 				else 
-					self.Weapon:SetNextPrimaryFire( CurTime() + 0.5 )	
+					self.Weapon:SetNextPrimaryFire( CurTime() + 0.5 )
+					
 					sound.Play(Sound( "hl1/fvox/beep.wav" ), self:GetPos(), 75)
+					
 					net.Start( "simfphys_lightsfixall" )
 						net.WriteEntity( ent )
 					net.Broadcast()
+					
+					if istable(ent.Wheels) then
+						for i = 1, table.Count( ent.Wheels ) do
+							local Wheel = ent.Wheels[ i ]
+							if IsValid(Wheel) then
+								Wheel:SetDamaged( false )
+							end
+						end
+					end
+				end
+			end
+		end
+	elseif IsWheel then
+		local Dist = (Trace.HitPos - self.Owner:GetPos()):Length()
+		
+		if (Dist <= 100) then
+			self.Weapon:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
+			self.Owner:SetAnimation( PLAYER_ATTACK1 )
+			
+			if (SERVER) then
+				if ent:GetDamaged() then
+					
+					ent:SetDamaged( false )
+					
+					local effect = ents.Create("env_spark")
+						effect:SetKeyValue("targetname", "target")
+						effect:SetPos( Trace.HitPos + Trace.HitNormal * 2 )
+						effect:SetAngles( Trace.HitNormal:Angle() )
+						effect:Spawn()
+						effect:SetKeyValue("spawnflags","128")
+						effect:SetKeyValue("Magnitude",1)
+						effect:SetKeyValue("TrailLength",0.2)
+						effect:Fire( "SparkOnce" )
+						effect:Fire("kill","",0.08)
+				else 
+					self.Weapon:SetNextPrimaryFire( CurTime() + 0.5 )
+					
+					sound.Play(Sound( "hl1/fvox/beep.wav" ), self:GetPos(), 75)
 				end
 			end
 		end

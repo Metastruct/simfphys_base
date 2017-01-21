@@ -16,4 +16,9 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Float", 4, "SkidSound" )
 	self:NetworkVar( "Float", 5, "GripLoss" )
 	self:NetworkVar( "Vector", 6, "SmokeColor" )
+	self:NetworkVar( "Bool", 1, "Damaged" )
+	
+	if ( SERVER ) then
+		self:NetworkVarNotify( "Damaged", self.OnDamaged )
+	end
 end

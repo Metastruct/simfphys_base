@@ -49,15 +49,37 @@ function ENT:ManageSmoke()
 	local SmokeOn = (self.FadeHeat >= 7)
 	local DirtOn = GripLoss > 0.05
 	local lcolor = self:GetSmokeColor() * 255
+	local Speed = self:GetVelocity():Length()
 	
-	if (SmokeOn) then
+	local OnRim = self:GetDamaged()
+	
+	if SmokeOn and !OnRim then
 		self:MakeSmoke(Scale,lcolor)
 	end
 	
 	if (WheelOnGround == 0) then return end
 	
-	if (DirtOn) then
-		self:MakeDirt(Scale)
+	if DirtOn then
+		self:MakeDirt(GripLoss)
+	end
+	
+	if (Speed > 15 or DirtOn) and OnRim then
+		self:MakeSparks(GripLoss)
+	end
+end
+
+function ENT:MakeSparks(Scale)
+	self.NextSpark = self.NextSpark or 0
+	if self.NextSpark < CurTime() then
+		local WheelSize = self.Radius or 0
+		local Pos = self:GetPos()
+		local Dir = -self:GetForward()
+	
+		self.NextSpark = CurTime() + 0.03
+		local effectdata = EffectData()
+			effectdata:SetOrigin( Pos - Vector(0,0,WheelSize * 0.5) )
+			effectdata:SetNormal( (Dir + Vector(0,0,0.5)) * Scale * 0.5)
+			util.Effect( "manhacksparks", effectdata, true, true )
 	end
 end
 

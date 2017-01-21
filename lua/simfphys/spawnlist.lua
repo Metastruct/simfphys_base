@@ -106,6 +106,7 @@ local V = {
 		Efficiency = 1.337,	--this defines how good the wheels can put the engine power to the ground. this also increases engine power and brake force.  Its a cheap way to make your car accelerate faster without having to deal with griploss
 		GripOffset = 0,	-- a negative value will get more understeer, a positive value more oversteer. NOTE: this will not affect under/oversteer caused by engine power.   This value can be found as Tractionbias in the EDIT properties menu however it is divided by MaxGrip there
 		BrakePower = 40,		--how strong the brakes are, NOTE: this can be higher than MaxGrip. Sorry folks but i couldnt stand how people fail to realize that braking while turning decreases grip and therefore causes understeer. So i excluded it from the grip calculations
+		--BulletProofTires = true,      -- makes the tires bulletproof
 		
 		IdleRPM = 750,	-- must be smaller than powerbandstart
 		LimitRPM = 6500,  -- should never be less than PowerbandStart and PowerbandEnd
@@ -217,6 +218,7 @@ local V = {
 		Efficiency = 1.8,
 		GripOffset = 0,
 		BrakePower = 70,
+		BulletProofTires = true,
 		
 		IdleRPM = 750,
 		LimitRPM = 6000,

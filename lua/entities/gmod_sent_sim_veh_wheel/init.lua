@@ -54,14 +54,6 @@ function ENT:Initialize()
 end
 
 function ENT:Think()	
-	local ForwardSpeed = math.abs( self:GetSpeed() )
-	local SkidSound = math.Clamp( self:GetSkidSound(),0,255)
-	local Speed = self:GetVelocity():Length()
-	local WheelOnGround = self:GetOnGround()
-	local EnableDust = (Speed * WheelOnGround > 200)	
-	local Material = self:GetSurfaceMaterial()
-	local GripLoss = self:GetGripLoss()
-	
 	if (self.GhostEnt) then
 		local Color = self:GetColor()
 		local dot = Color.r * Color.g * Color.b * Color.a
@@ -73,6 +65,92 @@ function ENT:Think()
 			self.OldColor = dot
 		end
 	end
+	
+	if self:GetDamaged() then
+		self:WheelFxBroken()
+	else
+		self:WheelFx()
+	end
+	
+	self:NextThink(CurTime() + 0.15)
+	return true
+end
+
+function ENT:WheelFxBroken()
+	local ForwardSpeed = math.abs( self:GetSpeed() )
+	local SkidSound = math.Clamp( self:GetSkidSound(),0,255)
+	local Speed = self:GetVelocity():Length()
+	local WheelOnGround = self:GetOnGround()
+	local EnableDust = (Speed * WheelOnGround > 200)	
+	local Material = self:GetSurfaceMaterial()
+	local GripLoss = self:GetGripLoss()
+	
+	if (EnableDust != self.OldVar) then
+		self.OldVar = EnableDust
+		if (EnableDust) then
+			if (Material == "grass") then
+				if IsValid(self.WheelDust) then
+					self.WheelDust:Fire( "Start" )
+				end
+			elseif (Material == "dirt" or Material == "sand") then
+				if IsValid(self.WheelDust) then
+					self.WheelDust:Fire( "Start" )
+				end
+			end
+		else
+			if IsValid(self.WheelDust) then
+				self.WheelDust:Fire( "Stop" )
+			end
+		end
+	end
+	
+	if (EnableDust) then
+		if (Material != self.OldMaterial) then
+			if (Material == "grass") then
+				if IsValid(self.WheelDust) then
+					self.WheelDust:Fire( "Start" )
+				end
+			elseif (Material == "dirt" or Material == "sand") then
+				if IsValid(self.WheelDust) then
+					self.WheelDust:Fire( "Start" )
+				end
+			else
+				if IsValid(self.WheelDust) then
+					self.WheelDust:Fire( "Stop" )
+				end
+			end
+			self.OldMaterial = Material
+		end
+	end
+	
+	if self.RollSound_Broken then
+		local Volume = math.Clamp(SkidSound * 0.8 + ForwardSpeed / 1500,0,1) * WheelOnGround
+		local PlaySound = Volume > 0.1
+		
+		self.OldPlaySound = self.OldPlaySound or false
+		if PlaySound != self.OldPlaySound then
+			self.OldPlaySound = PlaySound
+			if PlaySound then
+				self.RollSound_Broken:PlayEx(0,0)
+			else
+				self.RollSound_Broken:Stop()
+			end
+		end
+		
+		
+		self.RollSound_Broken:ChangeVolume( Volume ) 
+		self.RollSound_Broken:ChangePitch(100 + math.Clamp((ForwardSpeed - 100) / 250 + (SkidSound * Speed / 800) + GripLoss * 22,0,155))
+	end
+end
+
+function ENT:WheelFx()
+	local ForwardSpeed = math.abs( self:GetSpeed() )
+	local SkidSound = math.Clamp( self:GetSkidSound(),0,255)
+	local Speed = self:GetVelocity():Length()
+	local WheelOnGround = self:GetOnGround()
+	local EnableDust = (Speed * WheelOnGround > 200)	
+	local Material = self:GetSurfaceMaterial()
+	local GripLoss = self:GetGripLoss()
 	
 	if (EnableDust != self.OldVar) then
 		self.OldVar = EnableDust
@@ -220,9 +298,6 @@ function ENT:Think()
 			self.Skid:ChangePitch(math.min(85 + (SkidSound * Speed / 800) + GripLoss * 22,150)) 
 		end
 	end
-	
-	self:NextThink(CurTime() + 0.15)
-	return true
 end
 
 function ENT:OnRemove()
@@ -233,6 +308,10 @@ function ENT:OnRemove()
 	self.Skid:Stop()
 	self.Skid_Grass:Stop()
 	self.Skid_Dirt:Stop()
+	
+	if self.RollSound_Broken then
+		self.RollSound_Broken:Stop()
+	end
 end
 
 function ENT:PhysicsCollide( data, physobj )
@@ -246,25 +325,66 @@ function ENT:PhysicsCollide( data, physobj )
 	end
 end
 
---[[
 function ENT:OnTakeDamage( dmginfo )
 	self:TakePhysicsDamage( dmginfo )
+	
+	if self:GetDamaged() then return end
 	
 	local Damage = dmginfo:GetDamage() 
 	local DamagePos = dmginfo:GetDamagePosition() 
 	local Type = dmginfo:GetDamageType()
 	
-	if Damage > 1 then
-		timer.Simple( 0.2, function()
-			if (!IsValid(self)) then return end
-			self:EmitSound( "simulated_vehicles/sfx/tire_break.wav" )
-			
-			self:SetNotSolid( true )
-			self:Remove()
-		end)
+	if TYPE == DMG_BLAST then return end  -- no tirepopping on explosions
+	
+	if IsValid(self.BaseEnt) then
+		if self.BaseEnt:GetBulletProofTires() then return end
+		
+		if Damage > 1 then
+			self:SetDamaged( true )
+		end
 	end
 end
-]]--
+
+function ENT:OnDamaged( name, old, new)
+	if (new == old) then return end
+	
+	if new == true then
+		self:EmitSound( "simulated_vehicles/sfx/tire_break.wav" )
+		self.dRadius = self:BoundingRadius() * 0.28
+		
+		if IsValid(self.GhostEnt) then
+			self.GhostEnt:SetParent( nil )
+			self.GhostEnt:GetPhysicsObject():EnableMotion( false )
+			self.GhostEnt:SetPos( self:LocalToWorld( Vector(0,0,-self.dRadius) ) )
+			self.GhostEnt:SetParent( self )
+		end
+
+		self.Skid:Stop()
+		self.Skid_Grass:Stop()
+		self.Skid_Dirt:Stop()
+		
+		self.RollSound:Stop()
+		self.RollSound_Grass:Stop()
+		self.RollSound_Dirt:Stop()
+		
+		self.RollSound_Broken = CreateSound(self, "simulated_vehicles/sfx/tire_damaged.wav")
+	else
+		if IsValid(self.GhostEnt) then
+			self.GhostEnt:SetParent( nil )
+			self.GhostEnt:GetPhysicsObject():EnableMotion( false )
+			self.GhostEnt:SetPos( self:LocalToWorld( Vector(0,0,0) ) )
+			self.GhostEnt:SetParent( self )
+		end
+		
+		if self.RollSound_Broken then
+			self.RollSound_Broken:Stop()
+		end
+	end
+	
+	if IsValid(self.BaseEnt) then
+		self.BaseEnt:SetSuspension( self.Index , new )
+	end
+end
 
 function ENT:s_MakeOwner( entity )
 	if CPPI then
