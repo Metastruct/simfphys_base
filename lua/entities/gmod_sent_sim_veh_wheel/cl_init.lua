@@ -63,7 +63,7 @@ function ENT:ManageSmoke()
 		self:MakeDirt(GripLoss)
 	end
 	
-	if (Speed > 15 or DirtOn) and OnRim then
+	if (Speed > 150 or DirtOn) and OnRim then
 		self:MakeSparks(GripLoss)
 	end
 end

@@ -124,7 +124,7 @@ function ENT:WheelFxBroken()
 	end
 	
 	if self.RollSound_Broken then
-		local Volume = math.Clamp(SkidSound * 0.8 + ForwardSpeed / 1500,0,1) * WheelOnGround
+		local Volume = math.Clamp(SkidSound * 0.5 + ForwardSpeed / 1500,0,1) * WheelOnGround
 		local PlaySound = Volume > 0.1
 		
 		self.OldPlaySound = self.OldPlaySound or false
@@ -312,6 +312,9 @@ function ENT:OnRemove()
 	if self.RollSound_Broken then
 		self.RollSound_Broken:Stop()
 	end
+	if self.PreBreak then
+		self.PreBreak:Stop()
+	end
 end
 
 function ENT:PhysicsCollide( data, physobj )
@@ -340,7 +343,24 @@ function ENT:OnTakeDamage( dmginfo )
 		if self.BaseEnt:GetBulletProofTires() then return end
 		
 		if Damage > 1 then
-			self:SetDamaged( true )
+			if !self.PreBreak then
+				self.PreBreak = CreateSound(self, "ambient/gas/cannister_loop.wav")
+				self.PreBreak:PlayEx(0.5,100)
+				
+				timer.Simple(math.random(0.5,5), function() 
+					if IsValid(self) and !self:GetDamaged() then
+						self:SetDamaged( true )
+						if self.PreBreak then
+							self.PreBreak:Stop()
+							self.PreBreak = nil
+						end
+					end
+				end)
+			else
+				self:SetDamaged( true )
+				self.PreBreak:Stop()
+				self.PreBreak = nil
+			end
 		end
 	end
 end
@@ -349,8 +369,9 @@ function ENT:OnDamaged( name, old, new)
 	if (new == old) then return end
 	
 	if new == true then
-		self:EmitSound( "simulated_vehicles/sfx/tire_break.wav" )
 		self.dRadius = self:BoundingRadius() * 0.28
+		
+		self:EmitSound( "simulated_vehicles/sfx/tire_break.wav" )
 		
 		if IsValid(self.GhostEnt) then
 			self.GhostEnt:SetParent( nil )
