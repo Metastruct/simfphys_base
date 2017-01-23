@@ -72,7 +72,7 @@ function ENT:ManageSounds(Active)
 	local FadeRPM = LimitRPM * 0.5
 	
 	self.FadeThrottle = self.FadeThrottle + math.Clamp(Throttle - self.FadeThrottle,-0.2,0.2)
-	self.PitchOffset = self.PitchOffset + ((CurDist - self.OldDist) * 0.3 - self.PitchOffset) * 0.5
+	self.PitchOffset = self.PitchOffset + ((CurDist - self.OldDist) * 0.23 - self.PitchOffset) * 0.5
 	self.OldDist = CurDist
 	self.SmoothRPM = self.SmoothRPM + math.Clamp(FlyWheelRPM - self.SmoothRPM,-350,350)
 	
