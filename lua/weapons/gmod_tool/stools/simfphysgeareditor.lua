@@ -240,7 +240,7 @@ function TOOL.BuildCPanel( panel )
 	{
 		Label 	= "#tool.simfphysgeareditor.differential",
 		Type 	= "Float",
-		Min 	= "0.001",
+		Min 	= "0.2",
 		Max 	= "6",
 		Command = "simfphysgeareditor_gear_diff",
 		Help = true
