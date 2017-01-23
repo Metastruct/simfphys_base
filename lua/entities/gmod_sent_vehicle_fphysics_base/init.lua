@@ -21,9 +21,6 @@ function ENT:PostEntityPaste( ply , ent , createdEntities )
 	self:SetDriverSeat( NULL )
 	self:SetFlyWheelRPM( 0 )
 	self:SetThrottle( 0 )
-	
-	self.pSeat = {}
-	self.Wheels = {}
 end
 
 function ENT:UpdateTransmitState() 
@@ -652,7 +649,7 @@ function ENT:InitializeVehicle()
 	
 	if (self.Attachments) then
 		for i = 1, table.Count( self.Attachments ) do
-			local prop = ents.Create( "gmod_sent_simfphys_attachment" )
+			local prop = ents.Create( ((self.Attachments[i].IsGlass == true) and "gmod_sent_vehicle_fphysics_attachment_translucent" or "gmod_sent_vehicle_fphysics_attachment") )
 			prop:SetModel( self.Attachments[i].model )			
 			prop:SetMaterial( self.Attachments[i].material )
 			prop:SetRenderMode( RENDERMODE_TRANSALPHA )
@@ -672,10 +669,6 @@ function ENT:InitializeVehicle()
 				prop:SetColor( self:GetColor() )
 			else
 				prop:SetColor( self.Attachments[i].color )
-			end
-			
-			if (self.Attachments[i].IsGlass == true) then
-				prop:SetDrawTranslucent( true )
 			end
 			
 			self:DeleteOnRemove( prop )
@@ -1592,7 +1585,7 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 		WheelMass = self.RearWheelMass
 	end
 	
-	self.name = ents.Create( "gmod_sent_sim_veh_wheel" )
+	self.name = ents.Create( "gmod_sent_vehicle_fphysics_wheel" )
 	self.name:SetPos( attachmentpos - Up * height)
 	self.name:SetAngles( fAng )
 	self.name:Spawn()
@@ -1601,10 +1594,9 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	self.name:SetCollisionBounds( Vector(-radius,-radius,-radius), Vector(radius,radius,radius) )
 	self.name:GetPhysicsObject():EnableMotion(false)
 	self.name:GetPhysicsObject():SetMass( WheelMass ) 
-	self.name:SetSmokeColor( self:GetTireSmokeColor() )
+	self.name:SetBaseEnt( self )
 	self:s_MakeOwner( self.name )
 	self.name.EntityOwner = self.EntityOwner
-	self.name.BaseEnt = self
 	self.name.Index = index
 	self.name.Radius = radius
 	
@@ -1616,7 +1608,7 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 		ghostAng:RotateAroundAxis(Right,self.CustomWheelAngleOffset.r * mirAng)
 		ghostAng:RotateAroundAxis(Up,-self.CustomWheelAngleOffset.y)
 		
-		self.GhostWheels[index] = ents.Create( "gmod_sent_simfphys_attachment" )
+		self.GhostWheels[index] = ents.Create( "gmod_sent_vehicle_fphysics_attachment" )
 		self.GhostWheels[index]:SetModel( Model )
 		self.GhostWheels[index]:SetPos( self.name:GetPos() )
 		self.GhostWheels[index]:SetAngles( ghostAng )
@@ -1882,20 +1874,6 @@ function ENT:OnSuperCharged( name, old, new )
 		end
 		if (self.BlowerWhine) then
 			self.BlowerWhine:Stop()
-		end
-	end
-end
-
-function ENT:OnTireSmokeColorChanged( name, old, new )
-	if ( old == new ) then return end
-	if (self.EnableSuspension == 1) then
-		if (self.Wheels) then
-			for i = 1, table.Count( self.Wheels ) do
-				local Ent = self.Wheels[ i ]
-				if (IsValid(Ent)) then
-					Ent:SetSmokeColor( self:GetTireSmokeColor() )
-				end
-			end
 		end
 	end
 end
@@ -2279,7 +2257,6 @@ function ENT:SetOnFire( bOn )
 			local pos = self:GetEnginePos()
 		
 			self.EngineFire = ents.Create( "info_particle_system" )
-			--self.EngineFire:SetKeyValue( "effect_name" , "fire_small_04_static")
 			self.EngineFire:SetKeyValue( "effect_name" , "burning_engine_01")
 			self.EngineFire:SetKeyValue( "start_active" , 1)
 			self.EngineFire:SetOwner( self )
@@ -2327,7 +2304,6 @@ function ENT:SetOnSmoke( bOn )
 			local pos = self:GetEnginePos()
 			
 			self.EngineSmoke = ents.Create( "info_particle_system" )
-			--self.EngineSmoke:SetKeyValue( "effect_name" , "smoke_burning_engine_01")
 			self.EngineSmoke:SetKeyValue( "effect_name" , "smoke_gib_01")
 			self.EngineSmoke:SetKeyValue( "start_active" , 1)
 			self.EngineSmoke:SetOwner( self )

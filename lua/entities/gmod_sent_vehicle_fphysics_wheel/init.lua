@@ -3,9 +3,7 @@ AddCSLuaFile( "cl_init.lua" )
 include('shared.lua')
 
 local DamageEnabled = false
-cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue, newValue )
-	DamageEnabled = ( tonumber( newValue )~=0 )
-end)
+cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue, newValue ) DamageEnabled = ( tonumber( newValue )~=0 ) end)
 DamageEnabled = GetConVar( "sv_simfphys_enabledamage" ):GetBool()
 
 function ENT:Initialize()	
@@ -342,11 +340,12 @@ function ENT:OnTakeDamage( dmginfo )
 	local Damage = dmginfo:GetDamage() 
 	local DamagePos = dmginfo:GetDamagePosition() 
 	local Type = dmginfo:GetDamageType()
+	local BaseEnt = self:GetBaseEnt()
 	
 	if TYPE == DMG_BLAST then return end  -- no tirepopping on explosions
 	
-	if IsValid(self.BaseEnt) then
-		if self.BaseEnt:GetBulletProofTires() then return end
+	if IsValid(BaseEnt) then
+		if BaseEnt:GetBulletProofTires() then return end
 		
 		if Damage > 1 then
 			if !self.PreBreak then
@@ -408,8 +407,9 @@ function ENT:OnDamaged( name, old, new)
 		end
 	end
 	
-	if IsValid(self.BaseEnt) then
-		self.BaseEnt:SetSuspension( self.Index , new )
+	local BaseEnt = self:GetBaseEnt()
+	if IsValid(BaseEnt) then
+		BaseEnt:SetSuspension( self.Index , new )
 	end
 end
 

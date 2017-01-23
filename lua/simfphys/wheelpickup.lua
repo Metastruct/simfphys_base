@@ -1,5 +1,5 @@
 local function PlayerPickup( ply, ent )
-	if (ent:GetClass():lower() == "gmod_sent_sim_veh_wheel") then
+	if (ent:GetClass():lower() == "gmod_sent_vehicle_fphysics_wheel") then
 		return false
 	end
 end

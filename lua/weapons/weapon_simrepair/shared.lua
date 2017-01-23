@@ -53,7 +53,7 @@ function SWEP:PrimaryAttack()
 	local class = ent:GetClass():lower()
 	
 	local IsVehicle = class == "gmod_sent_vehicle_fphysics_base"
-	local IsWheel = class == "gmod_sent_sim_veh_wheel"
+	local IsWheel = class == "gmod_sent_vehicle_fphysics_wheel"
 	
 	if IsVehicle then
 		local Dist = (Trace.HitPos - self.Owner:GetPos()):Length()

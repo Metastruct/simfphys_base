@@ -38,7 +38,7 @@ local function DestroyVehicle( ent )
 	
 	local ply = ent.EntityOwner
 	
-	local bprop = ents.Create( "gmod_sent_simfphys_gib" )
+	local bprop = ents.Create( "gmod_sent_vehicle_fphysics_gib" )
 	bprop:SetModel( ent:GetModel() )			
 	bprop:SetPos( ent:GetPos() )
 	bprop:SetAngles( ent:GetAngles() )
@@ -63,7 +63,7 @@ local function DestroyVehicle( ent )
 		for i = 1, table.Count( ent.GhostWheels ) do
 			local Wheel = ent.GhostWheels[i]
 			if IsValid(Wheel) then
-				local prop = ents.Create( "gmod_sent_simfphys_gib" )
+				local prop = ents.Create( "gmod_sent_vehicle_fphysics_gib" )
 				prop:SetModel( Wheel:GetModel() )			
 				prop:SetPos( Wheel:LocalToWorld( Vector(0,0,0) ) )
 				prop:SetAngles( Wheel:LocalToWorldAngles( Angle(0,0,0) ) )

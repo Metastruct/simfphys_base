@@ -29,17 +29,21 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-	self.SmokeTimer = self.SmokeTimer or 0	
-	if ( self.SmokeTimer < CurTime() ) then
+	local curtime = CurTime()
+	self.SmokeTimer = self.SmokeTimer or 0
+	if self.SmokeTimer < curtime then
 		self:ManageSmoke()
-		self.SmokeTimer = CurTime() + 0.005
+		self.SmokeTimer = curtime + 0.005
 	end
 	
-	self:NextThink(CurTime())
+	self:NextThink( curtime )
 	return true
 end
 
 function ENT:ManageSmoke()
+	local BaseEnt = self:GetBaseEnt()
+	if !IsValid(BaseEnt) then return end
+	
 	local WheelOnGround = self:GetOnGround()
 	local GripLoss = self:GetGripLoss()
 	local Material = self:GetSurfaceMaterial()
@@ -48,32 +52,34 @@ function ENT:ManageSmoke()
 	local Scale = self.FadeHeat ^ 3 / 1000
 	local SmokeOn = (self.FadeHeat >= 7)
 	local DirtOn = GripLoss > 0.05
-	local lcolor = self:GetSmokeColor() * 255
+	local lcolor = BaseEnt:GetTireSmokeColor() * 255
 	local Speed = self:GetVelocity():Length()
-	
 	local OnRim = self:GetDamaged()
 	
+	local Forward = self:GetForward()
+	local Dir = (BaseEnt:GetGear() < 2) and Forward or -Forward
+	
+	local WheelSize = self.Radius or 0
+	local Pos = self:GetPos()
+	
 	if SmokeOn and !OnRim then
-		self:MakeSmoke(Scale,lcolor)
+		self:MakeSmoke( Scale, lcolor, Dir, Pos, WheelSize )
 	end
 	
 	if (WheelOnGround == 0) then return end
 	
 	if DirtOn then
-		self:MakeDirt(GripLoss)
+		self:MakeDirt( GripLoss, Dir, Pos, WheelSize )
 	end
 	
 	if (Speed > 150 or DirtOn) and OnRim then
-		self:MakeSparks(GripLoss)
+		self:MakeSparks( GripLoss, Dir, Pos, WheelSize )
 	end
 end
 
-function ENT:MakeSparks(Scale)
+function ENT:MakeSparks( Scale, Dir, Pos, WheelSize )
 	self.NextSpark = self.NextSpark or 0
 	if self.NextSpark < CurTime() then
-		local WheelSize = self.Radius or 0
-		local Pos = self:GetPos()
-		local Dir = -self:GetForward()
 	
 		self.NextSpark = CurTime() + 0.03
 		local effectdata = EffectData()
@@ -87,12 +93,9 @@ function ENT:Draw()
 	return false
 end
 
-function ENT:MakeSmoke(Mul,Color)
-	local WheelSize = self.Radius or 0
-	local Pos = self:GetPos()
+function ENT:MakeSmoke( Mul, Color, Dir, Pos, WheelSize )
 	local Ran = Vector( math.Rand( -WheelSize, WheelSize ), math.Rand( -WheelSize, WheelSize ),math.Rand( -WheelSize, WheelSize ) ) * 0.3
 	local OffsetPos = Pos + Ran + Vector(0,0,WheelSize * 0.2)
-	local Dir = -self:GetForward()
 	
 	local OffsetPos2 = OffsetPos + Ran * 0.4 + Vector(0,0,-WheelSize)
 
@@ -127,13 +130,10 @@ function ENT:MakeSmoke(Mul,Color)
 	end
 end
 
-function ENT:MakeDirt(Scale)
-	local WheelSize = self.Radius or 0
-	local Pos = self:GetPos()
+function ENT:MakeDirt( Scale , Dir, Pos, WheelSize )
 	local Ran = Vector( math.Rand( -WheelSize, WheelSize ), math.Rand( -WheelSize, WheelSize ),math.Rand( -WheelSize, WheelSize ) ) * 0.3
 	local OffsetPos = Pos + Ran + Vector(0,0,WheelSize * 0.2)
 	local Vel = self:GetVelocity() / 3
-	local Dir = -self:GetForward()
 	
 	local OffsetPos = OffsetPos + Ran * 0.4 + Vector(0,0,-WheelSize * 0.8)
 

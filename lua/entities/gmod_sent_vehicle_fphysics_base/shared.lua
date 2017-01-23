@@ -71,7 +71,6 @@ function ENT:SetupDataTables()
 	if ( SERVER ) then
 		self:NetworkVarNotify( "FrontSuspensionHeight", self.OnFrontSuspensionHeightChanged )
 		self:NetworkVarNotify( "RearSuspensionHeight", self.OnRearSuspensionHeightChanged )
-		self:NetworkVarNotify( "TireSmokeColor", self.OnTireSmokeColorChanged )
 		self:NetworkVarNotify( "TurboCharged", self.OnTurboCharged )
 		self:NetworkVarNotify( "SuperCharged", self.OnSuperCharged )
 		self:NetworkVarNotify( "Active", self.OnActiveChanged )
