@@ -785,6 +785,10 @@ function ENT:GetRPM()
 	return RPM
 end
 
+function ENT:GetDiffGear()
+	return math.max(self:GetDifferentialGear(),0.01)
+end
+
 function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time,tilt_forward,tilt_back)
 	local PObj = self:GetPhysicsObject()
 
@@ -799,7 +803,7 @@ function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRP
 		self.Clutch = 1
 		self.HandBrake = self.HandBrakePower
 	else
-		self.GearRatio = self.Gears[self.CurrentGear] * self:GetDifferentialGear()
+		self.GearRatio = self.Gears[self.CurrentGear] * self:GetDiffGear()
 	end
 	self:SetClutch( self.Clutch )
 	local InvClutch = (self.Clutch == 1) and 0 or 1
@@ -935,11 +939,11 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 			if (self.ForwardSpeed >= 50) then	
 				if (self.Clutch == 0) then
 					local NextGear = self.CurrentGear + 1 <= GearsCount and math.min(self.CurrentGear + 1,GearsCount) or self.CurrentGear
-					local NextGearRatio = self.Gears[NextGear] * self:GetDifferentialGear()
+					local NextGearRatio = self.Gears[NextGear] * self:GetDiffGear()
 					local NextGearRPM = self.WheelRPM / math.abs(NextGearRatio)
 					
 					local PrevGear = self.CurrentGear - 1 <= GearsCount and math.max(self.CurrentGear - 1,3) or self.CurrentGear
-					local PrevGearRatio = self.Gears[PrevGear] * self:GetDifferentialGear()
+					local PrevGearRatio = self.Gears[PrevGear] * self:GetDiffGear()
 					local PrevGearRPM = self.WheelRPM / math.abs(PrevGearRatio)
 					
 					local minThrottle = shiftmode == 1 and 1 or math.max(Throttle,0.5)

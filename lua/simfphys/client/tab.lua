@@ -398,6 +398,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 	end
 	
 	-- SERVER SETTINGS
+	--[[
 	local node = tree:AddNode( "Server Settings", "icon16/wrench_orange.png" )
 	node.DoPopulate = function( self )
 		if ( self.PropPanel ) then return end
@@ -412,6 +413,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 		self:DoPopulate()
 		pnlContent:SwitchPanel( self.PropPanel )
 	end
+	]]--
 
 	
 	-- Select the first node
