@@ -349,6 +349,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 
 	end
 	
+	-- KEYBOARD
 	local node = tree:AddNode( "Controls", "icon16/keyboard.png" )
 	node.DoPopulate = function( self )
 		if ( self.PropPanel ) then return end
@@ -364,6 +365,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 		pnlContent:SwitchPanel( self.PropPanel )
 	end
 	
+	-- MOUSE STEERING
 	local node = tree:AddNode( "Mouse Steering", "icon16/mouse.png" )
 	node.DoPopulate = function( self )
 		if ( self.PropPanel ) then return end
@@ -379,6 +381,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 		pnlContent:SwitchPanel( self.PropPanel )
 	end
 	
+	-- CLIENT SETTINGS
 	local node = tree:AddNode( "Client Settings", "icon16/wrench.png" )
 	node.DoPopulate = function( self )
 		if ( self.PropPanel ) then return end
@@ -388,6 +391,22 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 		self.PropPanel:SetTriggerSpawnlistChange( false )
 
 		buildclientsettingsmenu( self )
+	end
+	node.DoClick = function( self )
+		self:DoPopulate()
+		pnlContent:SwitchPanel( self.PropPanel )
+	end
+	
+	-- SERVER SETTINGS
+	local node = tree:AddNode( "Server Settings", "icon16/wrench_orange.png" )
+	node.DoPopulate = function( self )
+		if ( self.PropPanel ) then return end
+		
+		self.PropPanel = vgui.Create( "ContentContainer", pnlContent )
+		self.PropPanel:SetVisible( false )
+		self.PropPanel:SetTriggerSpawnlistChange( false )
+
+		--buildclientsettingsmenu( self )
 	end
 	node.DoClick = function( self )
 		self:DoPopulate()
