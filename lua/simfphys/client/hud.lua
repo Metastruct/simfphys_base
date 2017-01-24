@@ -71,6 +71,10 @@ local cruise_off = Material( "simfphys/hud/cc_off" )
 local hbrake_on = Material( "simfphys/hud/handbrake_on" )
 local hbrake_off = Material( "simfphys/hud/handbrake_off" )
 
+local HUD_1 = Material( "simfphys/hud/hud_middle" )
+local HUD_2 = Material( "simfphys/hud/hud_center" )
+local HUD_3 = Material( "simfphys/hud/hud_center_red" )
+
 local function drawsimfphysHUD(vehicle)
 	if (isMouseSteer and ShowHud_ms) then
 		local MousePos = vehicle:GetMousePos()
@@ -126,6 +130,13 @@ local function drawsimfphysHUD(vehicle)
 		s_smoothrpm = s_smoothrpm or 0
 		s_smoothrpm = math.Clamp(s_smoothrpm + (rpm - s_smoothrpm) * 0.3,0,maxrpm)
 		
+		local endang = startang + math.Round( (s_smoothrpm/maxrpm) * 255, 0)
+		local c_ang = math.cos( math.rad(endang) )
+		local s_ang = math.sin( math.rad(endang) )
+		local ang_pend = startang + math.Round( (powerbandend / maxrpm) * 255, 0)
+		local r_rpm = math.floor(maxrpm / 1000) * 1000
+		local in_red = s_smoothrpm < powerbandend
+		
 		surface.SetDrawColor( 255, 255, 255, 255 )
 		
 		local mat = LightsOn and (LampsOn and lights_on2 or lights_on) or lights_off
@@ -144,14 +155,13 @@ local function drawsimfphysHUD(vehicle)
 		surface.SetMaterial( mat )
 		surface.DrawTexturedRect( x * 1.1175, y * 0.815, sizex * 0.018, sizex * 0.018 )
 		
-		draw.NoTexture()
+		surface.SetMaterial( HUD_1 )
+		surface.DrawTexturedRect( x - radius, y - radius, radius * 2, radius * 2)
 		
-		local endang = startang + math.Round( (s_smoothrpm/maxrpm) * 255, 0)
-		local c_ang = math.cos( math.rad(endang) )
-		local s_ang = math.sin( math.rad(endang) )
-		local ang_pend = startang + math.Round( (powerbandend / maxrpm) * 255, 0)
-		local r_rpm = math.floor(maxrpm / 1000) * 1000
-		local in_red = s_smoothrpm < powerbandend
+		surface.SetMaterial( in_red and HUD_2 or HUD_3 )
+		surface.DrawTexturedRect( x - radius, y - radius, radius * 2, radius * 2)
+		
+		draw.NoTexture()
 		
 		for i = 0,r_rpm,1000 do
 			local anglestep = (255 / maxrpm) * i
@@ -185,7 +195,7 @@ local function drawsimfphysHUD(vehicle)
 		draw.Arc(x,y,radius,radius / 6.66,startang,math.min(endang,ang_pend),1,Color(255,255,255,150),true)
 		
 		-- middle
-		draw.Arc(x,y,radius / 3.5,radius / 66,startang,360,15,Color(255,255,255,50),true)
+		--draw.Arc(x,y,radius / 3.5,radius / 66,startang,360,15,Color(255,255,255,50),true)
 		
 		-- outer
 		draw.Arc(x,y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
@@ -194,7 +204,7 @@ local function drawsimfphysHUD(vehicle)
 		draw.Arc(x,y,radius,radius / 6.66,math.Round(ang_pend - 1,0),startang + (s_smoothrpm / maxrpm) * 255,1,Color(255,0,0,140),true)
 		
 		--inner
-		draw.Arc(x,y,radius / 5,radius / 70,0,360,15,center_ncol,true)
+		--draw.Arc(x,y,radius / 5,radius / 70,0,360,15,center_ncol,true)
 		
 		draw.SimpleText( (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)), "simfphysfont2", x * 0.999, y * 0.996, center_ncol, 1, 1 )
 		
