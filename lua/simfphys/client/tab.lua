@@ -135,7 +135,7 @@ local function buildclientsettingsmenu( self )
 	Shape:SetSize( 350, 90 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	createcheckbox(25,25,"Show Hud","cl_simfphys_hud",self.PropPanel,hud:GetInt())
-	createcheckbox(210,25,"Alternative Hud \n(NO MULTICORE SUPPORT)","cl_simfphys_althud",self.PropPanel,alt_hud:GetInt())
+	createcheckbox(210,25,"Alternative Hud","cl_simfphys_althud",self.PropPanel,alt_hud:GetInt())
 	createcheckbox(25,45,"MPH instead of KMH","cl_simfphys_hudmph",self.PropPanel,hud_mph:GetInt())
 	createcheckbox(25,65,"Speed relative to \nplayersize instead \nworldsize","cl_simfphys_hudrealspeed",self.PropPanel,hud_realspeed:GetInt())
 	
