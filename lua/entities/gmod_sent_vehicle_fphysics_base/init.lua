@@ -1612,6 +1612,9 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 		ghostAng:RotateAroundAxis(Right,self.CustomWheelAngleOffset.r * mirAng)
 		ghostAng:RotateAroundAxis(Up,-self.CustomWheelAngleOffset.y)
 		
+		local Camber = self.CustomWheelCamber or 0
+		ghostAng:RotateAroundAxis(Forward, Camber * mirAng)
+		
 		self.GhostWheels[index] = ents.Create( "gmod_sent_vehicle_fphysics_attachment" )
 		self.GhostWheels[index]:SetModel( Model )
 		self.GhostWheels[index]:SetPos( self.name:GetPos() )

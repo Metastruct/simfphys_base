@@ -7,6 +7,7 @@ TOOL.ConfigName		= ""
 TOOL.ClientConVar[ "frontwheelmodel" ] = ""
 TOOL.ClientConVar[ "rearwheelmodel" ] = ""
 TOOL.ClientConVar[ "sameasfront" ] = 1
+TOOL.ClientConVar[ "camber" ] = 0
 
 if CLIENT then
 	language.Add( "tool.simfphyswheeleditor.name", "simfphys wheel model editor" )
@@ -41,11 +42,15 @@ local function ApplyWheel(ply, ent, data)
 				local Right = swap_y and -rAng:Forward() or rAng:Forward()
 				local Up = ent:GetUp()
 				
+				local Camber = data[5] or 0
+				
 				local ghostAng = Right:Angle()
 				local mirAng = swap_y and 1 or -1
 				ghostAng:RotateAroundAxis(Forward,angleoffset.p * mirAng)
 				ghostAng:RotateAroundAxis(Right,angleoffset.r * mirAng)
 				ghostAng:RotateAroundAxis(Up,-angleoffset.y)
+				
+				ghostAng:RotateAroundAxis(Forward, Camber * mirAng)
 				
 				Wheel:SetModelScale( 1 )
 				Wheel:SetModel( model )
@@ -112,6 +117,7 @@ function TOOL:LeftClick( trace )
 		local front_angle = GetAngleFromSpawnlist(front_model)
 		
 		local sameasfront = self:GetClientInfo("sameasfront") == "1"
+		local camber = self:GetClientInfo("camber")
 		local rear_model = sameasfront and front_model or self:GetClientInfo("rearwheelmodel")
 		local rear_angle = GetAngleFromSpawnlist(rear_model)
 		
@@ -130,7 +136,7 @@ function TOOL:LeftClick( trace )
 					end
 				end
 				
-				ApplyWheel(self:GetOwner(), ent, {front_model,front_angle,rear_model,rear_angle})
+				ApplyWheel(self:GetOwner(), ent, {front_model,front_angle,rear_model,rear_angle,camber})
 			end
 		end
 	end
@@ -181,6 +187,15 @@ function TOOL:Reload( trace )
 end
 
 function TOOL.BuildCPanel( panel )
+	panel:AddControl( "Slider", 
+	{
+		Label 	= "Camber",
+		Type 	= "Float",
+		Min 	= "-60",
+		Max 	= "60",
+		Command = "simfphyswheeleditor_camber"
+	})
+	panel:AddControl( "Label",  { Text = "" } )
 	panel:AddControl( "Label",  { Text = "Front Wheel Model" } )
 	panel:AddControl( "PropSelect", { Label = "", ConVar = "simfphyswheeleditor_frontwheelmodel", Height = 0, Models = list.Get( "simfphys_Wheels" ) } )
 	panel:AddControl( "Label",  { Text = "" } )

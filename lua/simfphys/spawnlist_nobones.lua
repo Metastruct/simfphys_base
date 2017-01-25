@@ -40,6 +40,8 @@ local V = {
 		CustomWheelPosRR = Vector(-12,-22,-15),	-- rear right		NOTE: make sure the position actually matches the name. So FL is actually at the Front Left ,  FR Front Right, ...   if you do this wrong the wheels will spin in the wrong direction or the car will drive sideways/reverse
 		CustomWheelAngleOffset = Angle(90,0,0),
 		
+		--CustomWheelCamber = 30,   -- wheel camber, just visual
+		
 		CustomMassCenter = Vector(0,0,0),		-- custom masscenter offset. The script creates a counter weight to make the masscenter exactly in the center of the wheels. However you can add an offset to this to create more body roll if you really have to...
 		
 		CustomSteerAngle = 35,				-- max clamped steering angle,
