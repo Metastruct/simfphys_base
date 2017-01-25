@@ -199,7 +199,7 @@ local function drawsimfphysHUD(vehicle)
 		
 		-- outer
 		--draw.Arc(x,y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
-		draw.Arc(x,y,radius,radius / 6.66,ang_pend,360,1,Color(120,0,0,255),true)
+		draw.Arc(x,y,radius,radius / 6.66,ang_pend,360,1,Color(120,0,0,230),true)
 		
 		draw.Arc(x,y,radius,radius / 6.66,math.Round(ang_pend - 1,0),startang + (s_smoothrpm / maxrpm) * 255,1,Color(255,0,0,140),true)
 		
