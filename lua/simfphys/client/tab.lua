@@ -449,7 +449,16 @@ spawnmenu.AddContentType( "simfphys_vehicles", function( container, obj )
 		RunConsoleCommand( "simfphys_spawnvehicle", obj.spawnname )
 		surface.PlaySound( "ui/buttonclickrelease.wav" )
 	end
+	icon.OpenMenu = function( icon )
 
+		local menu = DermaMenu()
+			menu:AddOption( "Copy to Clipboard", function() SetClipboardText( obj.spawnname ) end )
+			--menu:AddSpacer()
+			--menu:AddOption( "Delete", function() icon:Remove() hook.Run( "SpawnlistContentChanged", icon ) end )
+		menu:Open()
+
+	end
+	
 	if ( IsValid( container ) ) then
 		container:Add( icon )
 	end
