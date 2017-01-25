@@ -71,7 +71,7 @@ local cruise_off = Material( "simfphys/hud/cc_off" )
 local hbrake_on = Material( "simfphys/hud/handbrake_on" )
 local hbrake_off = Material( "simfphys/hud/handbrake_off" )
 
-local HUD_1 = Material( "simfphys/hud/hud_middle" )
+local HUD_1 = Material( "simfphys/hud/hud" )
 local HUD_2 = Material( "simfphys/hud/hud_center" )
 local HUD_3 = Material( "simfphys/hud/hud_center_red" )
 
@@ -156,10 +156,10 @@ local function drawsimfphysHUD(vehicle)
 		surface.DrawTexturedRect( x * 1.1175, y * 0.815, sizex * 0.018, sizex * 0.018 )
 		
 		surface.SetMaterial( HUD_1 )
-		surface.DrawTexturedRect( x - radius, y - radius, radius * 2, radius * 2)
+		surface.DrawTexturedRect( x - radius, y - radius + 1, radius * 2, radius * 2)
 		
 		surface.SetMaterial( in_red and HUD_2 or HUD_3 )
-		surface.DrawTexturedRect( x - radius, y - radius, radius * 2, radius * 2)
+		surface.DrawTexturedRect( x - radius, y - radius + 1, radius * 2, radius * 2)
 		
 		draw.NoTexture()
 		
@@ -198,8 +198,8 @@ local function drawsimfphysHUD(vehicle)
 		--draw.Arc(x,y,radius / 3.5,radius / 66,startang,360,15,Color(255,255,255,50),true)
 		
 		-- outer
-		draw.Arc(x,y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
-		draw.Arc(x,y,radius,radius / 6.66,ang_pend,360,1,Color(120,0,0,120),true)
+		--draw.Arc(x,y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
+		draw.Arc(x,y,radius,radius / 6.66,ang_pend,360,1,Color(120,0,0,255),true)
 		
 		draw.Arc(x,y,radius,radius / 6.66,math.Round(ang_pend - 1,0),startang + (s_smoothrpm / maxrpm) * 255,1,Color(255,0,0,140),true)
 		
