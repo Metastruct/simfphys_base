@@ -14,14 +14,14 @@ local function handleseatswitching( length, ply )
 		ply.NextSeatSwitch = CurTime() + 0.5
 		
 		if (req_seat == 0) then
-			if (!IsValid(vehicle.Driver)) then
+			if !IsValid(vehicle:GetDriver()) then
 				ply:ExitVehicle()
 				
 				if (IsValid(vehicle.DriverSeat)) then
 					timer.Simple( 0.05, function()
 						if !IsValid(vehicle) then return end
 						if !IsValid(ply) then return end
-						if IsValid(vehicle.Driver) then return end
+						if IsValid(vehicle:GetDriver()) then return end
 						
 						ply:EnterVehicle( vehicle.DriverSeat )
 						ply:SetAllowWeaponsInVehicle( false ) 
