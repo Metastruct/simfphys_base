@@ -325,7 +325,7 @@ function ENT:PhysicsCollide( data, physobj )
 	if ( data.Speed > 100 && data.DeltaTime > 0.2 ) then
 		if ( data.Speed > 400 ) then 
 			self:EmitSound( "Rubber_Tire.ImpactHard" )
-			self:EmitSound( "simulated_vehicles/suspension_creak_".. math.Round(math.random(1,6),0) ..".wav" )
+			self:EmitSound( "simulated_vehicles/suspension_creak_".. math.Round(math.random(1,6),0) ..".ogg" )
 		else 
 			self:EmitSound( "Rubber.ImpactSoft" )
 		end
@@ -376,7 +376,7 @@ function ENT:OnDamaged( name, old, new)
 	if new == true then
 		self.dRadius = self:BoundingRadius() * 0.28
 		
-		self:EmitSound( "simulated_vehicles/sfx/tire_break.wav" )
+		self:EmitSound( "simulated_vehicles/sfx/tire_break.ogg" )
 		
 		if IsValid(self.GhostEnt) then
 			self.GhostEnt:SetParent( nil )

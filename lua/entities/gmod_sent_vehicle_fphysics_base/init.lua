@@ -196,7 +196,7 @@ function ENT:OnThrottleChanged( name, old, new)
 				local Volume = math.Clamp( ((self.SmoothTurbo - 300) / 150) ,0, 1) * 0.5
 				self.SmoothTurbo = 0
 				self.BlowOff:Stop()
-				self.BlowOff = CreateSound(self, self.snd_blowoff or "simulated_vehicles/turbo_blowoff.wav")
+				self.BlowOff = CreateSound(self, self.snd_blowoff or "simulated_vehicles/turbo_blowoff.ogg")
 				self.BlowOff:PlayEx(Volume,100)
 			end
 		end

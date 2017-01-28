@@ -306,7 +306,7 @@ function ENT:BfFx( lPos , lAng , bdamaged)
 	timer.Simple( Delay, function()
 		if (!IsValid(self)) then return end
 		
-		local snd = bdamaged and "simulated_vehicles/sfx/ex_backfire_damaged_"..math.Round(math.random(1,3),1)..".wav" or "simulated_vehicles/sfx/ex_backfire_"..math.Round(math.random(1,4),1)..".wav"
+		local snd = bdamaged and "simulated_vehicles/sfx/ex_backfire_damaged_"..math.Round(math.random(1,3),1)..".ogg" or "simulated_vehicles/sfx/ex_backfire_"..math.Round(math.random(1,4),1)..".ogg"
 		self:EmitSound( snd )	
 		
 		local Vel = self:GetVelocity() * (game.SinglePlayer() and 0 or 1)

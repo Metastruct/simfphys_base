@@ -75,6 +75,8 @@ local HUD_1 = Material( "simfphys/hud/hud" )
 local HUD_2 = Material( "simfphys/hud/hud_center" )
 local HUD_3 = Material( "simfphys/hud/hud_center_red" )
 
+local ForceSimpleHud = !file.Exists( "materials/simfphys/hud/hud.vmt", "GAME" ) -- lets check if the background material exists, if not we will force the old hud to prevent fps drop
+
 local function drawsimfphysHUD(vehicle)
 	if (isMouseSteer and ShowHud_ms) then
 		local MousePos = vehicle:GetMousePos()
@@ -121,7 +123,7 @@ local function drawsimfphysHUD(vehicle)
 	local gear = vehicle:GetGear()
 	local DrawGear = !slushbox and (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)) or (gear == 1 and "R" or gear == 2 and "N" or "(".. (gear - 2)..")")
 	
-	if (AltHud) then
+	if AltHud and !ForceSimpleHud then
 		local LightsOn = vehicle:GetLightsEnabled()
 		local LampsOn = vehicle:GetLampsEnabled()
 		local FogLightsOn = vehicle:GetFogLightsEnabled()
