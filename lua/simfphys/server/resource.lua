@@ -1,1 +1,0 @@
-resource.AddWorkshop("771487490")
