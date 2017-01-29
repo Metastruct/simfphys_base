@@ -2262,13 +2262,14 @@ function ENT:SetOnFire( bOn )
 	if bOn then
 		if !IsValid(self.EngineFire) then
 			local pos = self:GetEnginePos()
+			local ang = isvector(self.Forward) and self.Forward:Angle() or Angle(0,0,0)
 		
 			self.EngineFire = ents.Create( "info_particle_system" )
 			self.EngineFire:SetKeyValue( "effect_name" , "burning_engine_01")
 			self.EngineFire:SetKeyValue( "start_active" , 1)
 			self.EngineFire:SetOwner( self )
 			self.EngineFire:SetPos( pos )
-			self.EngineFire:SetAngles( self.Forward:Angle() )
+			self.EngineFire:SetAngles( ang )
 			self.EngineFire:Spawn()
 			self.EngineFire:Activate()
 			self.EngineFire:SetParent( self )
@@ -2309,13 +2310,14 @@ function ENT:SetOnSmoke( bOn )
 	if bOn then
 		if !IsValid(self.EngineSmoke) then
 			local pos = self:GetEnginePos()
+			local ang = isvector(self.Forward) and self.Forward:Angle() or Angle(0,0,0)
 			
 			self.EngineSmoke = ents.Create( "info_particle_system" )
 			self.EngineSmoke:SetKeyValue( "effect_name" , "smoke_gib_01")
 			self.EngineSmoke:SetKeyValue( "start_active" , 1)
 			self.EngineSmoke:SetOwner( self )
 			self.EngineSmoke:SetPos( pos )
-			self.EngineSmoke:SetAngles( self.Forward:Angle() )
+			self.EngineSmoke:SetAngles( ang )
 			self.EngineSmoke:Spawn()
 			self.EngineSmoke:Activate()
 			self.EngineSmoke:SetParent( self )
