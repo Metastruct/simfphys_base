@@ -545,6 +545,10 @@ function ENT:SetupControls( ply )
 end
 
 function ENT:PlayAnimation( animation )
+	local anims = string.Implode( ",", self:GetSequenceList() )
+	
+	if !string.match( anims, animation, 1 ) then return end
+	
 	local sequence = self:LookupSequence( animation )
 	
 	self:ResetSequence( sequence )
@@ -646,7 +650,6 @@ function ENT:InitializeVehicle()
 	self.DriverSeat:Activate()
 	self.DriverSeat:SetPos( View.ViewPos + self.DriverSeat:GetUp() * (-34 + self.SeatOffset.z) + self.DriverSeat:GetRight() * (self.SeatOffset.y) + self.DriverSeat:GetForward() * (-6 + self.SeatOffset.x) )
 	
-	print( View.ID )
 	if View.ID != false then
 		self:SetupEnteringAnims()
 		self.DriverSeat:SetParent( self , View.ID )
