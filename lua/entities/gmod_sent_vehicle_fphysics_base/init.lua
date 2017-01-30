@@ -552,17 +552,77 @@ function ENT:PlayAnimation( animation )
 	self:SetSequence( sequence )
 end
 
-function ENT:InitializeVehicle()
-	if (!IsValid(self)) then return end
+
+function ENT:SetupView()
+	local AttachmentID = self:LookupAttachment( "vehicle_driver_eyes" )
+	local AttachmentID2 = self:LookupAttachment( "vehicle_passenger0_eyes" )
 	
-	if (self.LightsTable) then
+	local ID
+	local ViewPos
+	
+	if self:GetAttachment( AttachmentID ) then
+		ID = AttachmentID
+		ViewPos = self:GetAttachment( AttachmentID )
+		
+	elseif self:GetAttachment( AttachmentID2 ) then
+		ID = AttachmentID2
+		ViewPos = self:GetAttachment( AttachmentID2 )
+		
+	else
+		ID = false
+		ViewPos = {Ang = self:LocalToWorldAngles( Angle(0, 90,0) ),Pos = self:GetPos()}
+	end
+	
+	local ViewAng = ViewPos.Ang - Angle(0,0,self.SeatPitch)
+	ViewAng:RotateAroundAxis(self:GetUp(), -90 - (self.SeatYaw or 0))
+	
+	local data = {
+		ID = ID,
+		ViewPos = ViewPos.Pos,
+		ViewAng = ViewAng,
+	}
+	
+	return data
+end
+
+function ENT:SetupEnteringAnims()
+	local attachments = self:GetAttachments()
+	
+	self.Exitpoints = {}
+	self.Enterpoints = {}
+	
+	for _,i in pairs(attachments) do
+		local curstring = string.lower( i.name )
+		
+		if string.match( curstring, "exit", 1 ) then
+			table.insert(self.Exitpoints, curstring)
+		end
+		
+		if string.match( curstring, "enter", 1 ) then
+			table.insert(self.Enterpoints, curstring)
+		end
+	end
+	
+	if table.Count( self.Enterpoints ) < 1 then
+		self.Enterpoints = nil
+	end
+	
+	if table.Count( self.Exitpoints ) < 1 then
+		self.Exitpoints = nil
+	end
+end
+
+function ENT:InitializeVehicle()
+	if !IsValid(self) then return end
+	
+	if self.LightsTable then
 		local vehiclelist = list.Get( "simfphys_lights" )[self.LightsTable] or false
 		if vehiclelist then
-			if (vehiclelist.PoseParameters) then
+			if vehiclelist.PoseParameters then
 				self.LightsPP = vehiclelist.PoseParameters
 			end
 			
-			if (vehiclelist.BodyGroups) then
+			if vehiclelist.BodyGroups then
 				self:SetBodygroup(vehiclelist.BodyGroups.Off[1], vehiclelist.BodyGroups.Off[2] )
 			end
 		end
@@ -571,24 +631,29 @@ function ENT:InitializeVehicle()
 	self:GetPhysicsObject():SetDragCoefficient( self.AirFriction or -250 )
 	self:GetPhysicsObject():SetMass( self.Mass * 0.75 )
 	
-	local AttachmemtID = self:LookupAttachment( "vehicle_driver_eyes" )
-	local AttachmemtID2 = self:LookupAttachment( "vehicle_passenger0_eyes" )
-	local CompatibleAttachments = self:GetAttachment( AttachmemtID ) or self:GetAttachment( AttachmemtID2 ) or false
-	local ViewPos = CompatibleAttachments or {Ang = self:LocalToWorldAngles( Angle(0, 90,0) ),Pos = self:GetPos()}
-	local ViewAng = ViewPos.Ang - Angle(0,0,self.SeatPitch)
-	ViewAng:RotateAroundAxis(self:GetUp(), -90 - (self.SeatYaw or 0))
+	local View = self:SetupView()
 	
 	self.DriverSeat = ents.Create( "prop_vehicle_prisoner_pod" )
+	self.DriverSeat:SetMoveType( MOVETYPE_NONE )
+	
 	self.DriverSeat:SetModel( "models/nova/airboat_seat.mdl" )
 	self.DriverSeat:SetKeyValue( "vehiclescript","scripts/vehicles/prisoner_pod.txt" )
 	self.DriverSeat:SetKeyValue( "limitview", self.LimitView and 1 or 0 )
-	self.DriverSeat:SetPos( ViewPos.Pos )
-	self.DriverSeat:SetAngles( ViewAng )
+	self.DriverSeat:SetPos( View.ViewPos )
+	self.DriverSeat:SetAngles( View.ViewAng )
 	self.DriverSeat:SetOwner( self )
 	self.DriverSeat:Spawn()
 	self.DriverSeat:Activate()
-	self.DriverSeat:SetPos( ViewPos.Pos + self.DriverSeat:GetUp() * (-34 + self.SeatOffset.z) + self.DriverSeat:GetRight() * (self.SeatOffset.y) + self.DriverSeat:GetForward() * (-6 + self.SeatOffset.x) )
-	self.DriverSeat:SetParent( self )
+	self.DriverSeat:SetPos( View.ViewPos + self.DriverSeat:GetUp() * (-34 + self.SeatOffset.z) + self.DriverSeat:GetRight() * (self.SeatOffset.y) + self.DriverSeat:GetForward() * (-6 + self.SeatOffset.x) )
+	
+	print( View.ID )
+	if View.ID != false then
+		self:SetupEnteringAnims()
+		self.DriverSeat:SetParent( self , View.ID )
+	else
+		self.DriverSeat:SetParent( self )
+	end
+	
 	self.DriverSeat:GetPhysicsObject():EnableDrag( false ) 
 	self.DriverSeat:GetPhysicsObject():EnableMotion( false )
 	self.DriverSeat:GetPhysicsObject():SetMass( 1 )
@@ -602,7 +667,7 @@ function ENT:InitializeVehicle()
 	self.DriverSeat:DrawShadow( false )
 	self:s_MakeOwner( self.DriverSeat )
 	
-	if (self.PassengerSeats) then
+	if self.PassengerSeats then
 		for i = 1, table.Count( self.PassengerSeats ) do
 			self.pSeat[i] = ents.Create( "prop_vehicle_prisoner_pod" )
 			self.pSeat[i]:SetModel( "models/nova/airboat_seat.mdl" )
@@ -631,7 +696,7 @@ function ENT:InitializeVehicle()
 		end
 	end
 	
-	if (self.ExhaustPositions) then
+	if self.ExhaustPositions then
 		for i = 1, table.Count( self.ExhaustPositions ) do
 			self.exfx[i] = ents.Create( "info_particle_system" )
 			self.exfx[i]:SetKeyValue( "effect_name" , "Exhaust")
@@ -647,7 +712,7 @@ function ENT:InitializeVehicle()
 		end
 	end
 	
-	if (self.Attachments) then
+	if self.Attachments then
 		for i = 1, table.Count( self.Attachments ) do
 			local prop = ents.Create( ((self.Attachments[i].IsGlass == true) and "gmod_sent_vehicle_fphysics_attachment_translucent" or "gmod_sent_vehicle_fphysics_attachment") )
 			prop:SetModel( self.Attachments[i].model )			
@@ -664,7 +729,7 @@ function ENT:InitializeVehicle()
 			prop.DoNotDuplicate = true
 			self:s_MakeOwner( prop )
 			
-			if (self.Attachments[i].useVehicleColor == true) then
+			if self.Attachments[i].useVehicleColor == true then
 				self.ColorableProps[i] = prop
 				prop:SetColor( self:GetColor() )
 			else
@@ -710,22 +775,22 @@ function ENT:SetWheelHeight()
 end
 
 function ENT:PhysicalSteer()
-	if (IsValid(self.SteerMaster)) then
+	if IsValid(self.SteerMaster) then
 		local physobj = self.SteerMaster:GetPhysicsObject()
-		if (!IsValid(physobj)) then return end
+		if !IsValid(physobj) then return end
 		
-		if (physobj:IsMotionEnabled()) then
+		if physobj:IsMotionEnabled() then
 			physobj:EnableMotion(false)
 		end
 		
 		self.SteerMaster:SetAngles( self:LocalToWorldAngles( Angle(0,math.Clamp(-self.VehicleData[ "SteerAngle" ],-self.CustomSteerAngle,self.CustomSteerAngle),0) ) )
 	end
 	
-	if (IsValid(self.SteerMaster2)) then
+	if IsValid(self.SteerMaster2) then
 		local physobj = self.SteerMaster2:GetPhysicsObject()
-		if (!IsValid(physobj)) then return end
+		if !IsValid(physobj) then return end
 		
-		if (physobj:IsMotionEnabled()) then
+		if physobj:IsMotionEnabled() then
 			physobj:EnableMotion(false)
 		end
 		
@@ -1204,16 +1269,47 @@ function ENT:UnLock()
 	self.IsLocked = false
 end
 
+function ENT:EnteringSequence( ply )
+	if !istable(self.Enterpoints) then return end
+	
+	local sequence
+	local pos
+	local dist
+	for i = 1, table.Count( self.Enterpoints ) do
+		local a_ = self.Enterpoints[ i ]
+		
+		local a_pos = self:GetAttachment( self:LookupAttachment( a_ ) ).Pos
+		local a_dist = (ply:GetPos() - a_pos):Length()
+		
+		if i == 1 then
+			sequence = a_
+			pos = a_pos
+			dist = a_dist
+		else
+			if  (a_dist < dist) then
+				sequence = a_
+				pos = a_pos
+				dist = a_dist
+			end
+		end
+	end
+	
+	self:PlayAnimation( sequence )
+end
+
 function ENT:Use( ply )
 	if (self.IsLocked == true) then 
 		self:EmitSound( "doors/default_locked.wav" )
 		return
 	end
 	
-	if !IsValid(self:GetDriver()) and !ply:KeyDown(IN_WALK ) then
+	if !IsValid(self:GetDriver()) and !ply:KeyDown(IN_WALK) then
 		ply:SetAllowWeaponsInVehicle( false ) 
-		if (IsValid(self.DriverSeat)) then
+		if IsValid(self.DriverSeat) then
+			
+			self:EnteringSequence( ply )
 			ply:EnterVehicle( self.DriverSeat )
+			
 			timer.Simple( 0.01, function()
 				if IsValid(ply) then
 					local angles = Angle(0,90,0)
@@ -1222,7 +1318,7 @@ function ENT:Use( ply )
 			end)
 		end
 	else
-		if (self.PassengerSeats) then
+		if self.PassengerSeats then
 			local closestSeat = self:GetClosestSeat( ply )
 			
 			if (!closestSeat or IsValid(closestSeat:GetDriver())) then
@@ -1278,21 +1374,21 @@ function ENT:GetVehicleData()
 end
 
 function ENT:SetPhysics( enable )
-	if (enable) then
-		if (!self.PhysicsEnabled) then
+	if enable then
+		if !self.PhysicsEnabled then
 			for i = 1, table.Count( self.Wheels ) do
 				local Wheel = self.Wheels[i]
-				if (IsValid(Wheel)) then
+				if IsValid(Wheel) then
 					Wheel:GetPhysicsObject():SetMaterial("jeeptire")
 				end
 			end
 			self.PhysicsEnabled = true
 		end
 	else
-		if (self.PhysicsEnabled != false) then
+		if self.PhysicsEnabled != false then
 			for i = 1, table.Count( self.Wheels ) do
 				local Wheel = self.Wheels[i]
-				if (IsValid(Wheel)) then
+				if IsValid(Wheel) then
 					Wheel:GetPhysicsObject():SetMaterial("friction_00")
 				end
 			end
@@ -1346,24 +1442,12 @@ function ENT:SetValues()
 	self.SmoothMouseX = 0
 
 	self.VehicleData = {}
-	self.VehicleData[ "spin_1" ] = 0
-	self.VehicleData[ "spin_2" ] = 0
-	self.VehicleData[ "spin_3" ] = 0
-	self.VehicleData[ "spin_4" ] = 0
-	self.VehicleData[ "spin_5" ] = 0
-	self.VehicleData[ "spin_6" ] = 0
-	self.VehicleData[ "SurfaceMul_1" ] = 1
-	self.VehicleData[ "SurfaceMul_2" ] = 1
-	self.VehicleData[ "SurfaceMul_3" ] = 1
-	self.VehicleData[ "SurfaceMul_4" ] = 1
-	self.VehicleData[ "SurfaceMul_5" ] = 1
-	self.VehicleData[ "SurfaceMul_6" ] = 1
-	self.VehicleData[ "onGround_1" ] = 0
-	self.VehicleData[ "onGround_2" ] = 0
-	self.VehicleData[ "onGround_3" ] = 0
-	self.VehicleData[ "onGround_4" ] = 0
-	self.VehicleData[ "onGround_5" ] = 0
-	self.VehicleData[ "onGround_6" ] = 0
+	for i = 1, 6 do
+		self.VehicleData[ "spin_"..i ] = 0
+		self.VehicleData[ "SurfaceMul_"..i ] = 1
+		self.VehicleData[ "onGround_"..i ] = 0
+	end
+	
 	self.VehicleData[ "SteerAngle" ] = 0
 end
 
@@ -1545,8 +1629,10 @@ function ENT:SetupVehicle()
 	
 	timer.Simple( 0.01, function()		
 		local tb = self.Wheels
+		
 		if !istable(tb) then return end
-		for i = 1, #tb do
+		
+		for i = 1, table.Count( tb ) do
 			local Ent = self.Wheels[ i ]
 			local PhysObj = Ent:GetPhysicsObject()
 			
@@ -1604,7 +1690,7 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	self.name.Index = index
 	self.name.Radius = radius
 	
-	if (self.CustomWheels) then
+	if self.CustomWheels then
 		local Model = (self.CustomWheelModel_R and (index == 3 or index == 4 or index == 5 or index == 6)) and self.CustomWheelModel_R or self.CustomWheelModel
 		local ghostAng = Right:Angle()
 		local mirAng = swap_y and 1 or -1
@@ -1630,8 +1716,8 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 		
 		self.GhostWheels[index]:SetRenderMode( RENDERMODE_TRANSALPHA )
 		
-		if (self.ModelInfo) then
-			if (self.ModelInfo.WheelColor) then
+		if self.ModelInfo then
+			if self.ModelInfo.WheelColor then
 				self.GhostWheels[index]:SetColor( self.ModelInfo.WheelColor )
 			end
 		end
@@ -1643,7 +1729,7 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	end
 
 	local targetentity = self
-	if (self.CustomWheels) then
+	if self.CustomWheels then
 		if (index == 1 or index == 2) then
 			targetentity = self.SteerMaster or self
 		end
@@ -1655,7 +1741,7 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	local Ballsocket = constraint.AdvBallsocket(targetentity,self.name,0,0,Vector(0,0,0),Vector(0,0,0),0,0, -0.01, -0.01, -0.01, 0.01, 0.01, 0.01, 0, 0, 0, 1, 1) 
 	local Rope1 = constraint.Rope(self,self.name,0,0,self:WorldToLocal( self.name:GetPos() + Forward * RopeLength * 0.5 + Right * RopeLength), Vector(0,0,0), Vector(RopeLength * 0.5,RopeLength,0):Length(), 0, 0, 0,"cable/cable2", true )
 	local Rope2 = constraint.Rope(self,self.name,0,0,self:WorldToLocal( self.name:GetPos() - Forward * RopeLength * 0.5 + Right * RopeLength), Vector(0,0,0), Vector(RopeLength * 0.5,RopeLength,0):Length(), 0, 0, 0,"cable/cable2", true )
-	if (self.StrengthenSuspension == true) then
+	if self.StrengthenSuspension == true then
 		local Rope3 = constraint.Rope(self,self.name,0,0,self:WorldToLocal( poseposition - Up * suspensiontravel * 0.5 + Right * LimiterLength), Vector(0,0,0),LimiterRopeLength * 0.99, 0, 0, 0,"cable/cable2", false )
 		local Rope4 = constraint.Rope(self,self.name,0,0,self:WorldToLocal( poseposition - Up * suspensiontravel * 0.5 - Right * LimiterLength), Vector(0,0,0),LimiterRopeLength * 1, 0, 0, 0,"cable/cable2", false )
 		local elastic1 = constraint.Elastic(self.name, self, 0, 0, Vector(0,0,height), self:WorldToLocal( self.name:GetPos() ), constant * 0.5, damping * 0.5, rdamping * 0.5,"cable/cable2",0, false)
