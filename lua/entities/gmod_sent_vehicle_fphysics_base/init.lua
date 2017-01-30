@@ -561,16 +561,19 @@ function ENT:SetupView()
 	local AttachmentID = self:LookupAttachment( "vehicle_driver_eyes" )
 	local AttachmentID2 = self:LookupAttachment( "vehicle_passenger0_eyes" )
 	
+	local a_data1 = self:GetAttachment( AttachmentID )
+	local a_data2 = self:GetAttachment( AttachmentID2 )
+	
 	local ID
 	local ViewPos
 	
-	if self:GetAttachment( AttachmentID ) then
+	if a_data1 then
 		ID = AttachmentID
-		ViewPos = self:GetAttachment( AttachmentID )
+		ViewPos = a_data1
 		
-	elseif self:GetAttachment( AttachmentID2 ) then
+	elseif a_data2 then
 		ID = AttachmentID2
-		ViewPos = self:GetAttachment( AttachmentID2 )
+		ViewPos = a_data2
 		
 	else
 		ID = false
