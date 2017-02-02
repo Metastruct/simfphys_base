@@ -556,7 +556,6 @@ function ENT:PlayAnimation( animation )
 	self:SetSequence( sequence )
 end
 
-
 function ENT:SetupView()
 	local AttachmentID = self:LookupAttachment( "vehicle_driver_eyes" )
 	local AttachmentID2 = self:LookupAttachment( "vehicle_passenger0_eyes" )
@@ -1275,6 +1274,21 @@ function ENT:UnLock()
 	self.IsLocked = false
 end
 
+function ENT:ForceLightsOff()
+	local vehiclelist = list.Get( "simfphys_lights" )[self.LightsTable] or false
+	if !vehiclelist then return end
+	
+	if vehiclelist.Animation then -- if the vehicle has lightcover animations the lights will be turned off because the door animations will overwrite them
+		if self.LightsActivated then
+			self.LightsActivated = false
+			self.LampsActivated = false
+			
+			self:SetLightsEnabled(false)
+			self:SetLampsEnabled(false)
+		end
+	end
+end
+
 function ENT:EnteringSequence( ply )
 	if !istable(self.Enterpoints) then return end
 	
@@ -1301,6 +1315,7 @@ function ENT:EnteringSequence( ply )
 	end
 	
 	self:PlayAnimation( sequence )
+	self:ForceLightsOff()
 end
 
 function ENT:Use( ply )

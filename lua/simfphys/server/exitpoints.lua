@@ -140,6 +140,7 @@ local function ExitUsingAttachments( ent, ply, b_ent )
 				ply:SetPos( targetpos )
 				ply:SetEyeAngles( targetang )
 				b_ent:PlayAnimation( seq_att )
+				b_ent:ForceLightsOff()
 				
 				return
 			end
