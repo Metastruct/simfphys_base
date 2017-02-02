@@ -114,35 +114,67 @@ end
 local function ExitUsingAttachments( ent, ply, b_ent )
 	local Center = b_ent:LocalToWorld( b_ent:OBBCenter() )
 	local Filter = {ent,ply,b_ent}
+	local LinkedDoorAnims = istable(b_ent.ModelInfo) and istable(b_ent.ModelInfo.LinkDoorAnims)
 	
 	for i = 1, table.Count( b_ent.Wheels ) do
 		table.insert(Filter, b_ent.Wheels[i])
 	end
 	
-	for i = 1, table.Count( b_ent.Exitpoints ) do
-		local seq_att = b_ent.Exitpoints[i]
-		local attachmentdata = b_ent:GetAttachment( b_ent:LookupAttachment( seq_att ) )
-		if attachmentdata then
-			local targetpos = attachmentdata.Pos
-			local targetang = attachmentdata.Ang
-			targetang.r = 0
+	if LinkedDoorAnims then
+		for i,_ in pairs( b_ent.ModelInfo.LinkDoorAnims ) do
+			local seq_att = b_ent.ModelInfo.LinkDoorAnims[ i ].exit
+			local attachmentdata = b_ent:GetAttachment( b_ent:LookupAttachment( i ) )
 			
-			local tr = util.TraceLine( {
-				start = Center,
-				endpos = targetpos,
-				filter = Filter
-			} )
-			local Hit = tr.Hit
-			local InWorld = util.IsInWorld( targetpos )
-			local IsBlocked = Hit or !InWorld
-			
-			if !IsBlocked then
-				ply:SetPos( targetpos )
-				ply:SetEyeAngles( targetang )
-				b_ent:PlayAnimation( seq_att )
-				b_ent:ForceLightsOff()
+			if attachmentdata then
+				local targetpos = attachmentdata.Pos
+				local targetang = attachmentdata.Ang
+				targetang.r = 0
 				
-				return
+				local tr = util.TraceLine( {
+					start = Center,
+					endpos = targetpos,
+					filter = Filter
+				} )
+				local Hit = tr.Hit
+				local InWorld = util.IsInWorld( targetpos )
+				local IsBlocked = Hit or !InWorld
+				
+				if !IsBlocked then
+					ply:SetPos( targetpos )
+					ply:SetEyeAngles( targetang )
+					b_ent:PlayAnimation( seq_att )
+					b_ent:ForceLightsOff()
+					
+					return
+				end
+			end
+		end
+	else
+		for i = 1, table.Count( b_ent.Exitpoints ) do
+			local seq_att = b_ent.Exitpoints[i]
+			local attachmentdata = b_ent:GetAttachment( b_ent:LookupAttachment( seq_att ) )
+			if attachmentdata then
+				local targetpos = attachmentdata.Pos
+				local targetang = attachmentdata.Ang
+				targetang.r = 0
+				
+				local tr = util.TraceLine( {
+					start = Center,
+					endpos = targetpos,
+					filter = Filter
+				} )
+				local Hit = tr.Hit
+				local InWorld = util.IsInWorld( targetpos )
+				local IsBlocked = Hit or !InWorld
+				
+				if !IsBlocked then
+					ply:SetPos( targetpos )
+					ply:SetEyeAngles( targetang )
+					b_ent:PlayAnimation( seq_att )
+					b_ent:ForceLightsOff()
+					
+					return
+				end
 			end
 		end
 	end

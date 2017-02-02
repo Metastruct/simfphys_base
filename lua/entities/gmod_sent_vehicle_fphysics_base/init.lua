@@ -1290,26 +1290,49 @@ function ENT:ForceLightsOff()
 end
 
 function ENT:EnteringSequence( ply )
-	if !istable(self.Enterpoints) then return end
+	local LinkedDoorAnims = istable(self.ModelInfo) and istable(self.ModelInfo.LinkDoorAnims)
+	if !istable(self.Enterpoints) and !LinkedDoorAnims then return end
 	
 	local sequence
 	local pos
 	local dist
-	for i = 1, table.Count( self.Enterpoints ) do
-		local a_ = self.Enterpoints[ i ]
-		
-		local a_pos = self:GetAttachment( self:LookupAttachment( a_ ) ).Pos
-		local a_dist = (ply:GetPos() - a_pos):Length()
-		
-		if i == 1 then
-			sequence = a_
-			pos = a_pos
-			dist = a_dist
-		else
-			if  (a_dist < dist) then
+	
+	if LinkedDoorAnims then
+		for i,_ in pairs( self.ModelInfo.LinkDoorAnims ) do
+			local seq_ = self.ModelInfo.LinkDoorAnims[ i ].enter
+			
+			local a_pos = self:GetAttachment( self:LookupAttachment( i ) ).Pos
+			local a_dist = (ply:GetPos() - a_pos):Length()
+			
+			if !sequence then
+				sequence = seq_
+				pos = a_pos
+				dist = a_dist
+			else
+				if  (a_dist < dist) then
+					sequence = seq_
+					pos = a_pos
+					dist = a_dist
+				end
+			end
+		end
+	else
+		for i = 1, table.Count( self.Enterpoints ) do
+			local a_ = self.Enterpoints[ i ]
+			
+			local a_pos = self:GetAttachment( self:LookupAttachment( a_ ) ).Pos
+			local a_dist = (ply:GetPos() - a_pos):Length()
+			
+			if i == 1 then
 				sequence = a_
 				pos = a_pos
 				dist = a_dist
+			else
+				if  (a_dist < dist) then
+					sequence = a_
+					pos = a_pos
+					dist = a_dist
+				end
 			end
 		end
 	end
