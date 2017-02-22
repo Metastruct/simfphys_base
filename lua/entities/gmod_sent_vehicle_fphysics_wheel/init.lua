@@ -41,7 +41,7 @@ function ENT:Initialize()
 	end)
 	
 	self.snd_roll = "Concrete.ScrapeSmooth"
-	self.snd_roll_dirt = "simulated_vehicles/sfx/dirt_roll.wav"
+	self.snd_roll_dirt = "Dirt.Scrape"
 	self.snd_roll_grass = "simulated_vehicles/sfx/grass_roll.wav"
 	
 	self.snd_skid = "vehicles/v8/skid_highfriction.wav"
