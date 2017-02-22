@@ -290,8 +290,10 @@ local function buildmsmenu( self )
 end
 
 
-hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, tree, node )
+hook.Add( "PopulateVehicles", "simfphys", function( pnlContent, tree, _ )
 
+    tree = tree:AddNode( "#Lua Vehicles", "icon16/bricks.png" )
+	
 	local Categorised = {}
 
 	-- Add this list into the tormoil
@@ -417,20 +419,12 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 
 	
 	-- Select the first node
-	local FirstNode = tree:Root():GetChildNode( 0 )
-	if ( IsValid( FirstNode ) ) then
-		FirstNode:InternalDoClick()
-	end
+	-- local FirstNode = tree:Root():GetChildNode( 0 )
+	-- if ( IsValid( FirstNode ) ) then
+	-- 	FirstNode:InternalDoClick()
+	-- end
 
 end )
-
-spawnmenu.AddCreationTab( "simfphys", function()
-
-	local ctrl = vgui.Create( "SpawnmenuContentPanel" )
-	ctrl:CallPopulateHook( "SimfphysPopulateVehicles" )
-	return ctrl
-
-end, "icon16/car.png", 50 )
 
 
 spawnmenu.AddContentType( "simfphys_vehicles", function( container, obj )

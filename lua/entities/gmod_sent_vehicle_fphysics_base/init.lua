@@ -2168,12 +2168,12 @@ numpad.Register( "k_hrn", function( pl, ent, keydown )
 			if (!ent.emson) then
 				timer.Simple( 0.1, function()
 					if (!IsValid(ent) or !ent.HornKeyIsDown) then return end
-					ent.horn = CreateSound(ent, ent.snd_horn or "simulated_vehicles/horn_1.wav")
+					ent.horn = CreateSound(ent, ent.snd_horn or "simulated_vehicles/horn_5.wav")
 					ent.horn:Play()
 				end)
 			end
 		else
-			ent.horn = CreateSound(ent, ent.snd_horn or "simulated_vehicles/horn_1.wav")
+			ent.horn = CreateSound(ent, ent.snd_horn or "simulated_vehicles/horn_5.wav")
 			ent.horn:Play()
 		end
 	else

@@ -53,27 +53,27 @@ local V = {
 		EngineSoundPreset = -1,
 		
 		snd_pitch = 1,
-		snd_idle = "simulated_vehicles/jeep/jeep_idle.wav",
+		snd_idle = "vehicles/v8/v8_idle_loop1.wav",
 		
-		snd_low = "simulated_vehicles/jeep/jeep_low.wav",
-		snd_low_revdown = "simulated_vehicles/jeep/jeep_revdown.wav",
+		snd_low = "vehicles/v8/first.wav",
+		snd_low_revdown = "vehicles/v8/v8_throttle_off_fast_loop1.wav",
 		snd_low_pitch = 0.9,
 		
-		snd_mid = "simulated_vehicles/jeep/jeep_mid.wav",
-		snd_mid_gearup = "simulated_vehicles/jeep/jeep_second.wav",
+		snd_mid = "vehicles/v8/second.wav",
+		snd_mid_gearup = "vehicles/v8/v8_firstgear_rev_loop1.wav",
 
 		snd_mid_pitch = 1,
 
-		Sound_Idle = "simulated_vehicles/misc/nanjing_loop.wav",
+		Sound_Idle = "vehicles/v8/v8_idle_loop1.wav",
 		Sound_IdlePitch = 1,
 		
-		Sound_Mid = "simulated_vehicles/misc/m50.wav",
+		Sound_Mid = "vehicles/v8/second.wav",
 		Sound_MidPitch = 1,
 		Sound_MidVolume = 1,
 		Sound_MidFadeOutRPMpercent = 58,
 		Sound_MidFadeOutRate = 0.476,
 		
-		Sound_High = "simulated_vehicles/misc/v8high2.wav",
+		Sound_High = "vehicles/v8/third.wav",
 		Sound_HighPitch = 1,
 		Sound_HighVolume = 0.75,
 		Sound_HighFadeInRPMpercent = 58,
@@ -84,7 +84,7 @@ local V = {
 		Sound_ThrottleVolume = 0,
 		--
 		
-		snd_horn = "simulated_vehicles/horn_1.wav", 
+		snd_horn = "simulated_vehicles/horn_5.wav", 
 		
 		DifferentialGear = 0.3,
 		Gears = {-0.15,0,0.15,0.25,0.35,0.45}
@@ -145,10 +145,10 @@ local V = {
 		
 		EngineSoundPreset = 0,
 		
-		Sound_Idle = "simulated_vehicles/c_apc/apc_idle.wav",
+		Sound_Idle = "vehicles/apc/apc_idle1.wav",
 		Sound_IdlePitch = 1,
 		
-		Sound_Mid = "simulated_vehicles/c_apc/apc_mid.wav",
+		Sound_Mid = "vehicles/apc/apc_firstgear_loop1.wav",
 		Sound_MidPitch = 1,
 		Sound_MidVolume = 1,
 		Sound_MidFadeOutRPMpercent = 100,
@@ -234,26 +234,26 @@ local V = {
 		EngineSoundPreset = -1,
 		
 		snd_pitch = 0.9,
-		snd_idle = "simulated_vehicles/jalopy/jalopy_idle.wav",
+		snd_idle = "vehicles/v8/v8_idle_loop1.wav",
 		
-		snd_low = "simulated_vehicles/jalopy/jalopy_low.wav",
-		snd_low_revdown = "simulated_vehicles/jalopy/jalopy_revdown.wav",
+		snd_low = "vehicles/v8/first.wav",
+		snd_low_revdown = "common/null.wav",
 		snd_low_pitch = 0.95,
 		
-		snd_mid = "simulated_vehicles/jalopy/jalopy_mid.wav",
-		snd_mid_gearup = "simulated_vehicles/jalopy/jalopy_second.wav",
+		snd_mid = "vehicles/v8/second.wav",
+		snd_mid_gearup = "common/null.wav",
 		snd_mid_pitch = 1.1,
 		
-		Sound_Idle = "simulated_vehicles/jalopy/jalopy_idle.wav",
+		Sound_Idle = "vehicles/v8/v8_idle_loop1.wav",
 		Sound_IdlePitch = 0.95,
 		
-		Sound_Mid = "simulated_vehicles/jalopy/jalopy_mid.wav",
+		Sound_Mid = "vehicles/v8/second.wav",
 		Sound_MidPitch = 1,
 		Sound_MidVolume = 1,
 		Sound_MidFadeOutRPMpercent = 55,
 		Sound_MidFadeOutRate = 0.25,
 		
-		Sound_High = "simulated_vehicles/jalopy/jalopy_high.wav",
+		Sound_Idle = "vehicles/v8/v8_idle_loop1.wav",
 		Sound_HighPitch = 0.75,
 		Sound_HighVolume = 0.9,
 		Sound_HighFadeInRPMpercent = 55,
@@ -355,7 +355,7 @@ local V = {
 		
 		Sound_Throttle = "",
 		
-		snd_horn = "simulated_vehicles/horn_0.wav",
+		snd_horn = "simulated_vehicles/horn_5.wav",
 		
 		DifferentialGear = 0.7,
 		Gears = {-0.1,0,0.1}
@@ -531,16 +531,16 @@ local V = {
 		
 		EngineSoundPreset = 0,
 		
-		Sound_Idle = "simulated_vehicles/misc/nanjing_loop.wav",
+		Sound_Idle = "vehicles/v8/v8_idle_loop1.wav",
 		Sound_IdlePitch = 1,
 		
-		Sound_Mid = "simulated_vehicles/misc/m50.wav",
+		Sound_Mid = "vehicles/v8/second.wav",
 		Sound_MidPitch = 1,
 		Sound_MidVolume = 1,
 		Sound_MidFadeOutRPMpercent = 58,
 		Sound_MidFadeOutRate = 0.476,
 		
-		Sound_High = "simulated_vehicles/misc/v8high2.wav",
+		Sound_High = "vehicles/v8/third.wav",
 		Sound_HighPitch = 1,
 		Sound_HighVolume = 0.75,
 		Sound_HighFadeInRPMpercent = 58,
@@ -550,7 +550,7 @@ local V = {
 		Sound_ThrottlePitch = 0,
 		Sound_ThrottleVolume = 0,
 		
-		snd_horn = "simulated_vehicles/horn_2.wav",
+		snd_horn = "simulated_vehicles/horn_5.wav",
 		
 		DifferentialGear = 0.27,
 		Gears = {-0.09,0,0.09,0.18,0.28,0.35}

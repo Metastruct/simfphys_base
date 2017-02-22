@@ -5,14 +5,14 @@ TOOL.Command		= nil
 TOOL.ConfigName		= ""
 
 
-TOOL.ClientConVar[ "Idle" ] = "simulated_vehicles/misc/e49_idle.wav"
+TOOL.ClientConVar[ "Idle" ] = "vehicles/v8/v8_idle_loop1.wav"
 TOOL.ClientConVar[ "IdlePitch" ] = 1
-TOOL.ClientConVar[ "Mid" ] = "simulated_vehicles/misc/gto_onlow.wav"
+TOOL.ClientConVar[ "Mid" ] = "vehicles/v8/second.wav"
 TOOL.ClientConVar[ "MidPitch" ] = 1
 TOOL.ClientConVar[ "MidVolume" ] = 0.75
 TOOL.ClientConVar[ "MidFadeOutRPMpercent" ] = 68
 TOOL.ClientConVar[ "MidFadeOutRate" ] = 0.4
-TOOL.ClientConVar[ "High" ] = "simulated_vehicles/misc/nv2_onlow_ex.wav"
+TOOL.ClientConVar[ "High" ] = "vehicles/v8/third.wav"
 TOOL.ClientConVar[ "HighPitch" ] = 1
 TOOL.ClientConVar[ "HighVolume" ] = 1
 TOOL.ClientConVar[ "HighFadeInRPMpercent" ] = 26.6
@@ -38,14 +38,14 @@ if CLIENT then
 	language.Add( "tool.simfphyssoundeditor.fadeinrate.help", "how fast it fades in   0 = instant       1 = never" )
 	
 	presets.Add( "simfphys_sound", "Jalopy", {
-		simfphyssoundeditor_High					= "simulated_vehicles/jalopy/jalopy_high.wav",
+		simfphyssoundeditor_High					= "vehicles/v8/third.wav",
 		simfphyssoundeditor_HighFadeInRate			= "0.40",
 		simfphyssoundeditor_HighFadeInRPMpercent	= "55.00",
 		simfphyssoundeditor_HighPitch				= "0.75",
 		simfphyssoundeditor_HighVolume			= "0.90",
-		simfphyssoundeditor_Idle					= "simulated_vehicles/jalopy/jalopy_idle.wav",
+		simfphyssoundeditor_Idle					= "vehicles/v8/v8_idle_loop1.wav",
 		simfphyssoundeditor_IdlePitch				= "0.95",
-		simfphyssoundeditor_Mid					= "simulated_vehicles/jalopy/jalopy_mid.wav",
+		simfphyssoundeditor_Mid					= "vehicles/v8/second.wav",
 		simfphyssoundeditor_MidFadeOutRate			= "0.25",
 		simfphyssoundeditor_MidFadeOutRPMpercent	= "55.00",
 		simfphyssoundeditor_MidPitch				= "1.00",
@@ -55,14 +55,14 @@ if CLIENT then
 	} )
 
 	presets.Add( "simfphys_sound", "APC", {
-		simfphyssoundeditor_High					= "simulated_vehicles/misc/v8high2.wav",
+		simfphyssoundeditor_High					= "vehicles/v8/third.wav",
 		simfphyssoundeditor_HighFadeInRate			= "0.19",
 		simfphyssoundeditor_HighFadeInRPMpercent	= "58.00",
 		simfphyssoundeditor_HighPitch				= "1.00",
 		simfphyssoundeditor_HighVolume			= "0.75",
-		simfphyssoundeditor_Idle					= "simulated_vehicles/misc/nanjing_loop.wav",
+		simfphyssoundeditor_Idle					= "vehicles/v8/v8_idle_loop1.wav",
 		simfphyssoundeditor_IdlePitch				= "1.00",
-		simfphyssoundeditor_Mid					= "simulated_vehicles/misc/m50.wav",
+		simfphyssoundeditor_Mid					= "vehicles/v8/second.wav",
 		simfphyssoundeditor_MidFadeOutRate			= "0.48",
 		simfphyssoundeditor_MidFadeOutRPMpercent	= "58.00",
 		simfphyssoundeditor_MidPitch				= "1.00",

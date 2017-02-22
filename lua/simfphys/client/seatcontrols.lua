@@ -31,11 +31,12 @@ hook.Add( "StartChat", "simfphys_seatswitching_chatstart", function()
 end)
 
 hook.Add( "Think", "simfphys_seatswitching", function()
-	if chatopen or spawnmenuopen then return end
 	
 	local ply = LocalPlayer()
+	if not ply:IsValid() or not ply:InVehicle() then return end
 	local vehicle = ply:GetVehicle()
-	if (!IsValid(vehicle)) then return end
+	if not vehicle:IsValid() then return end
+	if chatopen or spawnmenuopen then return end
 	
 	local vehiclebase = vehicle.vehiclebase
 	

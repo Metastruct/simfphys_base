@@ -464,16 +464,16 @@ function ENT:SetSoundPreset(index)
 			self.Throttle_PitchMul = data[14]
 			self.Throttle_VolumeMul = data[15]
 		else
-			self.EngineSounds[ "IdleSound" ] = vehiclelist and vehiclelist.Members.Sound_Idle or "simulated_vehicles/misc/e49_idle.wav"
+			self.EngineSounds[ "IdleSound" ] = vehiclelist and vehiclelist.Members.Sound_Idle or "vehicles/crane/crane_idle_loop3.wav"
 			self.Idle_PitchMul = (vehiclelist and vehiclelist.Members.Sound_IdlePitch) or 1
 			
-			self.EngineSounds[ "LowSound" ] = vehiclelist and vehiclelist.Members.Sound_Mid or "simulated_vehicles/misc/gto_onlow.wav"
+			self.EngineSounds[ "LowSound" ] = vehiclelist and vehiclelist.Members.Sound_Mid or "vehicles/v8/second.wav"
 			self.Mid_PitchMul = (vehiclelist and vehiclelist.Members.Sound_MidPitch) or 1
 			self.Mid_VolumeMul =  (vehiclelist and vehiclelist.Members.Sound_MidVolume) or 0.75
 			self.Mid_FadeOutRPMpercent =  (vehiclelist and vehiclelist.Members.Sound_MidFadeOutRPMpercent) or 68
 			self.Mid_FadeOutRate =  (vehiclelist and vehiclelist.Members.Sound_MidFadeOutRate) or 0.4
 			
-			self.EngineSounds[ "HighSound" ] = vehiclelist and vehiclelist.Members.Sound_High or "simulated_vehicles/misc/nv2_onlow_ex.wav"
+			self.EngineSounds[ "HighSound" ] = vehiclelist and vehiclelist.Members.Sound_High or "vehicles/v8/third.wav"
 			self.High_PitchMul = (vehiclelist and vehiclelist.Members.Sound_HighPitch) or 1 
 			self.High_VolumeMul = (vehiclelist and vehiclelist.Members.Sound_HighVolume) or 1 
 			self.High_FadeInRPMpercent = (vehiclelist and vehiclelist.Members.Sound_HighFadeInRPMpercent) or 26.6
@@ -491,181 +491,6 @@ function ENT:SetSoundPreset(index)
 		self:PrecacheSounds()
 		
 		return false
-	end
-	
-	if (index > 0) then  -- to be honest nobody should be using these anymore...  but i keep them in for backwards compatibility
-		local Oldpresets = {
-			{
-				"simulated_vehicles/gta5_dukes/dukes_idle.wav",
-				"simulated_vehicles/gta5_dukes/dukes_low.wav",
-				"simulated_vehicles/gta5_dukes/dukes_mid.wav",
-				"simulated_vehicles/gta5_dukes/dukes_revdown.wav",
-				"simulated_vehicles/gta5_dukes/dukes_second.wav",
-				"simulated_vehicles/gta5_dukes/dukes_second.wav",
-				0.8,
-				1,
-				0.8
-			},
-			{
-				"simulated_vehicles/master_chris_charger69/charger_idle.wav",
-				"simulated_vehicles/master_chris_charger69/charger_low.wav",
-				"simulated_vehicles/master_chris_charger69/charger_mid.wav",
-				"simulated_vehicles/master_chris_charger69/charger_revdown.wav",
-				"simulated_vehicles/master_chris_charger69/charger_second.wav",
-				"simulated_vehicles/master_chris_charger69/charger_shiftdown.wav",
-				0.75,
-				0.9,
-				0.95
-			},
-			{
-				"simulated_vehicles/shelby/shelby_idle.wav",
-				"simulated_vehicles/shelby/shelby_low.wav",
-				"simulated_vehicles/shelby/shelby_mid.wav",
-				"simulated_vehicles/shelby/shelby_revdown.wav",
-				"simulated_vehicles/shelby/shelby_second.wav",
-				"simulated_vehicles/shelby/shelby_shiftdown.wav",
-				0.8,
-				1,
-				0.85
-			},
-			{
-				"simulated_vehicles/jeep/jeep_idle.wav",
-				"simulated_vehicles/jeep/jeep_low.wav",
-				"simulated_vehicles/jeep/jeep_mid.wav",
-				"simulated_vehicles/jeep/jeep_revdown.wav",
-				"simulated_vehicles/jeep/jeep_second.wav",
-				"simulated_vehicles/jeep/jeep_second.wav",
-				0.9,
-				1,
-				1
-			},
-			{
-				"simulated_vehicles/v8elite/v8elite_idle.wav",
-				"simulated_vehicles/v8elite/v8elite_low.wav",
-				"simulated_vehicles/v8elite/v8elite_mid.wav",
-				"simulated_vehicles/v8elite/v8elite_revdown.wav",
-				"simulated_vehicles/v8elite/v8elite_second.wav",
-				"simulated_vehicles/v8elite/v8elite_second.wav",
-				0.8,
-				1,
-				1
-			},
-			{
-				"simulated_vehicles/4banger/4banger_idle.wav",
-				"simulated_vehicles/4banger/4banger_low.wav",
-				"simulated_vehicles/4banger/4banger_mid.wav",
-				"simulated_vehicles/4banger/4banger_low.wav",
-				"simulated_vehicles/4banger/4banger_second.wav",
-				"simulated_vehicles/4banger/4banger_second.wav",
-				0.8,
-				0.9,
-				1
-			},
-			{
-				"simulated_vehicles/jalopy/jalopy_idle.wav",
-				"simulated_vehicles/jalopy/jalopy_low.wav",
-				"simulated_vehicles/jalopy/jalopy_mid.wav",
-				"simulated_vehicles/jalopy/jalopy_revdown.wav",
-				"simulated_vehicles/jalopy/jalopy_second.wav",
-				"simulated_vehicles/jalopy/jalopy_shiftdown.wav",
-				0.95,
-				1.1,
-				0.9
-			},
-			{
-				"simulated_vehicles/alfaromeo/alfaromeo_idle.wav",
-				"simulated_vehicles/alfaromeo/alfaromeo_low.wav",
-				"simulated_vehicles/alfaromeo/alfaromeo_mid.wav",
-				"simulated_vehicles/alfaromeo/alfaromeo_low.wav",
-				"simulated_vehicles/alfaromeo/alfaromeo_second.wav",
-				"simulated_vehicles/alfaromeo/alfaromeo_second.wav",
-				0.65,
-				0.8,
-				1
-			},
-			{
-				"simulated_vehicles/generic1/generic1_idle.wav",
-				"simulated_vehicles/generic1/generic1_low.wav",
-				"simulated_vehicles/generic1/generic1_mid.wav",
-				"simulated_vehicles/generic1/generic1_revdown.wav",
-				"simulated_vehicles/generic1/generic1_second.wav",
-				"simulated_vehicles/generic1/generic1_second.wav",
-				0.8,
-				1.1,
-				1
-			},
-			{
-				"simulated_vehicles/generic2/generic2_idle.wav",
-				"simulated_vehicles/generic2/generic2_low.wav",
-				"simulated_vehicles/generic2/generic2_mid.wav",
-				"simulated_vehicles/generic2/generic2_revdown.wav",
-				"simulated_vehicles/generic2/generic2_second.wav",
-				"simulated_vehicles/generic2/generic2_second.wav",
-				1,
-				1.1,
-				1
-			},
-			{
-				"simulated_vehicles/generic3/generic3_idle.wav",
-				"simulated_vehicles/generic3/generic3_low.wav",
-				"simulated_vehicles/generic3/generic3_mid.wav",
-				"simulated_vehicles/generic3/generic3_revdown.wav",
-				"simulated_vehicles/generic3/generic3_second.wav",
-				"simulated_vehicles/generic3/generic3_second.wav",
-				0.9,
-				0.9,
-				1
-			},
-			{
-				"simulated_vehicles/generic4/generic4_idle.wav",
-				"simulated_vehicles/generic4/generic4_low.wav",
-				"simulated_vehicles/generic4/generic4_mid.wav",
-				"simulated_vehicles/generic4/generic4_revdown.wav",
-				"simulated_vehicles/generic4/generic4_gear.wav",
-				"simulated_vehicles/generic4/generic4_shiftdown.wav",
-				1,
-				1.1,
-				1
-			},
-			{
-				"simulated_vehicles/generic5/generic5_idle.wav",
-				"simulated_vehicles/generic5/generic5_low.wav",
-				"simulated_vehicles/generic5/generic5_mid.wav",
-				"simulated_vehicles/generic5/generic5_revdown.wav",
-				"simulated_vehicles/generic5/generic5_gear.wav",
-				"simulated_vehicles/generic5/generic5_gear.wav",
-				0.7,
-				0.7,
-				1
-			},
-			{
-				"simulated_vehicles/gta5_gauntlet/gauntlet_idle.wav",
-				"simulated_vehicles/gta5_gauntlet/gauntlet_low.wav",
-				"simulated_vehicles/gta5_gauntlet/gauntlet_mid.wav",
-				"simulated_vehicles/gta5_gauntlet/gauntlet_revdown.wav",
-				"simulated_vehicles/gta5_gauntlet/gauntlet_gear.wav",
-				"simulated_vehicles/gta5_gauntlet/gauntlet_gear.wav",
-				0.95,
-				1.1,
-				1
-			}
-		}
-		
-		local clampindex = math.Clamp(index,1,14)
-		self.EngineSounds[ "Idle" ] = Oldpresets[clampindex][1]
-		self.EngineSounds[ "LowRPM" ] = Oldpresets[clampindex][2]
-		self.EngineSounds[ "HighRPM" ] = Oldpresets[clampindex][3]
-		self.EngineSounds[ "RevDown" ] = Oldpresets[clampindex][4]
-		self.EngineSounds[ "ShiftUpToHigh" ] = Oldpresets[clampindex][5]
-		self.EngineSounds[ "ShiftDownToHigh" ] = Oldpresets[clampindex][6]
-		
-		self.PitchMulLow = Oldpresets[clampindex][7]
-		self.PitchMulHigh = Oldpresets[clampindex][8]
-		self.PitchMulAll = Oldpresets[clampindex][9]
-		
-		self:PrecacheSounds()
-		
-		return true
 	end
 	
 	return false

@@ -40,13 +40,13 @@ function ENT:Initialize()
 		self:s_MakeOwner( self.WheelDust )
 	end)
 	
-	self.snd_roll = "simulated_vehicles/sfx/concrete_roll.wav"
+	self.snd_roll = "Concrete.ScrapeSmooth"
 	self.snd_roll_dirt = "simulated_vehicles/sfx/dirt_roll.wav"
 	self.snd_roll_grass = "simulated_vehicles/sfx/grass_roll.wav"
 	
-	self.snd_skid = "simulated_vehicles/sfx/concrete_skid.wav"
-	self.snd_skid_dirt = "simulated_vehicles/sfx/dirt_skid.wav"
-	self.snd_skid_grass = "simulated_vehicles/sfx/grass_skid.wav"
+	self.snd_skid = "vehicles/v8/skid_highfriction.wav"
+	self.snd_skid_dirt = "vehicles/v8/skid_lowfriction.wav"
+	self.snd_skid_grass = "vehicles/v8/skid_lowfriction.wav"
 	
 	self.RollSound = CreateSound(self, self.snd_roll)
 	self.RollSound_Dirt = CreateSound(self, self.snd_roll_dirt)
@@ -393,7 +393,7 @@ function ENT:OnDamaged( name, old, new)
 		self.RollSound_Grass:Stop()
 		self.RollSound_Dirt:Stop()
 		
-		self.RollSound_Broken = CreateSound(self, "simulated_vehicles/sfx/tire_damaged.wav")
+		self.RollSound_Broken = CreateSound(self, "Grenade.ScrapeSmooth")
 	else
 		if IsValid(self.GhostEnt) then
 			self.GhostEnt:SetParent( nil )

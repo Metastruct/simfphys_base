@@ -327,11 +327,4 @@ function TOOL.BuildCPanel( panel )
 	panel:AddControl( "ListBox", { Label = "Hornsound", Options = list.Get( "SimfphysHornSounds" ) } )
 end
 
-list.Set( "SimfphysHornSounds", "out of my way", { simfphyseditor_hornsound = "simulated_vehicles/horn_0.wav" } )
-list.Set( "SimfphysHornSounds", "vote for daniels", { simfphyseditor_hornsound = "simulated_vehicles/horn_6.wav" } )
-list.Set( "SimfphysHornSounds", "Horn 1", { simfphyseditor_hornsound = "simulated_vehicles/horn_1.wav" } )
-list.Set( "SimfphysHornSounds", "Horn 2", { simfphyseditor_hornsound = "simulated_vehicles/horn_2.wav" } )
-list.Set( "SimfphysHornSounds", "Horn 4", { simfphyseditor_hornsound = "simulated_vehicles/horn_4.wav" } )
-list.Set( "SimfphysHornSounds", "Horn 3", { simfphyseditor_hornsound = "simulated_vehicles/horn_3.wav" } )
 list.Set( "SimfphysHornSounds", "Horn 5", { simfphyseditor_hornsound = "simulated_vehicles/horn_5.wav" } )
-list.Set( "SimfphysHornSounds", "Horn 6", { simfphyseditor_hornsound = "simulated_vehicles/horn_7.wav" } )
