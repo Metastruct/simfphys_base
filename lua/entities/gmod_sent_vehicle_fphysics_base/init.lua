@@ -968,6 +968,12 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 	local ply = self:GetDriver()
 	local cruiseThrottle = math.min( math.max(self.cc_speed - math.abs(self.ForwardSpeed),0) / 10 ^ 2, 1)
 	
+	if self.ForceTransmission == 1 then
+		isauto = true
+	elseif self.ForceTransmission == 2 then
+		isauto = false
+	end
+	
 	if (!isauto) then
 		self.Brake = self:GetBrakePower() * k_brake
 		self.HandBrake = self.HandBrakePower * k_handbrake
