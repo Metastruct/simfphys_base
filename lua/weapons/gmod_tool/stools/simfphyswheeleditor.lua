@@ -35,6 +35,11 @@ local function ApplyWheel(ply, ent, data)
 				
 				local model = isfrontwheel and data[1] or data[3]
 				
+				if not list.GetForEdit( "simfphys_Wheels" )[model] then 
+					if ply and ply:IsValid() then ply:ChatPrint"Invalid model" end
+					return 
+				end
+				
 				local fAng = ent:LocalToWorldAngles( ent.VehicleData.LocalAngForward )
 				local rAng = ent:LocalToWorldAngles( ent.VehicleData.LocalAngRight )
 				
