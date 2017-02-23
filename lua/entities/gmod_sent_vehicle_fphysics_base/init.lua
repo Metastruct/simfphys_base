@@ -95,15 +95,15 @@ function ENT:OnActiveChanged( name, old, new)
 		
 		if (TurboCharged) then
 			self.Turbo = CreateSound(self, self.snd_spool or "simulated_vehicles/turbo_spin.wav")
-			self.Turbo:PlayEx(0,0)
+			self.Turbo:PlayEx(0,1)
 		end
 		
 		if (SuperCharged) then
 			self.Blower = CreateSound(self, self.snd_bloweroff or "simulated_vehicles/blower_spin.wav")
 			self.BlowerWhine = CreateSound(self, self.snd_bloweron or "simulated_vehicles/blower_gearwhine.wav")
 			
-			self.Blower:PlayEx(0,0)
-			self.BlowerWhine:PlayEx(0,0)
+			self.Blower:PlayEx(0,1)
+			self.BlowerWhine:PlayEx(0,1)
 		end
 		
 		if IsValid( self:GetDriver() ) then
@@ -1990,7 +1990,7 @@ function ENT:OnTurboCharged( name, old, new )
 	if (new == true and Active) then
 		self.Turbo:Stop()
 		self.Turbo = CreateSound(self, self.snd_spool or "simulated_vehicles/turbo_spin.wav")
-		self.Turbo:PlayEx(0,0)
+		self.Turbo:PlayEx(0,1)
 	elseif (new == false) then
 		if (self.Turbo) then
 			self.Turbo:Stop()
@@ -2009,8 +2009,8 @@ function ENT:OnSuperCharged( name, old, new )
 		self.Blower = CreateSound(self, self.snd_bloweroff or "simulated_vehicles/blower_spin.wav")
 		self.BlowerWhine = CreateSound(self, self.snd_bloweron or "simulated_vehicles/blower_gearwhine.wav")
 	
-		self.Blower:PlayEx(0,0)
-		self.BlowerWhine:PlayEx(0,0)
+		self.Blower:PlayEx(0,1)
+		self.BlowerWhine:PlayEx(0,1)
 	elseif (new == false) then
 		if (self.Blower) then
 			self.Blower:Stop()

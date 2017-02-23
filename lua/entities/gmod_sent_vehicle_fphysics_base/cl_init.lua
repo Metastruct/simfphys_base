@@ -107,7 +107,7 @@ function ENT:ManageSounds(Active)
 			local Health = self:GetCurHealth()
 			
 			if Health <= (MaxHealth * 0.6) then
-				self.DamageSnd:PlayEx(0,0)
+				self.DamageSnd:PlayEx(0,1)
 			end
 			
 			if (self.SoundMode == 2) then
@@ -115,9 +115,9 @@ function ENT:ManageSounds(Active)
 				self.LowRPM = CreateSound(self, self.EngineSounds[ "LowRPM" ])
 				self.Idle = CreateSound(self, self.EngineSounds[ "Idle" ])
 				
-				self.HighRPM:PlayEx(0,0)
-				self.LowRPM:PlayEx(0,0)
-				self.Idle:PlayEx(0,0)
+				self.HighRPM:PlayEx(0,1)
+				self.LowRPM:PlayEx(0,1)
+				self.Idle:PlayEx(0,1)
 			else
 				local IdleSound = self.EngineSounds[ "IdleSound" ]
 				local LowSound = self.EngineSounds[ "LowSound" ]
@@ -126,22 +126,22 @@ function ENT:ManageSounds(Active)
 				
 				if (IdleSound) then
 					self.Idle = CreateSound(self, IdleSound)
-					self.Idle:PlayEx(0,0)
+					self.Idle:PlayEx(0,1)
 				end
 				
 				if (LowSound) then
 					self.LowRPM = CreateSound(self, LowSound)
-					self.LowRPM:PlayEx(0,0)
+					self.LowRPM:PlayEx(0,1)
 				end
 				
 				if (HighSound) then
 					self.HighRPM = CreateSound(self, HighSound)
-					self.HighRPM:PlayEx(0,0)
+					self.HighRPM:PlayEx(0,1)
 				end
 				
 				if (ThrottleSound) then
 					self.Valves = CreateSound(self, ThrottleSound)
-					self.Valves:PlayEx(0,0)
+					self.Valves:PlayEx(0,1)
 				end
 			end
 		else
@@ -170,7 +170,7 @@ function ENT:ManageSounds(Active)
 						if (IsCruise != true) then
 							self.LowRPM:Stop()
 							self.LowRPM = CreateSound(self, self.EngineSounds[ "RevDown" ] )
-							self.LowRPM:PlayEx(0,0)
+							self.LowRPM:PlayEx(0,1)
 						end
 					end
 				end
@@ -182,7 +182,7 @@ function ENT:ManageSounds(Active)
 						if (self.OldGear < Gear) then
 							self.HighRPM:Stop()
 							self.HighRPM = CreateSound(self, self.EngineSounds[ "ShiftUpToHigh" ] )
-							self.HighRPM:PlayEx(0,0)
+							self.HighRPM:PlayEx(0,1)
 							
 							if (self.SmoothRPM > LimitRPM * 0.6) then
 								if (math.Round(math.random(0,4),1) >= 3) then
@@ -196,7 +196,7 @@ function ENT:ManageSounds(Active)
 							if (self.FadeThrottle > 0) then
 								self.HighRPM:Stop()
 								self.HighRPM = CreateSound(self, self.EngineSounds[ "ShiftDownToHigh" ] )
-								self.HighRPM:PlayEx(0,0)
+								self.HighRPM:PlayEx(0,1)
 							end
 						end
 					end
@@ -205,14 +205,14 @@ function ENT:ManageSounds(Active)
 						if (self.OldGear > Gear and self.FadeThrottle > 0 and Gear >= 3) then
 							self.HighRPM:Stop()
 							self.HighRPM = CreateSound(self, self.EngineSounds[ "ShiftDownToHigh" ] )
-							self.HighRPM:PlayEx(0,0)
+							self.HighRPM:PlayEx(0,1)
 						else 
 							self.HighRPM:Stop()
 							self.LowRPM:Stop()
 							self.HighRPM = CreateSound(self, self.EngineSounds[ "HighRPM" ] )
 							self.LowRPM = CreateSound(self, self.EngineSounds[ "LowRPM" ])
-							self.HighRPM:PlayEx(0,0)
-							self.LowRPM:PlayEx(0,0)
+							self.HighRPM:PlayEx(0,1)
+							self.LowRPM:PlayEx(0,1)
 						end
 					end
 				end

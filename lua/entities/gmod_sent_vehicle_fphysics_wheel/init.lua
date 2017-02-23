@@ -135,7 +135,7 @@ function ENT:WheelFxBroken()
 		if PlaySound != self.OldPlaySound then
 			self.OldPlaySound = PlaySound
 			if PlaySound then
-				self.RollSound_Broken:PlayEx(0,0)
+				self.RollSound_Broken:PlayEx(0,1)
 			else
 				self.RollSound_Broken:Stop()
 			end
@@ -164,7 +164,7 @@ function ENT:WheelFx()
 					self.WheelDust:Fire( "Start" )
 				end
 				self.RollSound_Grass = CreateSound(self, self.snd_roll_grass)
-				self.RollSound_Grass:PlayEx(0,0)
+				self.RollSound_Grass:PlayEx(0,1)
 				self.RollSound_Dirt:Stop()
 				self.RollSound:Stop()
 			elseif (Material == "dirt" or Material == "sand") then
@@ -172,14 +172,14 @@ function ENT:WheelFx()
 					self.WheelDust:Fire( "Start" )
 				end
 				self.RollSound_Dirt = CreateSound(self, self.snd_roll_dirt)
-				self.RollSound_Dirt:PlayEx(0,0)
+				self.RollSound_Dirt:PlayEx(0,1)
 				self.RollSound_Grass:Stop()
 				self.RollSound:Stop()
 			else
 				self.RollSound_Grass:Stop()
 				self.RollSound_Dirt:Stop()
 				self.RollSound = CreateSound(self, self.snd_roll)
-				self.RollSound:PlayEx(0,0)
+				self.RollSound:PlayEx(0,1)
 			end
 		else
 			if (IsValid(self.WheelDust)) then
@@ -198,7 +198,7 @@ function ENT:WheelFx()
 					self.WheelDust:Fire( "Start" )
 				end
 				self.RollSound_Grass = CreateSound(self, self.snd_roll_grass)
-				self.RollSound_Grass:PlayEx(0,0)
+				self.RollSound_Grass:PlayEx(0,1)
 				self.RollSound_Dirt:Stop()
 				self.RollSound:Stop()
 				
@@ -208,7 +208,7 @@ function ENT:WheelFx()
 				end
 				self.RollSound_Grass:Stop()
 				self.RollSound_Dirt = CreateSound(self, self.snd_roll_dirt)
-				self.RollSound_Dirt:PlayEx(0,0)
+				self.RollSound_Dirt:PlayEx(0,1)
 				self.RollSound:Stop()
 			else
 				if (IsValid(self.WheelDust)) then
@@ -217,7 +217,7 @@ function ENT:WheelFx()
 				self.RollSound_Grass:Stop()
 				self.RollSound_Dirt:Stop()
 				self.RollSound = CreateSound(self, self.snd_roll)
-				self.RollSound:PlayEx(0,0)
+				self.RollSound:PlayEx(0,1)
 			end
 			self.OldMaterial = Material
 		end
@@ -241,12 +241,12 @@ function ENT:WheelFx()
 			if (Material == "grass" or Material == "snow") then
 				self.Skid:Stop()
 				self.Skid_Grass = CreateSound(self, self.snd_skid_grass)
-				self.Skid_Grass:PlayEx(0,0)
+				self.Skid_Grass:PlayEx(0,1)
 				self.Skid_Dirt:Stop()
 			elseif (Material == "dirt" or Material == "sand") then
 				self.Skid_Grass:Stop()
 				self.Skid_Dirt = CreateSound(self, self.snd_skid_dirt)
-				self.Skid_Dirt:PlayEx(0,0)
+				self.Skid_Dirt:PlayEx(0,1)
 				self.Skid:Stop()
 			elseif (Material == "ice") then
 				self.Skid_Grass:Stop()
@@ -254,7 +254,7 @@ function ENT:WheelFx()
 				self.Skid:Stop()
 			else
 				self.Skid = CreateSound(self, self.snd_skid)
-				self.Skid:PlayEx(0,0)
+				self.Skid:PlayEx(0,1)
 				self.Skid_Grass:Stop()
 				self.Skid_Dirt:Stop()
 			end
@@ -270,21 +270,21 @@ function ENT:WheelFx()
 			if (Material == "grass" or Material == "snow") then
 				self.Skid:Stop()
 				self.Skid_Grass = CreateSound(self, self.snd_skid_grass)
-				self.Skid_Grass:PlayEx(0,0)
+				self.Skid_Grass:PlayEx(0,1)
 				self.Skid_Dirt:Stop()
 				
 			elseif (Material == "dirt" or Material == "sand") then
 				self.Skid:Stop()
 				self.Skid_Grass:Stop()
 				self.Skid_Dirt = CreateSound(self, self.snd_skid_dirt)
-				self.Skid_Dirt:PlayEx(0,0)
+				self.Skid_Dirt:PlayEx(0,1)
 			elseif (Material == "ice") then
 				self.Skid_Grass:Stop()
 				self.Skid_Dirt:Stop()
 				self.Skid:Stop()
 			else
 				self.Skid = CreateSound(self, self.snd_skid)
-				self.Skid:PlayEx(0,0)
+				self.Skid:PlayEx(0,1)
 				self.Skid_Grass:Stop()
 				self.Skid_Dirt:Stop()
 			end
