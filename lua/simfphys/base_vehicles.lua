@@ -17,6 +17,35 @@ local V = {
 		SeatOffset = Vector(0,0,-2),
 		SeatPitch = 0,
 		
+		
+		PassengerSeats = {
+			{
+				pos = Vector(16,-36,16),
+				ang = Angle(0,0,0),
+				weapons = true,
+			},
+			{
+				pos = Vector(31 ,-98 ,42),
+				ang = Angle(0,180,0),
+				weapons = true,
+			},
+			{
+				pos = Vector(-31 ,-98 ,42),
+				ang = Angle(0,180,0),
+				weapons = true,
+			},
+		},
+		Attachments = {
+			{
+				model = "models/nova/jeep_seat.mdl",				
+				color = Color(255,255,255,255),
+				pos = Vector(16,-36,16),
+				ang = Angle(0,0,0),
+			},
+			
+		},
+		
+		
 		SpeedoMax = 120,
 
 		StrengthenSuspension = false,
@@ -91,6 +120,7 @@ local V = {
 	}
 }
 list.Set( "simfphys_vehicles", "sim_fphys_jeep", V )
+
 
 
 local V = {
