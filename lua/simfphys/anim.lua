@@ -30,7 +30,17 @@ hook.Add("CalcMainActivity", "simfphysSeatActivityOverride", function(ply)
 	
 	ply.CalcIdeal = ACT_HL2MP_SIT
 	ply.CalcSeqOverride = IsDriverSeat and ply:LookupSequence( "drive_jeep" ) or -1
-	
+
+	if ( !IsDriverSeat && ply:GetAllowWeaponsInVehicle() && IsValid( ply:GetActiveWeapon() ) ) then
+		local holdtype = ply:GetActiveWeapon():GetHoldType()
+		if ( holdtype == "smg" ) then holdtype = "smg1" end
+
+		local seqid = ply:LookupSequence( "sit_" .. holdtype )
+		if ( seqid != -1 ) then
+			ply.CalcSeqOverride = seqid
+		end
+	end
+
 	return ply.CalcIdeal, ply.CalcSeqOverride
 end)
 
