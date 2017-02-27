@@ -153,7 +153,7 @@ function ENT:ManageSounds(Active)
 		end
 	end
 	
-	if (Active) then		
+	if (Active and self.PitchMulAll) then		
 		local Volume = 0.25 + 0.25 * ((self.SmoothRPM / LimitRPM) ^ 1.5) + self.FadeThrottle * 0.5
 		local Pitch = math.Clamp( (20 + self.SmoothRPM / 50 - self.PitchOffset) * self.PitchMulAll,0,255)
 		
