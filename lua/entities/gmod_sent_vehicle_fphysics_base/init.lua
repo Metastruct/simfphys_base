@@ -842,14 +842,15 @@ function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRP
 	else
 		self.GearRatio = self.Gears[self.CurrentGear] * self:GetDiffGear()
 	end
+	
 	self:SetClutch( self.Clutch )
-	local InvClutch = (self.Clutch == 1) and 0 or 1
+	local InvClutch = 1 - self.Clutch
 	
 	local GearedRPM = self.WheelRPM / math.abs(self.GearRatio)
 	
 	local MaxTorque = self:GetMaxTorque()
 	
-	local DesRPM = (self.Clutch == 1) and math.max(IdleRPM + (LimitRPM - IdleRPM) * Throttle,0) or GearedRPM
+	local DesRPM = Lerp(InvClutch, math.max(IdleRPM + (LimitRPM - IdleRPM) * Throttle,0), GearedRPM )
 	local Drag = (MaxTorque * (math.max( self.EngineRPM - IdleRPM, 0) / Powerbandend) * ( 1 - Throttle) / 0.15) * InvClutch
 	
 	local boost = torqueboost or 0
@@ -973,7 +974,20 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 		local CalcRPM = self.EngineRPM - self.RPM_DIFFERENCE * Throttle
 		self:SetThrottle( Throttle )
 		
-		self.Clutch = math.max((self.EngineRPM < IdleRPM + (Powerbandstart - IdleRPM) * (self.CurrentGear <= 3 and Throttle or 0)) and 1 or 0,k_handbrake)
+		if self.CurrentGear <= 3 and (Throttle > 0) and self.CurrentGear != 2 then
+			if Throttle < 1 then
+				local autoclutch = math.Clamp((Powerbandstart / self.EngineRPM) - 0.5,0,1)
+				
+				self.sm_autoclutch = self.sm_autoclutch and (self.sm_autoclutch + math.Clamp(autoclutch - self.sm_autoclutch,-0.2,0.1) ) or 0
+			else
+				self.sm_autoclutch = (self.EngineRPM < IdleRPM + (Powerbandstart - IdleRPM)) and 1 or 0
+			end
+		else
+			self.sm_autoclutch = 0
+		end
+		
+		self.Clutch = math.max(self.sm_autoclutch,k_handbrake)
+
 		self.HandBrake = self.HandBrakePower * k_handbrake
 		
 		self.Brake = self:GetBrakePower() * (self.ForwardSpeed >= 0 and k_brake or k_throttle)
