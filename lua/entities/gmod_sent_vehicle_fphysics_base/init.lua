@@ -368,10 +368,8 @@ function ENT:SimulateVehicle( curtime )
 		end
 	end
 	
-	if (self.CustomWheels) then
+	if self.CustomWheels then
 		self:PhysicalSteer()
-	else
-		self:SetWheelHeight()
 	end
 end
 
@@ -746,37 +744,6 @@ function ENT:InitializeVehicle()
 	end
 	
 	self:GetVehicleData()
-end
-
-function ENT:SetWheelHeight()	
-	local Ent_FL = self.Wheels[1]
-	local Ent_FR = self.Wheels[2]
-	local Ent_RL = self.Wheels[3]
-	local Ent_RR = self.Wheels[4]
-	
-	if IsValid(Ent_FL) then
-		local addPos = Ent_FL:GetDamaged() and Ent_FL.dRadius or 0
-		local PoseFL = (self.posepositions.PoseL_Pos_FL.z - self:WorldToLocal( Ent_FL:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_fl
-		self:SetPoseParameter("vehicle_wheel_fl_height",PoseFL) 
-	end
-	
-	if IsValid(Ent_FR) then
-		local addPos = Ent_FR:GetDamaged() and Ent_FR.dRadius or 0
-		local PoseFR = (self.posepositions.PoseL_Pos_FR.z - self:WorldToLocal( Ent_FR:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_fr
-		self:SetPoseParameter("vehicle_wheel_fr_height",PoseFR) 
-	end
-	
-	if IsValid(Ent_RL) then
-		local addPos = Ent_RL:GetDamaged() and Ent_RL.dRadius or 0
-		local PoseRL = (self.posepositions.PoseL_Pos_RL.z - self:WorldToLocal( Ent_RL:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_rl
-		self:SetPoseParameter("vehicle_wheel_rl_height",PoseRL) 
-	end
-	
-	if IsValid(Ent_RR) then
-		local addPos = Ent_RR:GetDamaged() and Ent_RR.dRadius or 0
-		local PoseRR = (self.posepositions.PoseL_Pos_RR .z- self:WorldToLocal( Ent_RR:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_rr
-		self:SetPoseParameter("vehicle_wheel_rr_height",PoseRR) 
-	end
 end
 
 function ENT:PhysicalSteer()
@@ -1268,8 +1235,6 @@ function ENT:SteerVehicle( steer )
 	
 	local pp_steer = steer / self.VehicleData["steerangle"]
 	self:SetVehicleSteer( pp_steer )
-	
-	self:SetPoseParameter("vehicle_steer",pp_steer) 
 end
 
 function ENT:Lock()
