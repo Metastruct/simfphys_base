@@ -40,16 +40,48 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-	local Active = self:GetActive()
+	local curtime = CurTime()
 	
 	self.NextSound = self.NextSound or 0
-	if ( self.NextSound < CurTime() ) then
-		self:ManageSounds(Active)
-		self.NextSound = CurTime() + 0.03
+	if self.NextSound < curtime then
+		self:ManageSounds( self:GetActive() )
+		self.NextSound = curtime + 0.03
 	end
 	
-	self:NextThink(CurTime())
+	self:SetPoseParameters( curtime )
+	self:NextThink( curtime )
+	
 	return true
+end
+
+function ENT:SetPoseParameters( curtime )
+	self:SetPoseParameter("vehicle_steer", self:GetVehicleSteer() )
+	
+	if !istable(self.pp_data) then
+		self.ppNextCheck = self.ppNextCheck or curtime + 0.5
+		if self.ppNextCheck < curtime then
+			self.ppNextCheck = curtime + 0.5
+			
+			net.Start("simfphys_request_ppdata")
+				net.WriteEntity( self )
+			net.SendToServer()
+		end
+	else
+		if !self.CustomWheels then
+			for i = 1, table.Count( self.pp_data ) do
+				local Wheel = self.pp_data[i].entity
+				
+				if IsValid(Wheel) then
+					local addPos = Wheel:GetDamaged() and self.pp_data[i].dradius or 0
+					
+					local Pose = (self.pp_data[i].pos - self:WorldToLocal( Wheel:GetPos()).z + addPos ) / self.pp_data[i].travel
+					self:SetPoseParameter( self.pp_data[i].name, Pose ) 
+				end
+			end
+		end
+	end
+	
+	self:InvalidateBoneCache()
 end
 
 function ENT:GetRPM()

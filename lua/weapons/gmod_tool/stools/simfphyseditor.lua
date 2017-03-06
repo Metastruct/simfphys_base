@@ -59,6 +59,21 @@ local function IsValidSound( sound )
 	return false
 end
 
+function TOOL:Think()
+	if CLIENT then
+		local trace = self:GetOwner():GetEyeTrace()
+		local ent = trace.Entity
+		
+		if !IsValid(ent) then return end
+		
+		local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
+		
+		if IsVehicle then
+			AddWorldTip( nil, "test\ntest\ntest", nil, trace.HitPos, ent )
+		end
+	end
+end
+
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	
@@ -81,10 +96,10 @@ function TOOL:LeftClick( trace )
 	ent:SetSuperCharged( self:GetClientInfo( "supercharged" ) == "1")
 	ent:SetRevlimiter( self:GetClientInfo( "revlimiter" ) == "1")
 	ent:SetDifferentialGear( tonumber( self:GetClientInfo( "diffgear" ) ) )
-	ent:SetMaxTraction( tonumber( self:GetClientInfo( "traction" ) ) )
-	ent:SetTractionBias( tonumber( self:GetClientInfo( "tractionbias" ) ) )
+	ent:SetMaxTraction( math.max( tonumber( self:GetClientInfo( "traction" ) ) , 5) )
+	ent:SetTractionBias( math.Clamp(tonumber( self:GetClientInfo( "tractionbias" ) ),-0.99,0.99) )
 	ent:SetBrakePower( tonumber( self:GetClientInfo( "brakepower" ) ) )
-	ent:SetPowerDistribution( tonumber( self:GetClientInfo( "powerdistribution" ) ) )
+	ent:SetPowerDistribution( math.Clamp(tonumber( self:GetClientInfo( "powerdistribution" ) ) ,-1,1) )
 	ent:SetEfficiency( tonumber( self:GetClientInfo( "efficiency" ) ) )
 	
 	if (IsValidSound( self:GetClientInfo("hornsound") )) then

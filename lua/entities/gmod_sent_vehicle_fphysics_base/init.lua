@@ -368,10 +368,8 @@ function ENT:SimulateVehicle( curtime )
 		end
 	end
 	
-	if (self.CustomWheels) then
+	if self.CustomWheels then
 		self:PhysicalSteer()
-	else
-		self:SetWheelHeight()
 	end
 end
 
@@ -748,37 +746,6 @@ function ENT:InitializeVehicle()
 	self:GetVehicleData()
 end
 
-function ENT:SetWheelHeight()	
-	local Ent_FL = self.Wheels[1]
-	local Ent_FR = self.Wheels[2]
-	local Ent_RL = self.Wheels[3]
-	local Ent_RR = self.Wheels[4]
-	
-	if IsValid(Ent_FL) then
-		local addPos = Ent_FL:GetDamaged() and Ent_FL.dRadius or 0
-		local PoseFL = (self.posepositions.PoseL_Pos_FL.z - self:WorldToLocal( Ent_FL:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_fl
-		self:SetPoseParameter("vehicle_wheel_fl_height",PoseFL) 
-	end
-	
-	if IsValid(Ent_FR) then
-		local addPos = Ent_FR:GetDamaged() and Ent_FR.dRadius or 0
-		local PoseFR = (self.posepositions.PoseL_Pos_FR.z - self:WorldToLocal( Ent_FR:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_fr
-		self:SetPoseParameter("vehicle_wheel_fr_height",PoseFR) 
-	end
-	
-	if IsValid(Ent_RL) then
-		local addPos = Ent_RL:GetDamaged() and Ent_RL.dRadius or 0
-		local PoseRL = (self.posepositions.PoseL_Pos_RL.z - self:WorldToLocal( Ent_RL:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_rl
-		self:SetPoseParameter("vehicle_wheel_rl_height",PoseRL) 
-	end
-	
-	if IsValid(Ent_RR) then
-		local addPos = Ent_RR:GetDamaged() and Ent_RR.dRadius or 0
-		local PoseRR = (self.posepositions.PoseL_Pos_RR .z- self:WorldToLocal( Ent_RR:GetPos()).z + addPos ) / self.VehicleData.suspensiontravel_rr
-		self:SetPoseParameter("vehicle_wheel_rr_height",PoseRR) 
-	end
-end
-
 function ENT:PhysicalSteer()
 	if IsValid(self.SteerMaster) then
 		local physobj = self.SteerMaster:GetPhysicsObject()
@@ -875,14 +842,15 @@ function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRP
 	else
 		self.GearRatio = self.Gears[self.CurrentGear] * self:GetDiffGear()
 	end
+	
 	self:SetClutch( self.Clutch )
-	local InvClutch = (self.Clutch == 1) and 0 or 1
+	local InvClutch = 1 - self.Clutch
 	
 	local GearedRPM = self.WheelRPM / math.abs(self.GearRatio)
 	
 	local MaxTorque = self:GetMaxTorque()
 	
-	local DesRPM = (self.Clutch == 1) and math.max(IdleRPM + (LimitRPM - IdleRPM) * Throttle,0) or GearedRPM
+	local DesRPM = Lerp(InvClutch, math.max(IdleRPM + (LimitRPM - IdleRPM) * Throttle,0), GearedRPM )
 	local Drag = (MaxTorque * (math.max( self.EngineRPM - IdleRPM, 0) / Powerbandend) * ( 1 - Throttle) / 0.15) * InvClutch
 	
 	local boost = torqueboost or 0
@@ -1006,7 +974,20 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 		local CalcRPM = self.EngineRPM - self.RPM_DIFFERENCE * Throttle
 		self:SetThrottle( Throttle )
 		
-		self.Clutch = math.max((self.EngineRPM < IdleRPM + (Powerbandstart - IdleRPM) * (self.CurrentGear <= 3 and Throttle or 0)) and 1 or 0,k_handbrake)
+		if self.CurrentGear <= 3 and (Throttle > 0) and self.CurrentGear != 2 then
+			if Throttle < 1 then
+				local autoclutch = math.Clamp((Powerbandstart / self.EngineRPM) - 0.5,0,1)
+				
+				self.sm_autoclutch = self.sm_autoclutch and (self.sm_autoclutch + math.Clamp(autoclutch - self.sm_autoclutch,-0.2,0.1) ) or 0
+			else
+				self.sm_autoclutch = (self.EngineRPM < IdleRPM + (Powerbandstart - IdleRPM)) and 1 or 0
+			end
+		else
+			self.sm_autoclutch = 0
+		end
+		
+		self.Clutch = math.max(self.sm_autoclutch,k_handbrake)
+
 		self.HandBrake = self.HandBrakePower * k_handbrake
 		
 		self.Brake = self:GetBrakePower() * (self.ForwardSpeed >= 0 and k_brake or k_throttle)
@@ -1268,8 +1249,6 @@ function ENT:SteerVehicle( steer )
 	
 	local pp_steer = steer / self.VehicleData["steerangle"]
 	self:SetVehicleSteer( pp_steer )
-	
-	self:SetPoseParameter("vehicle_steer",pp_steer) 
 end
 
 function ENT:Lock()
@@ -1678,25 +1657,23 @@ function ENT:SetupVehicle()
 	end
 	
 	timer.Simple( 0.01, function()		
-		local tb = self.Wheels
+		if !istable(self.Wheels) then return end
 		
-		if !istable(tb) then return end
-		
-		for i = 1, table.Count( tb ) do
+		for i = 1, table.Count( self.Wheels ) do
 			local Ent = self.Wheels[ i ]
 			local PhysObj = Ent:GetPhysicsObject()
 			
-			if (IsValid(PhysObj)) then
+			if IsValid(PhysObj) then
 				PhysObj:EnableMotion(true)
 			end
 		end
 		
 		timer.Simple( 0.1, function()
-			if (!IsValid(self)) then return end
+			if !IsValid(self) then return end
 			self:GetPhysicsObject():EnableMotion(true)
 			
 			local PhysObj = self.MassOffset:GetPhysicsObject()
-			if (IsValid(PhysObj)) then
+			if IsValid(PhysObj) then
 				PhysObj:EnableMotion(true)
 			end
 		end )

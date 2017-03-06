@@ -6,6 +6,7 @@ if SERVER then
 	AddCSLuaFile("simfphys/client/seatcontrols.lua")
 	AddCSLuaFile("simfphys/client/lighting.lua")
 	AddCSLuaFile("simfphys/client/damage.lua")
+	AddCSLuaFile("simfphys/client/poseparameter.lua")
 	
 	AddCSLuaFile("simfphys/anim.lua")
 	AddCSLuaFile("simfphys/convars.lua")
@@ -22,6 +23,7 @@ if SERVER then
 	include("simfphys/server/spawner.lua")
 	include("simfphys/server/seatcontrols.lua")
 	include("simfphys/server/damage.lua")
+	include("simfphys/server/poseparameter.lua")
 end
 	
 if CLIENT then
@@ -33,6 +35,7 @@ if CLIENT then
 	include("simfphys/client/seatcontrols.lua")
 	include("simfphys/client/lighting.lua")
 	include("simfphys/client/damage.lua")
+	include("simfphys/client/poseparameter.lua")
 end
 
 include("simfphys/anim.lua")

@@ -54,11 +54,11 @@ local k_list = {
 	{k_gup,MOUSE_LEFT,"Gear Up"},
 	{k_gdn,MOUSE_RIGHT,"Gear Down"},
 	{k_hbrk,KEY_SPACE,"Handbrake"},
-	{k_cc,KEY_R,"Toggle Cruise Control"},
-	{k_lgts,KEY_F,"Toggle Lights"},
-	{k_flgts,KEY_V,"Toggle Foglights"},
+	{k_cc,KEY_R,"Cruise Control"},
+	{k_lgts,KEY_F,"Lights"},
+	{k_flgts,KEY_V,"Foglights"},
 	{k_horn,KEY_H,"Horn / Siren"},
-	{k_engine,KEY_I,"Toggle Engine"},
+	{k_engine,KEY_I,"Start/Stop Engine"},
 	{k_afwd,KEY_PAD_8,"Tilt Backward"},
 	{k_abck,KEY_PAD_2,"Tilt Forward"},
 	{k_aleft,KEY_A,"Tilt Left"},
@@ -66,7 +66,45 @@ local k_list = {
 	{k_lock,KEY_NONE ,"Lock / Unlock"},
 }
 
-local function createbinder( x, y, tbl, num, parent, sizex, sizey)
+local function simplebinder( x, y, tbl, num, parent)
+	local sizex = 500
+	local sizey = 40
+	
+	local kentry = tbl[num]
+	local key = kentry[1]
+	local setdefault = key:GetInt()
+	
+	local Shape = vgui.Create( "DShape", parent)
+	Shape:SetType( "Rect" )
+	Shape:SetPos( x, y )
+	Shape:SetSize( 175, sizey )
+	Shape:SetColor( Color( 0, 0, 0, 255 ) )
+	
+	local Shape = vgui.Create( "DShape", parent)
+	Shape:SetType( "Rect" )
+	Shape:SetPos( x + 1, y + 1 )
+	Shape:SetSize( 173 - 2, sizey - 2 )
+	Shape:SetColor( Color( 241, 241, 241, 255 ) )
+
+	local binder = vgui.Create( "DBinder", parent)
+	binder:SetPos( 175 + x, y )
+	binder:SetSize( 500 - 175, sizey )
+	binder:SetValue( setdefault )
+	function binder:SetSelectedNumber( num )
+		self.m_iSelectedNumber = num
+		key:SetInt( num )
+	end
+	
+	local TextLabel = vgui.Create( "DPanel", parent)
+	TextLabel:SetPos( x, y )
+	TextLabel:SetSize( 175, sizey )
+	TextLabel.Paint = function()
+		draw.SimpleText( kentry[3], "DSimfphysFont", 175 * 0.5, sizey * 0.5, Color( 100, 100, 100, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER ) 
+	end
+	return binder
+end
+
+local function simplebinder_old( x, y, tbl, num, parent, sizex, sizey)
 	local kentry = tbl[num]
 	local key = kentry[1]
 	local setdefault = key:GetInt()
@@ -99,7 +137,7 @@ local function createbinder( x, y, tbl, num, parent, sizex, sizey)
 	TextLabel:SetPos( x, y )
 	TextLabel:SetSize( sizex * 0.5, sizey )
 	TextLabel.Paint = function()
-		draw.SimpleText( kentry[3], "DSimfphysFont", sizex * 0.25, 20, Color( 0, 127, 255, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER ) 
+		draw.SimpleText( kentry[3], "DSimfphysFont", sizex * 0.25, 20, Color( 100, 100, 100, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER ) 
 	end
 	return binder
 end
@@ -149,7 +187,7 @@ local function buildclientsettingsmenu( self )
 	createcheckbox(25,145,"Front Projected Textures","cl_simfphys_frontlamps",self.PropPanel,0)
 	createcheckbox(25,165,"Rear Projected Textures","cl_simfphys_rearlamps",self.PropPanel,0)
 	createcheckbox(25,185,"Enable Shadows","cl_simfphys_shadows",self.PropPanel,0)
-		
+	
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
 	Shape:SetPos( 20, 215 )
@@ -169,9 +207,9 @@ local function buildclientsettingsmenu( self )
 	y = y + 5
 	local ctitem_1 = createcheckbox(25,y,"Enable Countersteer","cl_simfphys_ctenable",self.PropPanel,ctenable:GetInt())
 	y = y + 20
-	local ctitem_2 = createslider(25,y,350,40,"Countersteer Mul","cl_simfphys_ctmul",self.PropPanel,0.1,2,ctmul:GetFloat())
+	local ctitem_2 = createslider(30,y,345,40,"Countersteer Mul","cl_simfphys_ctmul",self.PropPanel,0.1,2,ctmul:GetFloat())
 	y = y + 20
-	local ctitem_3 = createslider(25,y,350,40,"Countersteer MaxAng","cl_simfphys_ctang",self.PropPanel,1,90,ctang:GetFloat())
+	local ctitem_3 = createslider(30,y,345,40,"Countersteer MaxAng","cl_simfphys_ctang",self.PropPanel,1,90,ctang:GetFloat())
 	
 	y = y + 40
 	local Reset = vgui.Create( "DButton" )
@@ -191,49 +229,31 @@ end
 
 
 local function buildcontrolsmenu( self )
-	local Shape = vgui.Create( "DShape", self.PropPanel)
-	Shape:SetType( "Rect" )
-	Shape:SetPos( 20, 40 )
-	Shape:SetSize( 525, 800 )
-	Shape:SetColor( Color( 0, 0, 0, 200 ) )
+	local Background = vgui.Create( "DShape", self.PropPanel)
+	Background:SetType( "Rect" )
+	Background:SetPos( 20, 40 )
+	Background:SetColor( Color( 0, 0, 0, 200 ) )
 	
 	local TextLabel = vgui.Create( "DPanel", self.PropPanel)
-	TextLabel:SetPos(5, 0 )
-	TextLabel:SetSize(600, 40 )
+	TextLabel:SetPos( 0, 0 )
+	TextLabel:SetSize( 600, 40 )
 	TextLabel.Paint = function()
 		draw.SimpleTextOutlined( "You need to re-enter the vehicle in order for the changes to take effect!", "DSimfphysFont_hint", 300, 20, Color( 255, 0, 0, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER , 1,Color( 0, 0, 0, 255 ) ) 
 	end
 	
+	local yy = 45
 	local binders = {}
-	binders[1] = createbinder(25,45,k_list,1,self.PropPanel,250, 40)
-	binders[2] = createbinder(290,45,k_list,2,self.PropPanel,250, 40)
-	binders[3] = createbinder(25,100,k_list,3,self.PropPanel,250, 40)
-	binders[4] = createbinder(290,100,k_list,4,self.PropPanel,250, 40)
-	binders[5] = createbinder(25,155,k_list,5,self.PropPanel,516, 40)	
-	binders[6] = createbinder(25,235,k_list,6,self.PropPanel,250, 40)
-	binders[7] = createbinder(25,290,k_list,7,self.PropPanel,250, 40)
-	binders[8] = createbinder(290,290,k_list,8,self.PropPanel,250, 40)
-	binders[9] = createbinder(290,235,k_list,9,self.PropPanel,250, 40)
-	binders[10] = createbinder(25,345,k_list,10,self.PropPanel,516, 40)
-	binders[11] = createbinder(25,455,k_list,11,self.PropPanel,516, 40)
-	binders[12] = createbinder(25,510,k_list,12,self.PropPanel,516, 40)
-	binders[13] = createbinder(25,565,k_list,13,self.PropPanel,516, 40)
+	for i = 1, table.Count( k_list ) do
+		binders[i] = simplebinder(25,yy,k_list,i,self.PropPanel)
+		yy = yy + 45
+	end
 	
-	binders[14] = createbinder(25,400,k_list,14,self.PropPanel,516, 40)
-	
-	binders[15] = createbinder(290,700,k_list,15,self.PropPanel,250, 40)
-	binders[16] = createbinder(25,700,k_list,16,self.PropPanel,250, 40)
-	binders[17] = createbinder(25,755,k_list,17,self.PropPanel,250, 40)
-	binders[18] = createbinder(290,755,k_list,18,self.PropPanel,250, 40)
-	
-	binders[19] = createbinder(25,620,k_list,19,self.PropPanel,516, 40)
-	
-	local DermaButton = vgui.Create( "DButton" )
-	DermaButton:SetParent( self.PropPanel )
-	DermaButton:SetText( "Reset" )	
-	DermaButton:SetPos( 25, 810 )
-	DermaButton:SetSize( 516, 25 )
-	DermaButton.DoClick = function()
+	local ResetButton = vgui.Create( "DButton" )
+	ResetButton:SetParent( self.PropPanel )
+	ResetButton:SetText( "Reset" )	
+	ResetButton:SetPos( 25, yy + 10 )
+	ResetButton:SetSize( 500, 25 )
+	ResetButton.DoClick = function()
 		for i = 1, table.Count( binders ) do
 			local kentry = k_list[i]
 			local key = kentry[1]
@@ -243,31 +263,34 @@ local function buildcontrolsmenu( self )
 			binders[i]:SetValue( default )
 		end
 	end
+	
+	Background:SetSize( 510, yy )
 end
+
 
 local function buildmsmenu( self )
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
 	Shape:SetPos( 20, 20 )
-	Shape:SetSize( 525, 180 )
+	Shape:SetSize( 350, 310 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	
 	local msitem_1 = createcheckbox(25,25,"Enable Mouse Steering","cl_simfphys_mousesteer",self.PropPanel,mousesteer:GetInt())
 	local msitem_2 = createcheckbox(25,55,"Lock Pitch View","cl_simfphys_ms_lockpitch",self.PropPanel,mslockpitch:GetInt())
-	local msitem_3 = createbinder(25,110,{{k_msfreelook,KEY_Y,"Unlock View"}},1,self.PropPanel,250, 40)
-	
-	local msitem_4 = createslider(290,20,255,40,"Deadzone","cl_simfphys_ms_deadzone",self.PropPanel,0,16,msdeadzone:GetFloat())
-	local msitem_5 = createslider(290,55,255,40,"Exponent","cl_simfphys_ms_exponent",self.PropPanel,1,4,msexponent:GetFloat())
-	local msitem_6 = createslider(290,90,255,40,"Sensitivity","cl_simfphys_ms_sensitivity",self.PropPanel,0.01,10,mssensitivity:GetFloat())
-	local msitem_7 = createslider(290,125,255,40,"Return Speed","cl_simfphys_ms_return",self.PropPanel,0,10,msretract:GetFloat())
-	
 	local msitem_8 = createcheckbox(25,85,"Show Hud","cl_simfphys_ms_hud",self.PropPanel,mshud:GetInt())
+	
+	local msitem_4 = createslider(30,110,345,40,"Deadzone","cl_simfphys_ms_deadzone",self.PropPanel,0,16,msdeadzone:GetFloat())
+	local msitem_5 = createslider(30,140,345,40,"Exponent","cl_simfphys_ms_exponent",self.PropPanel,1,4,msexponent:GetFloat())
+	local msitem_6 = createslider(30,170,345,40,"Sensitivity","cl_simfphys_ms_sensitivity",self.PropPanel,0.01,10,mssensitivity:GetFloat())
+	local msitem_7 = createslider(30,200,345,40,"Return Speed","cl_simfphys_ms_return",self.PropPanel,0,10,msretract:GetFloat())
+	
+	local msitem_3 = simplebinder_old(25,240,{{k_msfreelook,KEY_Y,"Unlock View"}},1,self.PropPanel,340, 40)
 	
 	local DermaButton = vgui.Create( "DButton" )
 	DermaButton:SetParent( self.PropPanel )
 	DermaButton:SetText( "Reset" )	
-	DermaButton:SetPos( 25, 170 )
-	DermaButton:SetSize( 516, 25 )
+	DermaButton:SetPos( 25, 300 )
+	DermaButton:SetSize( 340, 25 )
 	DermaButton.DoClick = function()
 		msitem_1:SetValue( 0 )
 		msitem_2:SetValue( 0 )
