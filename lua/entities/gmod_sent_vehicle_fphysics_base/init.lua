@@ -1657,25 +1657,23 @@ function ENT:SetupVehicle()
 	end
 	
 	timer.Simple( 0.01, function()		
-		local tb = self.Wheels
+		if !istable(self.Wheels) then return end
 		
-		if !istable(tb) then return end
-		
-		for i = 1, table.Count( tb ) do
+		for i = 1, table.Count( self.Wheels ) do
 			local Ent = self.Wheels[ i ]
 			local PhysObj = Ent:GetPhysicsObject()
 			
-			if (IsValid(PhysObj)) then
+			if IsValid(PhysObj) then
 				PhysObj:EnableMotion(true)
 			end
 		end
 		
 		timer.Simple( 0.1, function()
-			if (!IsValid(self)) then return end
+			if !IsValid(self) then return end
 			self:GetPhysicsObject():EnableMotion(true)
 			
 			local PhysObj = self.MassOffset:GetPhysicsObject()
-			if (IsValid(PhysObj)) then
+			if IsValid(PhysObj) then
 				PhysObj:EnableMotion(true)
 			end
 		end )

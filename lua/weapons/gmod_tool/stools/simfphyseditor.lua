@@ -59,6 +59,21 @@ local function IsValidSound( sound )
 	return false
 end
 
+function TOOL:Think()
+	if CLIENT then
+		local trace = self:GetOwner():GetEyeTrace()
+		local ent = trace.Entity
+		
+		if !IsValid(ent) then return end
+		
+		local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
+		
+		if IsVehicle then
+			AddWorldTip( nil, "test\ntest\ntest", nil, trace.HitPos, ent )
+		end
+	end
+end
+
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	
