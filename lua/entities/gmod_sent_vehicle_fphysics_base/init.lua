@@ -975,7 +975,7 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 		self:SetThrottle( Throttle )
 		
 		if self.CurrentGear <= 3 and (Throttle > 0) and self.CurrentGear != 2 then
-			if Throttle < 1 then
+			if Throttle < 1 and not cruisecontrol then
 				local autoclutch = math.Clamp((Powerbandstart / self.EngineRPM) - 0.5,0,1)
 				
 				self.sm_autoclutch = self.sm_autoclutch and (self.sm_autoclutch + math.Clamp(autoclutch - self.sm_autoclutch,-0.2,0.1) ) or 0
