@@ -2,13 +2,12 @@ TOOL.Category		= "simfphys"
 TOOL.Name		= "#Vehicle Duplicator"
 TOOL.Command		= nil
 TOOL.ConfigName	= ""
-local TOOLMemory	= {}
 
 if SERVER then
 	util.AddNetworkString( "sphys_dupe" )
 	
 	net.Receive("sphys_dupe", function( length, ply )
-		TOOLMemory = net.ReadTable()
+		ply.TOOLMemory = net.ReadTable()
 		ply:SelectWeapon( "gmod_tool" )
 	end)
 end
@@ -20,6 +19,7 @@ if CLIENT then
 	language.Add( "tool.simfphysduplicator.1", "Left click to spawn. Right click to copy" )
 	
 	local selecteditem	= nil
+	local TOOLMemory	= {}
 	
 	net.Receive("sphys_dupe", function( length )
 		TOOLMemory = net.ReadTable()
@@ -178,7 +178,7 @@ if CLIENT then
 		
 		local Button = vgui.Create( "DButton", panel )
 		Button:SetText( "Delete" )
-		Button:SetPos( 10, 390)
+		Button:SetPos( 10, 430)
 		Button:SetSize( 280, 20 )
 		Button.DoClick = function( self )
 			
@@ -193,7 +193,7 @@ if CLIENT then
 		
 		local Button = vgui.Create( "DButton", panel )
 		Button:SetText( "Refresh" )
-		Button:SetPos( 10, 410)
+		Button:SetPos( 10, 390)
 		Button:SetSize( 280, 20 )
 		Button.DoClick = function( self )
 			ScrollPanel:Clear() 
@@ -239,64 +239,64 @@ end
 
 function TOOL:GetVehicleData( ent, ply )
 	if not IsValid(ent) then return end
-	if not istable(TOOLMemory) then print("rest in peace") return end
+	if not istable(ply.TOOLMemory) then ply.TOOLMemory = {} end
 	
-	table.Empty( TOOLMemory )
+	table.Empty( ply.TOOLMemory )
 	
-	TOOLMemory.SpawnName = ent:GetSpawn_List()
-	TOOLMemory.SteerSpeed = ent:GetSteerSpeed()
-	TOOLMemory.SteerFadeSpeed = ent:GetFastSteerConeFadeSpeed()
-	TOOLMemory.SteerAngFast = ent:GetFastSteerAngle()
-	TOOLMemory.SoundPreset = ent:GetEngineSoundPreset()
-	TOOLMemory.IdleRPM = ent:GetIdleRPM()
-	TOOLMemory.MaxRPM = ent:GetLimitRPM()
-	TOOLMemory.PowerStart = ent:GetPowerBandStart()
-	TOOLMemory.PowerEnd = ent:GetPowerBandEnd()
-	TOOLMemory.PeakTorque = ent:GetMaxTorque()
-	TOOLMemory.HasTurbo = ent:GetTurboCharged()
-	TOOLMemory.HasBlower = ent:GetSuperCharged()
-	TOOLMemory.HasRevLimiter = ent:GetRevlimiter()
-	TOOLMemory.HasBulletProofTires = ent:GetBulletProofTires()
-	TOOLMemory.MaxTraction = ent:GetMaxTraction()
-	TOOLMemory.GripOffset = ent:GetTractionBias()
-	TOOLMemory.BrakePower = ent:GetBrakePower()
-	TOOLMemory.PowerDistribution = ent:GetPowerDistribution()
-	TOOLMemory.Efficiency = ent:GetEfficiency()
-	TOOLMemory.HornSound = ent.snd_horn
-	TOOLMemory.HasBackfire = ent:GetBackFire()
-	TOOLMemory.DoesntStall = ent:GetDoNotStall()
-	TOOLMemory.SoundOverride = ent:GetSoundoverride()
+	ply.TOOLMemory.SpawnName = ent:GetSpawn_List()
+	ply.TOOLMemory.SteerSpeed = ent:GetSteerSpeed()
+	ply.TOOLMemory.SteerFadeSpeed = ent:GetFastSteerConeFadeSpeed()
+	ply.TOOLMemory.SteerAngFast = ent:GetFastSteerAngle()
+	ply.TOOLMemory.SoundPreset = ent:GetEngineSoundPreset()
+	ply.TOOLMemory.IdleRPM = ent:GetIdleRPM()
+	ply.TOOLMemory.MaxRPM = ent:GetLimitRPM()
+	ply.TOOLMemory.PowerStart = ent:GetPowerBandStart()
+	ply.TOOLMemory.PowerEnd = ent:GetPowerBandEnd()
+	ply.TOOLMemory.PeakTorque = ent:GetMaxTorque()
+	ply.TOOLMemory.HasTurbo = ent:GetTurboCharged()
+	ply.TOOLMemory.HasBlower = ent:GetSuperCharged()
+	ply.TOOLMemory.HasRevLimiter = ent:GetRevlimiter()
+	ply.TOOLMemory.HasBulletProofTires = ent:GetBulletProofTires()
+	ply.TOOLMemory.MaxTraction = ent:GetMaxTraction()
+	ply.TOOLMemory.GripOffset = ent:GetTractionBias()
+	ply.TOOLMemory.BrakePower = ent:GetBrakePower()
+	ply.TOOLMemory.PowerDistribution = ent:GetPowerDistribution()
+	ply.TOOLMemory.Efficiency = ent:GetEfficiency()
+	ply.TOOLMemory.HornSound = ent.snd_horn
+	ply.TOOLMemory.HasBackfire = ent:GetBackFire()
+	ply.TOOLMemory.DoesntStall = ent:GetDoNotStall()
+	ply.TOOLMemory.SoundOverride = ent:GetSoundoverride()
 	
-	TOOLMemory.FrontHeight = ent:GetFrontSuspensionHeight()
-	TOOLMemory.RearHeight = ent:GetRearSuspensionHeight()
+	ply.TOOLMemory.FrontHeight = ent:GetFrontSuspensionHeight()
+	ply.TOOLMemory.RearHeight = ent:GetRearSuspensionHeight()
 	
-	TOOLMemory.Camber = ent.Camber or 0
+	ply.TOOLMemory.Camber = ent.Camber or 0
 	
 	if ent.FrontDampingOverride and ent.FrontConstantOverride and ent.RearDampingOverride and ent.RearConstantOverride then
-		TOOLMemory.FrontDampingOverride = ent.FrontDampingOverride
-		TOOLMemory.FrontConstantOverride = ent.FrontConstantOverride
-		TOOLMemory.RearDampingOverride = ent.RearDampingOverride
-		TOOLMemory.RearConstantOverride = ent.RearConstantOverride
+		ply.TOOLMemory.FrontDampingOverride = ent.FrontDampingOverride
+		ply.TOOLMemory.FrontConstantOverride = ent.FrontConstantOverride
+		ply.TOOLMemory.RearDampingOverride = ent.RearDampingOverride
+		ply.TOOLMemory.RearConstantOverride = ent.RearConstantOverride
 	end
 	
 	if ent.CustomWheels then
 		if ent.GhostWheels then
 			if IsValid(ent.GhostWheels[1]) then
-				TOOLMemory.FrontWheelOverride = ent.GhostWheels[1]:GetModel()
+				ply.TOOLMemory.FrontWheelOverride = ent.GhostWheels[1]:GetModel()
 			elseif IsValid(ent.GhostWheels[2]) then
-				TOOLMemory.FrontWheelOverride = ent.GhostWheels[2]:GetModel()
+				ply.TOOLMemory.FrontWheelOverride = ent.GhostWheels[2]:GetModel()
 			end
 			
 			if IsValid(ent.GhostWheels[3]) then
-				TOOLMemory.RearWheelOverride = ent.GhostWheels[3]:GetModel()
+				ply.TOOLMemory.RearWheelOverride = ent.GhostWheels[3]:GetModel()
 			elseif IsValid(ent.GhostWheels[4]) then
-				TOOLMemory.RearWheelOverride = ent.GhostWheels[4]:GetModel()
+				ply.TOOLMemory.RearWheelOverride = ent.GhostWheels[4]:GetModel()
 			end
 		end
 	end
 	
 	local tsc = ent:GetTireSmokeColor()
-	TOOLMemory.TireSmokeColor = tsc.r..","..tsc.g..","..tsc.b
+	ply.TOOLMemory.TireSmokeColor = tsc.r..","..tsc.g..","..tsc.b
 	
 	local Gears = ""
 	for _,v in pairs(ent.Gears) do
@@ -304,24 +304,24 @@ function TOOL:GetVehicleData( ent, ply )
 	end
 	
 	local c = ent:GetColor()
-	TOOLMemory.Color = c.r..","..c.g..","..c.b..","..c.a
+	ply.TOOLMemory.Color = c.r..","..c.g..","..c.b..","..c.a
 	
 	local bodygroups = {}
 	for k,v in pairs(ent:GetBodyGroups()) do
 		bodygroups[k] = ent:GetBodygroup( k ) 
 	end
 	
-	TOOLMemory.BodyGroups = string.Implode( ",", bodygroups)
+	ply.TOOLMemory.BodyGroups = string.Implode( ",", bodygroups)
 	
-	TOOLMemory.Skin = ent:GetSkin()
+	ply.TOOLMemory.Skin = ent:GetSkin()
 	
-	TOOLMemory.Gears = Gears
-	TOOLMemory.FinalGear = ent:GetDifferentialGear()
+	ply.TOOLMemory.Gears = Gears
+	ply.TOOLMemory.FinalGear = ent:GetDifferentialGear()
 	
 	if not IsValid( ply ) then return end
 	
 	net.Start("sphys_dupe")
-		net.WriteTable( TOOLMemory )
+		net.WriteTable( ply.TOOLMemory )
 	net.Send( ply )
 end
 
@@ -416,14 +416,15 @@ local function GetAngleFromSpawnlist( model )
 end
 
 function TOOL:LeftClick( trace )
+	if CLIENT then return true end
+	
 	local ply = self:GetOwner()
-	local vname = TOOLMemory.SpawnName
+	local vname = ply.TOOLMemory.SpawnName
 	
 	local VehicleList = list.Get( "simfphys_vehicles" )
 	local vehicle = VehicleList[ vname ]
 	
 	if not vehicle then return false end
-	if CLIENT then return true end
 	
 	local SpawnPos = trace.HitPos + Vector(0,0,25) + (vehicle.SpawnOffset or Vector(0,0,0))
 	
@@ -467,48 +468,48 @@ function TOOL:LeftClick( trace )
 		end
 	end
 	
-	local tsc = string.Explode( ",", TOOLMemory.TireSmokeColor )
+	local tsc = string.Explode( ",", ply.TOOLMemory.TireSmokeColor )
 	Ent:SetTireSmokeColor( Vector( tonumber(tsc[1]), tonumber(tsc[2]), tonumber(tsc[3]) ) )
 	
-	Ent.Turbocharged = tobool( TOOLMemory.HasTurbo )
-	Ent.Supercharged = tobool( TOOLMemory.HasBlower )
+	Ent.Turbocharged = tobool( ply.TOOLMemory.HasTurbo )
+	Ent.Supercharged = tobool( ply.TOOLMemory.HasBlower )
 	
-	Ent:SetEngineSoundPreset( tonumber( TOOLMemory.SoundPreset ) )
-	Ent:SetMaxTorque( tonumber( TOOLMemory.PeakTorque ) )
-	Ent:SetDifferentialGear( tonumber( TOOLMemory.FinalGear ) )
+	Ent:SetEngineSoundPreset( tonumber( ply.TOOLMemory.SoundPreset ) )
+	Ent:SetMaxTorque( tonumber( ply.TOOLMemory.PeakTorque ) )
+	Ent:SetDifferentialGear( tonumber( ply.TOOLMemory.FinalGear ) )
 	
-	Ent:SetSteerSpeed( tonumber( TOOLMemory.SteerSpeed ) )
-	Ent:SetFastSteerAngle( tonumber( TOOLMemory.SteerAngFast ) )
-	Ent:SetFastSteerConeFadeSpeed( tonumber( TOOLMemory.SteerFadeSpeed ) )
+	Ent:SetSteerSpeed( tonumber( ply.TOOLMemory.SteerSpeed ) )
+	Ent:SetFastSteerAngle( tonumber( ply.TOOLMemory.SteerAngFast ) )
+	Ent:SetFastSteerConeFadeSpeed( tonumber( ply.TOOLMemory.SteerFadeSpeed ) )
 	
-	Ent:SetEfficiency( tonumber( TOOLMemory.Efficiency ) )
-	Ent:SetMaxTraction( tonumber( TOOLMemory.MaxTraction ) )
-	Ent:SetTractionBias( tonumber( TOOLMemory.GripOffset ) )
-	Ent:SetPowerDistribution( tonumber( TOOLMemory.PowerDistribution ) )
+	Ent:SetEfficiency( tonumber( ply.TOOLMemory.Efficiency ) )
+	Ent:SetMaxTraction( tonumber( ply.TOOLMemory.MaxTraction ) )
+	Ent:SetTractionBias( tonumber( ply.TOOLMemory.GripOffset ) )
+	Ent:SetPowerDistribution( tonumber( ply.TOOLMemory.PowerDistribution ) )
 	
-	Ent:SetBackFire( tobool( TOOLMemory.HasBackfire ) )
-	Ent:SetDoNotStall( tobool( TOOLMemory.DoesntStall ) )
+	Ent:SetBackFire( tobool( ply.TOOLMemory.HasBackfire ) )
+	Ent:SetDoNotStall( tobool( ply.TOOLMemory.DoesntStall ) )
 	
-	Ent:SetIdleRPM( tonumber( TOOLMemory.IdleRPM ) )
-	Ent:SetLimitRPM( tonumber( TOOLMemory.MaxRPM ) )
-	Ent:SetRevlimiter( tobool( TOOLMemory.HasRevLimiter ) )
-	Ent:SetPowerBandEnd( tonumber( TOOLMemory.PowerEnd ) )
-	Ent:SetPowerBandStart( tonumber( TOOLMemory.PowerStart ) )
+	Ent:SetIdleRPM( tonumber( ply.TOOLMemory.IdleRPM ) )
+	Ent:SetLimitRPM( tonumber( ply.TOOLMemory.MaxRPM ) )
+	Ent:SetRevlimiter( tobool( ply.TOOLMemory.HasRevLimiter ) )
+	Ent:SetPowerBandEnd( tonumber( ply.TOOLMemory.PowerEnd ) )
+	Ent:SetPowerBandStart( tonumber( ply.TOOLMemory.PowerStart ) )
 	
 	Ent:SetTurboCharged( Ent.Turbocharged )
 	Ent:SetSuperCharged( Ent.Supercharged )
-	Ent:SetBrakePower( tonumber( TOOLMemory.BrakePower ) )
+	Ent:SetBrakePower( tonumber( ply.TOOLMemory.BrakePower ) )
 	
-	Ent:SetSoundoverride( TOOLMemory.SoundOverride or "" )
+	Ent:SetSoundoverride( ply.TOOLMemory.SoundOverride or "" )
 	
 	Ent:SetLights_List( Ent.LightsTable or "no_lights" )
 	
-	Ent:SetBulletProofTires( tobool( TOOLMemory.HasBulletProofTires ) )
+	Ent:SetBulletProofTires( tobool( ply.TOOLMemory.HasBulletProofTires ) )
 	
-	Ent.snd_horn = TOOLMemory.HornSound
+	Ent.snd_horn = ply.TOOLMemory.HornSound
 	
 	local Gears = {}
-	local Data = string.Explode( ",", TOOLMemory.Gears  )
+	local Data = string.Explode( ",", ply.TOOLMemory.Gears  )
 	for i = 1, table.Count( Data ) do Gears[i] = tonumber( Data[i] ) end
 	Ent.Gears = Gears
 	
@@ -516,11 +517,11 @@ function TOOL:LeftClick( trace )
 	timer.Simple( 0.5, function()
 		if !IsValid(Ent) then return end
 
-		if TOOLMemory.FrontDampingOverride and TOOLMemory.FrontConstantOverride and TOOLMemory.RearDampingOverride and TOOLMemory.RearConstantOverride then
-			Ent.FrontDampingOverride = tonumber( TOOLMemory.FrontDampingOverride )
-			Ent.FrontConstantOverride = tonumber( TOOLMemory.FrontConstantOverride )
-			Ent.RearDampingOverride = tonumber( TOOLMemory.RearDampingOverride )
-			Ent.RearConstantOverride = tonumber( TOOLMemory.RearConstantOverride )
+		if ply.TOOLMemory.FrontDampingOverride and ply.TOOLMemory.FrontConstantOverride and ply.TOOLMemory.RearDampingOverride and ply.TOOLMemory.RearConstantOverride then
+			Ent.FrontDampingOverride = tonumber( ply.TOOLMemory.FrontDampingOverride )
+			Ent.FrontConstantOverride = tonumber( ply.TOOLMemory.FrontConstantOverride )
+			Ent.RearDampingOverride = tonumber( ply.TOOLMemory.RearDampingOverride )
+			Ent.RearConstantOverride = tonumber( ply.TOOLMemory.RearConstantOverride )
 			
 			local data = {
 				[1] = {Ent.FrontConstantOverride,Ent.FrontDampingOverride},
@@ -553,17 +554,17 @@ function TOOL:LeftClick( trace )
 			end
 		end
 	
-		Ent:SetFrontSuspensionHeight( tonumber( TOOLMemory.FrontHeight ) )
-		Ent:SetRearSuspensionHeight( tonumber( TOOLMemory.RearHeight ) )
+		Ent:SetFrontSuspensionHeight( tonumber( ply.TOOLMemory.FrontHeight ) )
+		Ent:SetRearSuspensionHeight( tonumber( ply.TOOLMemory.RearHeight ) )
 		
-		local groups = string.Explode( ",", TOOLMemory.BodyGroups)
+		local groups = string.Explode( ",", ply.TOOLMemory.BodyGroups)
 		for i = 1, table.Count( groups ) do
 			Ent:SetBodygroup(i, tonumber(groups[i]) )
 		end
 		
-		Ent:SetSkin( TOOLMemory.Skin )
+		Ent:SetSkin( ply.TOOLMemory.Skin )
 		
-		local c = string.Explode( ",", TOOLMemory.Color )
+		local c = string.Explode( ",", ply.TOOLMemory.Color )
 		local Color =  Color( tonumber(c[1]), tonumber(c[2]), tonumber(c[3]), tonumber(c[4]) )
 		
 		local dot = Color.r * Color.g * Color.b * Color.a
@@ -582,13 +583,13 @@ function TOOL:LeftClick( trace )
 			--print("has custom wheels")
 			if Ent.GhostWheels then
 				--print("and ghostwheels")
-				if !TOOLMemory.FrontWheelOverride and !TOOLMemory.RearWheelOverride then return end --print("but there is no wheel model") return end
+				if !ply.TOOLMemory.FrontWheelOverride and !ply.TOOLMemory.RearWheelOverride then return end --print("but there is no wheel model") return end
 				
-				local front_model = TOOLMemory.FrontWheelOverride or vehicle.Members.CustomWheelModel
+				local front_model = ply.TOOLMemory.FrontWheelOverride or vehicle.Members.CustomWheelModel
 				local front_angle = GetAngleFromSpawnlist(front_model)
 				
-				local camber = TOOLMemory.Camber or 0
-				local rear_model = TOOLMemory.RearWheelOverride or (vehicle.Members.CustomWheelModel_R and vehicle.Members.CustomWheelModel_R or front_model)
+				local camber = ply.TOOLMemory.Camber or 0
+				local rear_model = ply.TOOLMemory.RearWheelOverride or (vehicle.Members.CustomWheelModel_R and vehicle.Members.CustomWheelModel_R or front_model)
 				local rear_angle = GetAngleFromSpawnlist(rear_model)
 				
 				if (!front_model or !rear_model or !front_angle or !rear_angle) then return end
@@ -611,16 +612,24 @@ function TOOL:LeftClick( trace )
 end
 
 function TOOL:RightClick( trace )
+	if CLIENT then return true end
+	
 	local ent = trace.Entity
 	local ply = self:GetOwner()
 	
-	if not IsValid(ent) then table.Empty( TOOLMemory ) return false end
+	if not IsValid(ent) then 
+		table.Empty( ply.TOOLMemory )
+		
+		net.Start("sphys_dupe")
+			net.WriteTable( ply.TOOLMemory )
+		net.Send( ply )
+		
+		return false
+	end
 	
 	if ent:GetClass():lower() != "gmod_sent_vehicle_fphysics_base" then return false end
 	
-	if SERVER then
-		self:GetVehicleData( ent, ply )
-	end
+	self:GetVehicleData( ent, ply )
 	
 	return true
 end
