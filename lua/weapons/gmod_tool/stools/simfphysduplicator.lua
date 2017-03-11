@@ -114,7 +114,14 @@ if CLIENT then
 							DataString = DataString..k.."="..tostring( v ).."#"
 						end
 						
-						file.Write("saved_vehicles/"..Name..".txt", DataString )
+						local words = string.Explode( "", DataString )
+						local shit = {}
+						
+						for k, v in pairs( words ) do
+							shit[k] =  string.char( string.byte( v ) + 20 )
+						end
+						
+						file.Write("saved_vehicles/"..Name..".txt", string.Implode("",shit)  )
 						
 						ScrollPanel:Clear() 
 						selecteditem = Name..".txt"
@@ -132,8 +139,24 @@ if CLIENT then
 		Button:SetSize( 280, 20 )
 		Button.DoClick = function( self )
 			if isstring(selecteditem) then
+				if not file.Exists( "saved_vehicles/"..selecteditem, "DATA" ) then 
+					ScrollPanel:Clear() 
+					selecteditem = nil
+					GetSaves( ScrollPanel )
+					
+					return
+				end
+				
 				local DataString = file.Read( "saved_vehicles/"..selecteditem, "DATA" )
-				local Data = string.Explode( "#", DataString )
+				
+				local words = string.Explode( "", DataString )
+				local shit = {}
+				
+				for k, v in pairs( words ) do
+					shit[k] =  string.char( string.byte( v ) - 20 )
+				end
+				
+				local Data = string.Explode( "#", string.Implode("",shit) )
 				
 				table.Empty( TOOLMemory )
 				
