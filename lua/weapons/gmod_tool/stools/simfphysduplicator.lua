@@ -270,6 +270,13 @@ function TOOL:GetVehicleData( ent, ply )
 	TOOLMemory.FrontHeight = ent:GetFrontSuspensionHeight()
 	TOOLMemory.RearHeight = ent:GetRearSuspensionHeight()
 	
+	if ent.FrontDampingOverride and ent.FrontConstantOverride and ent.RearDampingOverride and ent.RearConstantOverride then
+		TOOLMemory.FrontDampingOverride = ent.FrontDampingOverride
+		TOOLMemory.FrontConstantOverride = ent.FrontConstantOverride
+		TOOLMemory.RearDampingOverride = ent.RearDampingOverride
+		TOOLMemory.RearConstantOverride = ent.RearConstantOverride
+	end
+	
 	if ent.CustomWheels then
 		if ent.GhostWheels then
 			if IsValid(ent.GhostWheels[1]) then
@@ -506,7 +513,44 @@ function TOOL:LeftClick( trace )
 	
 	timer.Simple( 0.5, function()
 		if !IsValid(Ent) then return end
-		
+
+		if TOOLMemory.FrontDampingOverride and TOOLMemory.FrontConstantOverride and TOOLMemory.RearDampingOverride and TOOLMemory.RearConstantOverride then
+			Ent.FrontDampingOverride = tonumber( TOOLMemory.FrontDampingOverride )
+			Ent.FrontConstantOverride = tonumber( TOOLMemory.FrontConstantOverride )
+			Ent.RearDampingOverride = tonumber( TOOLMemory.RearDampingOverride )
+			Ent.RearConstantOverride = tonumber( TOOLMemory.RearConstantOverride )
+			
+			local data = {
+				[1] = {Ent.FrontConstantOverride,Ent.FrontDampingOverride},
+				[2] = {Ent.FrontConstantOverride,Ent.FrontDampingOverride},
+				[3] = {Ent.RearConstantOverride,Ent.RearDampingOverride},
+				[4] = {Ent.RearConstantOverride,Ent.RearDampingOverride}
+			}
+			
+			local elastics = Ent.Elastics
+			if elastics then
+				for i = 1, table.Count( elastics ) do
+					local elastic = elastics[i]
+					if (ent.StrengthenSuspension == true) then
+						if (IsValid(elastic)) then
+							elastic:Fire( "SetSpringConstant", data[i][1] * 0.5, 0 )
+							elastic:Fire( "SetSpringDamping", data[i][2] * 0.5, 0 )
+						end
+						local elastic2 = elastics[i * 10]
+						if (IsValid(elastic2)) then
+							elastic2:Fire( "SetSpringConstant", data[i][1] * 0.5, 0 )
+							elastic2:Fire( "SetSpringDamping", data[i][2] * 0.5, 0 )
+						end
+					else
+						if (IsValid(elastic)) then
+							elastic:Fire( "SetSpringConstant", data[i][1], 0 )
+							elastic:Fire( "SetSpringDamping", data[i][2], 0 )
+						end
+					end
+				end
+			end
+		end
+	
 		Ent:SetFrontSuspensionHeight( tonumber( TOOLMemory.FrontHeight ) )
 		Ent:SetRearSuspensionHeight( tonumber( TOOLMemory.RearHeight ) )
 		

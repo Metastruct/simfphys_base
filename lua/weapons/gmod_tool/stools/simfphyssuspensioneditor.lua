@@ -56,6 +56,11 @@ function TOOL:LeftClick( trace )
 					elastic:Fire( "SetSpringDamping", data[i][2], 0 )
 				end
 			end
+			
+			ent.FrontDampingOverride = data[1][2]
+			ent.FrontConstantOverride = data[1][1]
+			ent.RearDampingOverride = data[4][2]
+			ent.RearConstantOverride = data[4][1]
 		end
 	end
 	
