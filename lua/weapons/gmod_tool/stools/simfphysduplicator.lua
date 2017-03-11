@@ -270,6 +270,8 @@ function TOOL:GetVehicleData( ent, ply )
 	TOOLMemory.FrontHeight = ent:GetFrontSuspensionHeight()
 	TOOLMemory.RearHeight = ent:GetRearSuspensionHeight()
 	
+	TOOLMemory.Camber = ent.Camber or 0
+	
 	if ent.FrontDampingOverride and ent.FrontConstantOverride and ent.RearDampingOverride and ent.RearConstantOverride then
 		TOOLMemory.FrontDampingOverride = ent.FrontDampingOverride
 		TOOLMemory.FrontConstantOverride = ent.FrontConstantOverride
@@ -585,12 +587,13 @@ function TOOL:LeftClick( trace )
 				local front_model = TOOLMemory.FrontWheelOverride or vehicle.Members.CustomWheelModel
 				local front_angle = GetAngleFromSpawnlist(front_model)
 				
-				local camber = 0
+				local camber = TOOLMemory.Camber or 0
 				local rear_model = TOOLMemory.RearWheelOverride or (vehicle.Members.CustomWheelModel_R and vehicle.Members.CustomWheelModel_R or front_model)
 				local rear_angle = GetAngleFromSpawnlist(rear_model)
 				
 				if (!front_model or !rear_model or !front_angle or !rear_angle) then return end
 				--print("we apply the wheel")
+				Ent.Camber = camber
 				ApplyWheel(Ent, {front_model,front_angle,rear_model,rear_angle,camber})
 			end
 		end

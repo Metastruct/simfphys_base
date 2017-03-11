@@ -136,6 +136,7 @@ function TOOL:LeftClick( trace )
 					end
 				end
 				
+				ent.Camber = camber
 				ApplyWheel(self:GetOwner(), ent, {front_model,front_angle,rear_model,rear_angle,camber})
 			end
 		end
