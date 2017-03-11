@@ -15,9 +15,9 @@ end
 
 if CLIENT then
 	language.Add( "tool.simfphysduplicator.name", "Vehicle Duplicator" )
-	language.Add( "tool.simfphysduplicator.desc", "Copy, Paste, Save or Update your Vehicles" )
-	language.Add( "tool.simfphysduplicator.0", "Left click to spawn or update an vehicle. Right click to copy" )
-	language.Add( "tool.simfphysduplicator.1", "Left click to spawn or update an vehicle. Right click to copy" )
+	language.Add( "tool.simfphysduplicator.desc", "Copy, Paste or Save your Vehicles" )
+	language.Add( "tool.simfphysduplicator.0", "Left click to spawn. Right click to copy" )
+	language.Add( "tool.simfphysduplicator.1", "Left click to spawn. Right click to copy" )
 	
 	local selecteditem	= nil
 	
