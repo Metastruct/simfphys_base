@@ -108,10 +108,13 @@ function SpawnSimfphysVehicle( Player, vname, tr )
 	Ent.Supercharged = Ent.Supercharged or false
 	
 	Ent:SetEngineSoundPreset( Ent.EngineSoundPreset )
-	Ent:SetSteerSpeed( Ent.TurnSpeed )
 	Ent:SetMaxTorque( Ent.PeakTorque )
 	Ent:SetDifferentialGear( Ent.DifferentialGear )
+	
+	Ent:SetSteerSpeed( Ent.TurnSpeed )
 	Ent:SetFastSteerConeFadeSpeed( Ent.SteeringFadeFastSpeed )
+	Ent:SetFastSteerAngle( Ent.FastSteeringAngle )
+	
 	Ent:SetEfficiency( Ent.Efficiency )
 	Ent:SetMaxTraction( Ent.MaxGrip )
 	Ent:SetTractionBias( Ent.GripOffset / Ent.MaxGrip )
