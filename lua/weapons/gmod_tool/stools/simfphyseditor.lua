@@ -59,6 +59,7 @@ local function IsValidSound( sound )
 	return false
 end
 
+--[[
 function TOOL:Think()
 	if CLIENT then
 		local trace = self:GetOwner():GetEyeTrace()
@@ -73,6 +74,7 @@ function TOOL:Think()
 		end
 	end
 end
+]]--
 
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
