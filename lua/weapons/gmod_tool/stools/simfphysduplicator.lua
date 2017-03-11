@@ -407,10 +407,6 @@ local function GetAngleFromSpawnlist( model )
 end
 
 function TOOL:LeftClick( trace )
-	if (SERVER) then
-		PrintTable(TOOLMemory)
-	end
-	
 	local ply = self:GetOwner()
 	local vname = TOOLMemory.SpawnName
 	
