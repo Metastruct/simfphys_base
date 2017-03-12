@@ -620,6 +620,10 @@ function TOOL:RightClick( trace )
 	local ent = trace.Entity
 	local ply = self:GetOwner()
 	
+	if not istable(ply.TOOLMemory) then 
+		ply.TOOLMemory = {}
+	end
+	
 	if not IsValid(ent) then 
 		table.Empty( ply.TOOLMemory )
 		
