@@ -419,6 +419,9 @@ function TOOL:LeftClick( trace )
 	if CLIENT then return true end
 	
 	local ply = self:GetOwner()
+	
+	if not istable(ply.TOOLMemory) then return end
+	
 	local vname = ply.TOOLMemory.SpawnName
 	
 	local VehicleList = list.Get( "simfphys_vehicles" )
