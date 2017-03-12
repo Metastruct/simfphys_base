@@ -106,24 +106,18 @@ function ENT:OnActiveChanged( name, old, new)
 			self.BlowerWhine:PlayEx(0,0)
 		end
 		
-		if IsValid( self:GetDriver() ) then
-			self:SetupControls( self:GetDriver() )
-		end
-		
-		self.CurrentGear = 2
-		
-		if !self.IsInWater then
-			self.EngineRPM = self:GetEngineData().IdleRPM
-			self.EngineIsOn = 1
-		else
-			if self:GetDoNotStall() then
-				self.EngineRPM = self:GetEngineData().IdleRPM
-				self.EngineIsOn = 1
+		local ply = self:GetDriver()
+		if IsValid( ply ) then
+			self:SetupControls( ply )
+			
+			if ply:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
+				self:StartEngine()
 			end
+		else
+			self:StartEngine()
 		end
 	else
-		self.EngineRPM = 0
-		self.EngineIsOn = 0
+		self:StopEngine()
 
 		self.IsLocked = false
 		
@@ -158,9 +152,6 @@ function ENT:OnActiveChanged( name, old, new)
 		
 		self:SetIsBraking( false )
 		self:SetGear( 2 )
-		self:SetFlyWheelRPM( 0 )
-		
-		self:SetIsCruiseModeOn( false )
 	end
 	
 	if istable(self.Wheels) then
@@ -905,23 +896,50 @@ function ENT:DamagedStall()
 		net.Broadcast()
 	end)
 	
-	self:StallAndRestart( rtimer )
+	self:StallAndRestart( rtimer, true )
 end
 
-function ENT:StallAndRestart( nTimer )
+function ENT:StopEngine()
+	if self.EngineIsOn == 1 then
+		self:EmitSound( "vehicles/jetski/jetski_off.wav" )
+	end
+
+	self.EngineRPM = 0
+	self.EngineIsOn = 0
+	
+	self:SetFlyWheelRPM( 0 )
+	self:SetIsCruiseModeOn( false )
+end
+
+function ENT:StartEngine( bIgnoreSettings )
+	if not bIgnoreSettings then
+		self.CurrentGear = 2
+	end
+		
+	if !self.IsInWater then
+		self.EngineRPM = self:GetEngineData().IdleRPM
+		self.EngineIsOn = 1
+	else
+		if self:GetDoNotStall() then
+			self.EngineRPM = self:GetEngineData().IdleRPM
+			self.EngineIsOn = 1
+		end
+	end
+end
+
+function ENT:StallAndRestart( nTimer, bIgnoreSettings )
 	nTimer = nTimer or 1
 	
-	self.EngineIsOn = 0
-	self:SetIsCruiseModeOn( false )
+	self:StopEngine()
 	
-	self:EmitSound( "vehicles/jetski/jetski_off.wav" )
+	local ply = self:GetDriver()
+	if IsValid(ply) and not bIgnoreSettings then
+		if ply:GetInfoNum( "cl_simfphys_autostart", 1 ) <= 0 then return end
+	end
 	
 	timer.Simple( nTimer, function()
 		if !IsValid(self) then return end
-		if !self.IsInWater then
-			self.EngineIsOn = 1
-			self.EngineRPM = self:GetIdleRPM()
-		end
+		self:StartEngine( bIgnoreSettings )
 	end)
 end
 
@@ -2197,15 +2215,9 @@ numpad.Register( "k_eng", function( pl, ent, keydown )
 	
 	if (keydown) then
 		if (ent.EngineIsOn == 1) then
-			ent.EngineIsOn = 0
-			ent.EngineRPM = 0
-			ent:SetFlyWheelRPM( 0 )
-			
-			ent:EmitSound( "vehicles/jetski/jetski_off.wav" )
-		elseif (ent.EngineIsOn == 0 and !ent.IsInWater or (ent:GetDoNotStall() == true)) then
-			ent.EngineIsOn = 1
-			ent.EngineRPM = ent:GetIdleRPM()
-			ent:SetFlyWheelRPM( ent:GetIdleRPM() )
+			ent:StopEngine()
+		elseif (ent.EngineIsOn == 0) then
+			ent:StartEngine( true )
 		end
 	end
 end)

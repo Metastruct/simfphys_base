@@ -8,6 +8,7 @@ local hud = CreateClientConVar( "cl_simfphys_hud", "1", true, false )
 local alt_hud = CreateClientConVar( "cl_simfphys_althud", "1", true, false )
 local hud_mph = CreateClientConVar( "cl_simfphys_hudmph", "0", true, false )
 local hud_realspeed = CreateClientConVar( "cl_simfphys_hudrealspeed", "0", true, false )
+local autostart = CreateClientConVar( "cl_simfphys_autostart", "1", true, true )
 
 local mousesteer = CreateClientConVar( "cl_simfphys_mousesteer", "0", true, true )
 local mssensitivity = CreateClientConVar( "cl_simfphys_ms_sensitivity", "1", true, true )
@@ -191,13 +192,14 @@ local function buildclientsettingsmenu( self )
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
 	Shape:SetPos( 20, 215 )
-	Shape:SetSize( 350, 65 )
+	Shape:SetSize( 350, 85 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	createcheckbox(25,220,"Always Fullthrottle","cl_simfphys_sanic",self.PropPanel,sanic:GetInt())
-	createcheckbox(25,240,"Automatic Transmission","cl_simfphys_auto",self.PropPanel,auto:GetInt())
-	createcheckbox(25,260,"Automatic Sportmode (late up and downshifts)","cl_simfphys_sport",self.PropPanel,sport:GetInt())
+	createcheckbox(25,240,"Engine Autostart","cl_simfphys_autostart",self.PropPanel,autostart:GetInt())
+	createcheckbox(25,260,"Automatic Transmission","cl_simfphys_auto",self.PropPanel,auto:GetInt())
+	createcheckbox(25,280,"Automatic Sportmode (late up and downshifts)","cl_simfphys_sport",self.PropPanel,sport:GetInt())
 	
-	local y = 290
+	local y = 310
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
 	Shape:SetPos( 20, y )
@@ -420,21 +422,23 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 		pnlContent:SwitchPanel( self.PropPanel )
 	end
 	
-	-- SERVER SETTINGS
 	--[[
-	local node = tree:AddNode( "Server Settings", "icon16/wrench_orange.png" )
-	node.DoPopulate = function( self )
-		if ( self.PropPanel ) then return end
-		
-		self.PropPanel = vgui.Create( "ContentContainer", pnlContent )
-		self.PropPanel:SetVisible( false )
-		self.PropPanel:SetTriggerSpawnlistChange( false )
+	-- SERVER SETTINGS
+	if LocalPlayer():IsSuperAdmin() then
+		local node = tree:AddNode( "Server Settings", "icon16/wrench_orange.png" )
+		node.DoPopulate = function( self )
+			if ( self.PropPanel ) then return end
+			
+			self.PropPanel = vgui.Create( "ContentContainer", pnlContent )
+			self.PropPanel:SetVisible( false )
+			self.PropPanel:SetTriggerSpawnlistChange( false )
 
-		--buildclientsettingsmenu( self )
-	end
-	node.DoClick = function( self )
-		self:DoPopulate()
-		pnlContent:SwitchPanel( self.PropPanel )
+			--buildclientsettingsmenu( self )
+		end
+		node.DoClick = function( self )
+			self:DoPopulate()
+			pnlContent:SwitchPanel( self.PropPanel )
+		end
 	end
 	]]--
 
