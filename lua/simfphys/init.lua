@@ -19,7 +19,6 @@ if SERVER then
 	
 	include("simfphys/convars.lua")
 	include("simfphys/server/exitpoints.lua")
-	include("simfphys/server/mousesteer.lua")
 	include("simfphys/server/spawner.lua")
 	include("simfphys/server/seatcontrols.lua")
 	include("simfphys/server/damage.lua")

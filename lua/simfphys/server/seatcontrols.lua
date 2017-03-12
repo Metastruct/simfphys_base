@@ -1,4 +1,14 @@
 util.AddNetworkString( "simfphys_request_seatswitch" )
+util.AddNetworkString( "simfphys_mousesteer" )
+	
+net.Receive( "simfphys_mousesteer", function( length, ply )
+	local vehicle = net.ReadEntity()
+	local Steer = net.ReadFloat()
+	
+	if not IsValid(vehicle) then return end
+	
+	vehicle.ms_Steer = Steer
+end)
 
 local function handleseatswitching( length, ply )
 	local vehicle = net.ReadEntity()

@@ -10,96 +10,113 @@ local y = ypos * 1.015
 local radius = 0.085 * sizex
 local startang = 105
 
-local ShowHud = false
-cvars.AddChangeCallback( "cl_simfphys_hud", function( convar, oldValue, newValue )
-	ShowHud = ( tonumber( newValue )~=0 )
-end)
-ShowHud = GetConVar( "cl_simfphys_hud" ):GetBool()
-
-local ShowHud_ms = false
-cvars.AddChangeCallback( "cl_simfphys_ms_hud", function( convar, oldValue, newValue )
-	ShowHud_ms = ( tonumber( newValue )~=0 )
-end)
-ShowHud_ms = GetConVar( "cl_simfphys_ms_hud" ):GetBool()
-
-local AltHud = false
-cvars.AddChangeCallback( "cl_simfphys_althud", function( convar, oldValue, newValue )
-	AltHud = ( tonumber( newValue )~=0 )
-end)
-AltHud = GetConVar( "cl_simfphys_althud" ):GetBool()
-
-local Hudmph = false
-cvars.AddChangeCallback( "cl_simfphys_hudmph", function( convar, oldValue, newValue )
-	Hudmph = ( tonumber( newValue )~=0 )
-end)
-Hudmph = GetConVar( "cl_simfphys_hudmph" ):GetBool()
-
-local Hudreal = false
-cvars.AddChangeCallback( "cl_simfphys_hudrealspeed", function( convar, oldValue, newValue )
-	Hudreal = ( tonumber( newValue )~=0 )
-end)
-Hudreal = GetConVar( "cl_simfphys_hudrealspeed" ):GetBool()
-
-local isMouseSteer = false
-cvars.AddChangeCallback( "cl_simfphys_mousesteer", function( convar, oldValue, newValue )
-	isMouseSteer = ( tonumber( newValue )~=0 )
-end)
-isMouseSteer = GetConVar( "cl_simfphys_mousesteer" ):GetBool()
-
-local hasCounterSteerEnabled = false
-cvars.AddChangeCallback( "cl_simfphys_ctenable", function( convar, oldValue, newValue )
-	hasCounterSteerEnabled = ( tonumber( newValue )~=0 )
-end)
-hasCounterSteerEnabled = GetConVar( "cl_simfphys_ctenable" ):GetBool()
-
-local slushbox = false
-cvars.AddChangeCallback( "cl_simfphys_auto", function( convar, oldValue, newValue )
-	slushbox = ( tonumber( newValue )~=0 )
-end)
-slushbox = GetConVar( "cl_simfphys_auto" ):GetBool()
-
 local lights_on = Material( "simfphys/hud/low_beam_on" )
 local lights_on2 = Material( "simfphys/hud/high_beam_on" )
 local lights_off = Material( "simfphys/hud/low_beam_off" )
-
 local fog_on = Material( "simfphys/hud/fog_light_on" )
 local fog_off = Material( "simfphys/hud/fog_light_off" )
-
 local cruise_on = Material( "simfphys/hud/cc_on" )
 local cruise_off = Material( "simfphys/hud/cc_off" )
-
 local hbrake_on = Material( "simfphys/hud/handbrake_on" )
 local hbrake_off = Material( "simfphys/hud/handbrake_off" )
-
 local HUD_1 = Material( "simfphys/hud/hud" )
 local HUD_2 = Material( "simfphys/hud/hud_center" )
 local HUD_3 = Material( "simfphys/hud/hud_center_red" )
-
 local ForceSimpleHud = !file.Exists( "materials/simfphys/hud/hud.vmt", "GAME" ) -- lets check if the background material exists, if not we will force the old hud to prevent fps drop
+
+local ShowHud = false
+local ShowHud_ms = false
+local AltHud = false
+local Hudmph = false
+local Hudreal = false
+local isMouseSteer = false
+local hasCounterSteerEnabled = false
+local slushbox = false
+
+local ms_sensitivity = 1
+local ms_fade = 1
+local ms_deadzone = 1.5
+local ms_exponent = 2
+local ms_key_freelook = KEY_Y
+
+cvars.AddChangeCallback( "cl_simfphys_hud", function( convar, oldValue, newValue ) ShowHud = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_ms_hud", function( convar, oldValue, newValue ) ShowHud_ms = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_althud", function( convar, oldValue, newValue ) AltHud = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_hudmph", function( convar, oldValue, newValue ) Hudmph = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_hudrealspeed", function( convar, oldValue, newValue ) Hudreal = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_mousesteer", function( convar, oldValue, newValue ) isMouseSteer = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_ctenable", function( convar, oldValue, newValue ) hasCounterSteerEnabled = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_auto", function( convar, oldValue, newValue ) slushbox = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_ms_sensitivity", function( convar, oldValue, newValue )  ms_sensitivity = tonumber( newValue ) end)
+cvars.AddChangeCallback( "cl_simfphys_ms_return", function( convar, oldValue, newValue )  ms_fade = tonumber( newValue ) end)
+cvars.AddChangeCallback( "cl_simfphys_ms_deadzone", function( convar, oldValue, newValue )  ms_deadzone = tonumber( newValue ) end)
+cvars.AddChangeCallback( "cl_simfphys_ms_exponent", function( convar, oldValue, newValue ) ms_exponent = tonumber( newValue ) end)
+cvars.AddChangeCallback( "cl_simfphys_ms_keyfreelook", function( convar, oldValue, newValue ) ms_key_freelook = tonumber( newValue ) end)
+
+ShowHud = GetConVar( "cl_simfphys_hud" ):GetBool()
+ShowHud_ms = GetConVar( "cl_simfphys_ms_hud" ):GetBool()
+AltHud = GetConVar( "cl_simfphys_althud" ):GetBool()
+Hudmph = GetConVar( "cl_simfphys_hudmph" ):GetBool()
+Hudreal = GetConVar( "cl_simfphys_hudrealspeed" ):GetBool()
+isMouseSteer = GetConVar( "cl_simfphys_mousesteer" ):GetBool()
+hasCounterSteerEnabled = GetConVar( "cl_simfphys_ctenable" ):GetBool()
+slushbox = GetConVar( "cl_simfphys_auto" ):GetBool()
+
+ms_sensitivity = GetConVar( "cl_simfphys_ms_sensitivity" ):GetFloat()
+ms_fade = GetConVar( "cl_simfphys_ms_return" ):GetFloat()
+ms_deadzone = GetConVar( "cl_simfphys_ms_deadzone" ):GetFloat()
+ms_exponent = GetConVar( "cl_simfphys_ms_exponent" ):GetFloat()
+ms_key_freelook = GetConVar( "cl_simfphys_ms_keyfreelook" ):GetInt()
+
+local ms_pos_x = 0
+
+hook.Add( "VehicleMove", "simfphysmove", function(ply,veh,mv)
+	if ply != LocalPlayer() then return end
+	
+	local vehicle = ply:GetVehicle()
+	if not IsValid(vehicle) then return end
+	
+	if isMouseSteer then
+		local freelook = input.IsButtonDown( ms_key_freelook )
+		ply.Freelook = freelook
+		if not freelook then 
+			local cmd = ply:GetCurrentCommand()
+			local frametime = RealFrameTime()
+			
+			local ms_delta_x = cmd:GetMouseX()
+			local ms_return = ms_fade * frametime
+			
+			local Moving = math.abs(ms_delta_x) > 0
+			
+			ms_pos_x = Moving and math.Clamp(ms_pos_x + ms_delta_x * frametime * 0.05 * ms_sensitivity,-1,1) or (ms_pos_x + math.Clamp(-ms_pos_x,-ms_return,ms_return))
+			
+			SteerVehicle = ((math.max( math.abs(ms_pos_x) - ms_deadzone / 16, 0) ^ ms_exponent) / (1 - ms_deadzone / 16))  * ((ms_pos_x > 0) and 1 or -1)
+			
+		end
+	else
+		SteerVehicle = 0
+	end
+	
+	net.Start( "simfphys_mousesteer" )
+		net.WriteEntity( vehicle )
+		net.WriteFloat( SteerVehicle )
+	net.SendToServer()
+end)
 
 local function drawsimfphysHUD(vehicle)
 	if (isMouseSteer and ShowHud_ms) then
-		local MousePos = vehicle:GetMousePos()
-		local deadzone = vehicle:GetDeadZone()
+		local MousePos = ms_pos_x
 		local m_size = sizex * 0.15
 		
 		draw.SimpleText( "V", "simfphysfont", sizex * 0.5 + MousePos * m_size - 1, sizey * 0.45, Color( 240, 230, 200, 255 ), 1, 1 )
 		draw.SimpleText( "[", "simfphysfont", sizex * 0.5 - m_size * 1.05, sizey * 0.45, Color( 240, 230, 200, 180 ), 1, 1 )
 		draw.SimpleText( "]", "simfphysfont", sizex * 0.5 + m_size * 1.05, sizey * 0.45, Color( 240, 230, 200, 180 ), 1, 1 )
 		
-		if (deadzone > 0) then
-			draw.SimpleText( "^", "simfphysfont", sizex * 0.5 - deadzone * m_size, sizey * 0.453, Color( 240, 230, 200, 180 ), 1, 2 )
-			draw.SimpleText( "^", "simfphysfont", sizex * 0.5 + deadzone * m_size, sizey * 0.453, Color( 240, 230, 200, 180 ), 1, 2 )
+		if (ms_deadzone > 0) then
+			draw.SimpleText( "^", "simfphysfont", sizex * 0.5 - (ms_deadzone / 16) * m_size, sizey * 0.453, Color( 240, 230, 200, 180 ), 1, 2 )
+			draw.SimpleText( "^", "simfphysfont", sizex * 0.5 + (ms_deadzone / 16) * m_size, sizey * 0.453, Color( 240, 230, 200, 180 ), 1, 2 )
 		else
 			draw.SimpleText( "^", "simfphysfont", sizex * 0.5, sizey * 0.453, Color( 240, 230, 200, 180 ), 1, 2 )
-		end
-		
-		if (hasCounterSteerEnabled) then
-			local ctpos = vehicle:GetctPos()
-			if (math.abs(ctpos) > 0.1) then
-				local hudctpos = math.Clamp(ctpos + deadzone * (ctpos < 0 and -1 or 1),-1,1)
-				draw.SimpleText( "|", "simfphysfont", sizex * 0.5 + hudctpos * m_size, sizey * 0.45, Color( 255, 235, 0, 255 ), 1, 1 )
-			end
 		end
 	end
 	

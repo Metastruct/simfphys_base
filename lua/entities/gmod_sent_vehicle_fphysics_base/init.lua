@@ -455,8 +455,6 @@ function ENT:SetupControls( ply )
 		
 		local I = ply:GetInfoNum( "cl_simfphys_keyengine", 0 )
 		
-		local Y = ply:GetInfoNum( "cl_simfphys_ms_keyfreelook", 0 )
-		
 		local Shift = ply:GetInfoNum( "cl_simfphys_keywot", 0 )
 		
 		local Alt = ply:GetInfoNum( "cl_simfphys_keyclutch", 0 )
@@ -508,9 +506,6 @@ function ENT:SetupControls( ply )
 		local k_horn_dn = numpad.OnDown( ply, H, "k_hrn",self, true )
 		local k_horn_up = numpad.OnUp( ply, H, "k_hrn",self, false )
 		
-		local k_freelook_dn = numpad.OnDown( ply, Y, "k_frk",self, true )
-		local k_freelook_up = numpad.OnUp( ply, Y, "k_frk",self, false )
-		
 		local k_engine_dn = numpad.OnDown( ply, I, "k_eng",self, true )
 		local k_engine_up = numpad.OnUp( ply, I, "k_eng",self, false )
 		
@@ -535,7 +530,6 @@ function ENT:SetupControls( ply )
 			k_lights_dn,k_lights_up,
 			k_horn_dn,k_horn_up,
 			k_flights_dn,k_flights_up,
-			k_freelook_dn,k_freelook_up,
 			k_engine_dn,k_engine_up,
 			k_lock_dn,k_lock_up,
 		}
@@ -1213,32 +1207,13 @@ function ENT:PlayerSteerVehicle( ply, left, right )
 		local Ratio = 1 - math.Clamp((math.abs(self.ForwardSpeed) - fadespeed) / 25,0,1)
 		
 		local SteerRate = FastSteeringRate + (SlowSteeringRate - FastSteeringRate) * Ratio
-		local Steer =  (right - left) * SteerRate
+		local Steer = ((left + right) > 0 and (right - left) or self:GetMouseSteer()) * SteerRate
+		
 		local LocalDrift = math.acos( math.Clamp( self.Right:Dot(self.VelNorm) ,-1,1) ) * (180 / math.pi) - 90
 		
 		local CounterSteer = CounterSteeringEnabled and (math.Clamp(LocalDrift * CounterSteeringMul * (((left + right) == 0) and 1 or 0),-MaxHelpAngle,MaxHelpAngle) * ((self.ForwardSpeed > 50) and 1 or 0)) or 0
 		
-		if (ply:GetInfoNum( "cl_simfphys_mousesteer", 0 ) >= 1) then
-			local MoveX = self:GetFreelook() and 0 or (self.GetMouseX or 0) * 0.05 * ply:GetInfoNum( "cl_simfphys_ms_sensitivity", 1 )
-			local ms_fade = ply:GetInfoNum( "cl_simfphys_ms_return", 1 )
-			
-			self.SmoothMouse = self.SmoothMouse * 0.5 + MoveX
-			local NotMoving = MoveX == 0
-			local deadzone = ply:GetInfoNum( "cl_simfphys_ms_deadzone", 1.5 )
-			local exponent = ply:GetInfoNum( "cl_simfphys_ms_exponent", 2 )
-			
-			self.SmoothMouseX = Steer == 0 and (math.Clamp(self.SmoothMouseX - (NotMoving and math.Clamp(self.SmoothMouseX,-ms_fade,ms_fade) or 0) + self.SmoothMouse,-self.VehicleData["steerangle"],self.VehicleData["steerangle"])) or 0
-			local m_Steer = ((math.max(math.abs(self.SmoothMouseX) - deadzone,0) / (self.VehicleData["steerangle"] - deadzone)) ^ exponent * self.VehicleData["steerangle"]) * (self.SmoothMouseX < 0 and -1 or 1)
-			
-			self:SetDeadZone( deadzone / self.VehicleData["steerangle"] )
-			self:SetMousePos( self.SmoothMouseX / self.VehicleData["steerangle"] )
-			self:SetctPos( -CounterSteer / self.VehicleData["steerangle"] )
-			
-			local mturn = self.SmoothMouseX == 0 and TurnSpeed or self.VehicleData["steerangle"]
-			self.SmoothAng = self.SmoothAng + math.Clamp((m_Steer == 0 and (Steer - CounterSteer) or m_Steer) - self.SmoothAng,-mturn,mturn)
-		else
-			self.SmoothAng = self.SmoothAng + math.Clamp((Steer - CounterSteer) - self.SmoothAng,-TurnSpeed,TurnSpeed)
-		end
+		self.SmoothAng = self.SmoothAng + math.Clamp((Steer - CounterSteer) - self.SmoothAng,-TurnSpeed,TurnSpeed)
 		
 		self:SteerVehicle( self.SmoothAng )
 	end
@@ -1324,6 +1299,12 @@ function ENT:EnteringSequence( ply )
 	
 	self:PlayAnimation( sequence )
 	self:ForceLightsOff()
+end
+
+function ENT:GetMouseSteer()
+	if IsValid(self.DriverSeat) then return (self.DriverSeat.ms_Steer or 0) end
+	
+	return 0
 end
 
 function ENT:Use( ply )
@@ -1467,8 +1448,6 @@ function ENT:SetValues()
 	self.SmoothBlower = 0
 	self.cc_speed = 0
 	self.LightsActivated = false
-	self.SmoothMouse = 0
-	self.SmoothMouseX = 0
 
 	self.VehicleData = {}
 	for i = 1, 6 do
@@ -2133,11 +2112,6 @@ numpad.Register( "k_ccon", function( pl, ent, keydown )
 			ent.cc_speed = math.Round(ent:GetVelocity():Length(),0)
 		end
 	end
-end )
-
-numpad.Register( "k_frk", function( pl, ent, keydown )
-	if (!IsValid(pl) or !IsValid(ent)) then return false end
-	ent:SetFreelook( keydown )
 end )
 
 numpad.Register( "k_hrn", function( pl, ent, keydown )

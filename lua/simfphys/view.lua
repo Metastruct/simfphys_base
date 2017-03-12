@@ -116,7 +116,7 @@ hook.Add("StartCommand", "simfphys_lockview", function(ply, ucmd)
 	
 	local ang = ucmd:GetViewAngles()
 	
-	if (vehiclebase:GetFreelook()) then
+	if ply.Freelook then
 		vehicle.lockedpitch = ang.p
 		vehicle.lockedyaw = ang.y
 		return
