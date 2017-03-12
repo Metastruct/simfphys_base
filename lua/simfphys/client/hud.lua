@@ -70,7 +70,7 @@ ms_key_freelook = GetConVar( "cl_simfphys_ms_keyfreelook" ):GetInt()
 
 local ms_pos_x = 0
 
-hook.Add( "VehicleMove", "simfphysmove", function(ply,veh,mv)
+hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
 	if ply != LocalPlayer() then return end
 	
 	local vehicle = ply:GetVehicle()
@@ -80,7 +80,6 @@ hook.Add( "VehicleMove", "simfphysmove", function(ply,veh,mv)
 		local freelook = input.IsButtonDown( ms_key_freelook )
 		ply.Freelook = freelook
 		if not freelook then 
-			local cmd = ply:GetCurrentCommand()
 			local frametime = RealFrameTime()
 			
 			local ms_delta_x = cmd:GetMouseX()
