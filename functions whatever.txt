@@ -67,10 +67,17 @@ entity:DisableLights()  -- removes all lights from the inbuild lighting system
 entity:SteerVehicle( number ) -- sets the angle of the steering
 entity:Lock()  -- locks the vehicle
 entity:UnLock() -- unlocks the vehicle
-entity:StallAndRestart( ntime = 1 )  -- stalls the engine and restarts it after set amount of time
+
+entity:StopEngine()	-- stops the engine
+entity:StartEngine( bKeepGear = false )  -- starts the engine and resets to neutral gear if bKeepGear is nil or false
+entity:StallAndRestart( ntime = 1, bKeepGear = false )  -- stalls the engine and restarts it after set amount of time.
+
 entity:DamagedStall() -- stalls the engine and restarts with backfiring
+
 entity:SetMaxHealth( nHealth ) -- sets the max health
 entity:SetCurHealth( nHealth ) -- sets the current health
+
+
 
 entity:SetControl( table ) -- controls the vehicle (only works without driver when the vehicle is active)
 
