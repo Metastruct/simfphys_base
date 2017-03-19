@@ -461,7 +461,7 @@ function ENT:SetSoundPreset(index)
 		end
 		
 		if (self.EngineSounds[ "Idle" ] != false and self.EngineSounds[ "LowRPM" ] != false and self.EngineSounds[ "HighRPM" ] != false) then
-			self:ValidateSounds()
+			self:PrecacheSounds()
 			
 			return true
 		else
@@ -520,7 +520,7 @@ function ENT:SetSoundPreset(index)
 		self.PitchMulHigh = 1
 		self.PitchMulAll = 1
 		
-		self:ValidateSounds()
+		self:PrecacheSounds()
 		
 		return false
 	end
@@ -538,7 +538,7 @@ function ENT:SetSoundPreset(index)
 		self.PitchMulHigh = simfphys.SoundPresets[clampindex][8]
 		self.PitchMulAll = simfphys.SoundPresets[clampindex][9]
 		
-		self:ValidateSounds()
+		self:PrecacheSounds()
 		
 		return true
 	end
@@ -546,10 +546,12 @@ function ENT:SetSoundPreset(index)
 	return false
 end
 
-function ENT:ValidateSounds()
+function ENT:PrecacheSounds()
 	for index, sound in pairs( self.EngineSounds ) do
 		if not isbool(sound) then
-			if not file.Exists( "sound/"..sound, "GAME" ) then
+			if file.Exists( "sound/"..sound, "GAME" ) then
+				util.PrecacheSound( sound )
+			else
 				print("Warning soundfile \""..sound.."\" not found. Using \"common/null.wav\" instead to prevent fps rape")
 				self.EngineSounds[index] = "common/null.wav"
 			end
