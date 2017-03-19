@@ -413,12 +413,8 @@ local function buildserversettingsmenu( self )
 			NewTractionData["wood"] = 1
 			
 			for k, v in pairs( NewTractionData ) do
-				DemSliders[k]:SetValue( 1 )
+				DemSliders[k]:SetValue( v )
 			end
-			DemSliders.ice:SetValue( 0.35 )
-			DemSliders.gmod_ice:SetValue( 0.1 )
-			DemSliders.snow:SetValue( 0.7 )
-			DemSliders.slipperyslime:SetValue( 0.2 )
 			
 			CheckBoxDamage:SetValue( 1 )
 			GibRemoveTimer:SetValue( 120 )
