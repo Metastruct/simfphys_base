@@ -2,12 +2,6 @@ util.AddNetworkString( "simfphys_spritedamage" )
 util.AddNetworkString( "simfphys_lightsfixall" )
 util.AddNetworkString( "simfphys_backfire" )
 
-local DamageEnabled = false
-cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue, newValue )
-	DamageEnabled = ( tonumber( newValue )~=0 )
-end)
-DamageEnabled = GetConVar( "sv_simfphys_enabledamage" ):GetBool()
-
 local function SetEntOwner( ply , entity )
 	if CPPI then
 		if IsValid( ply ) then
@@ -101,7 +95,7 @@ local function DestroyVehicle( ent )
 end
 
 local function DamageVehicle( ent , damage )
-	if not DamageEnabled then return end
+	if not simfphys.DamageEnabled then return end
 	
 	local MaxHealth = ent:GetMaxHealth()
 	local CurHealth = ent:GetCurHealth()
@@ -142,7 +136,7 @@ local function HurtPlayers( ent, damage )
 end
 
 local function bcDamage( vehicle , position , cdamage )
-	if !DamageEnabled then return end
+	if not simfphys.DamageEnabled then return end
 	
 	cdamage = cdamage or false
 	net.Start( "simfphys_spritedamage" )

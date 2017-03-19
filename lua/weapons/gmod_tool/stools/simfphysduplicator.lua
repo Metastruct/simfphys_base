@@ -203,40 +203,6 @@ if CLIENT then
 	end
 end
 
-function TOOL:SpawnVehicle( Player, Pos, Ang, Model, Class, VName, VTable, data )
-	if ( !gamemode.Call( "PlayerSpawnVehicle", Player, Model, VName, VTable ) ) then return end
-
-	if (!file.Exists( Model, "GAME" )) then 
-		Player:PrintMessage( HUD_PRINTTALK, "ERROR: \""..Model.."\" does not exist! (Class: "..VName..")")
-		return
-	end
-	
-	local Ent = ents.Create( "gmod_sent_vehicle_fphysics_base" )
-	if ( !Ent ) then return NULL end
-
-	duplicator.DoGeneric( Ent, data )
-	
-	Ent:SetModel( Model )
-	Ent:SetAngles( Ang )
-	Ent:SetPos( Pos )
-
-	DoPropSpawnedEffect( Ent )
-
-	Ent:Spawn()
-	Ent:Activate()
-
-	Ent.VehicleName = VName
-	Ent.VehicleTable = VTable
-	Ent.EntityOwner = Player
-	Ent:SetSpawn_List( VName )
-
-	if ( IsValid( Player ) ) then
-		gamemode.Call( "PlayerSpawnedVehicle", Player, Ent )
-	end
-
-	return Ent
-end
-
 function TOOL:GetVehicleData( ent, ply )
 	if not IsValid(ent) then return end
 	if not istable(ply.TOOLMemory) then ply.TOOLMemory = {} end
@@ -436,40 +402,8 @@ function TOOL:LeftClick( trace )
 	SpawnAng.yaw = SpawnAng.yaw + 180 + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 	SpawnAng.roll = 0
 	
-	local Ent = self:SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle )
+	local Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle )
 	if not IsValid( Ent ) then return end
-	
-	if ( vehicle.Members ) then
-		table.Merge( Ent, vehicle.Members )
-		duplicator.StoreEntityModifier( Ent, "VehicleMemDupe", vehicle.Members )
-	end
-
-	if ( Ent.ModelInfo ) then
-		if (Ent.ModelInfo.Bodygroups) then
-			for i = 1, table.Count( Ent.ModelInfo.Bodygroups ) do
-				Ent:SetBodygroup(i, Ent.ModelInfo.Bodygroups[i] ) 
-			end
-		end
-		
-		if (Ent.ModelInfo.Skin) then
-			Ent:SetSkin( Ent.ModelInfo.Skin )
-		end
-		
-		if (Ent.ModelInfo.Color) then
-			Ent:SetColor( Ent.ModelInfo.Color )
-			
-			local Color = Ent.ModelInfo.Color
-			local dot = Color.r * Color.g * Color.b * Color.a
-			Ent.OldColor = dot
-			
-			local data = {
-				Color = Color,
-				RenderMode = 0,
-				RenderFX = 0
-			}
-			duplicator.StoreEntityModifier( Ent, "colour", data )
-		end
-	end
 	
 	local tsc = string.Explode( ",", ply.TOOLMemory.TireSmokeColor )
 	Ent:SetTireSmokeColor( Vector( tonumber(tsc[1]), tonumber(tsc[2]), tonumber(tsc[3]) ) )
@@ -634,7 +568,7 @@ function TOOL:RightClick( trace )
 		return false
 	end
 	
-	if ent:GetClass():lower() != "gmod_sent_vehicle_fphysics_base" then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	self:GetVehicleData( ent, ply )
 	

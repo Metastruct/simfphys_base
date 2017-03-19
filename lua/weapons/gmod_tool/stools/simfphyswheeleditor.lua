@@ -106,11 +106,7 @@ end
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	if (SERVER) then
 		local front_model = self:GetClientInfo("frontwheelmodel")
@@ -151,11 +147,7 @@ end
 function TOOL:Reload( trace )
 	local ent = trace.Entity
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	if (SERVER) then
 		local vname = ent:GetSpawn_List()

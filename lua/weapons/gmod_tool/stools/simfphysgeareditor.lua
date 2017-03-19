@@ -20,6 +20,14 @@ TOOL.ClientConVar[ "gear_11" ] = 1.1
 TOOL.ClientConVar[ "gear_12" ] = 1.2
 TOOL.ClientConVar[ "gear_diff" ] = 0.5
 
+local function SetGears( ply, ent, gears)
+	if ( SERVER ) then
+		ent.Gears = gears
+		duplicator.StoreEntityModifier( ent, "gearmod", gears )
+	end
+end
+duplicator.RegisterEntityModifier( "gearmod", SetGears )
+
 if CLIENT then
 	language.Add( "tool.simfphysgeareditor.name", "simfphys Transmission Editor" )
 	language.Add( "tool.simfphysgeareditor.desc", "A tool used to edit gear ratios on simfphys vehicles" )
@@ -30,23 +38,11 @@ if CLIENT then
 	language.Add( "tool.simfphysgeareditor.differential.help", "Multiplier for all gears" )
 end
 
-local function SetGears( ply, ent, gears)
-	if ( SERVER ) then
-		ent.Gears = gears
-		duplicator.StoreEntityModifier( ent, "gearmod", gears )
-	end
-end
-duplicator.RegisterEntityModifier( "gearmod", SetGears )
-
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	
-	if (!IsValid(ent)) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
-
 	if (SERVER) then
 		local vname = ent:GetSpawn_List()
 		local VehicleList = list.Get( "simfphys_vehicles" )[vname]
@@ -69,11 +65,7 @@ function TOOL:RightClick( trace )
 	local ent = trace.Entity
 	local ply = self:GetOwner()
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	if (SERVER) then
 		local vname = ent:GetSpawn_List()
@@ -98,11 +90,7 @@ function TOOL:Reload( trace )
 	local ent = trace.Entity
 	local ply = self:GetOwner()
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	if (SERVER) then
 		local vname = ent:GetSpawn_List()

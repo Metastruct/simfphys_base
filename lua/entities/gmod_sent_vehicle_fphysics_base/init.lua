@@ -2,13 +2,6 @@ AddCSLuaFile( "shared.lua" )
 AddCSLuaFile( "cl_init.lua" )
 include('shared.lua')
 
-local frictiondata = {
-	["ice"] = 0.35,
-	["friction_00"] = 0.1,
-	["gmod_ice"] = 0.1,
-	["snow"] = 0.7,
-}
-
 function ENT:PostEntityPaste( ply , ent , createdEntities )
 	self:SetValues()
 	
@@ -763,9 +756,9 @@ function ENT:WheelOnGround()
 		local Wheel = self.Wheels[i]		
 		if IsValid(Wheel) then
 			local dmgMul = Wheel:GetDamaged() and 0.5 or 1
-			local surfacemul = frictiondata[Wheel:GetSurfaceMaterial()]
+			local surfacemul = simfphys.TractionData[Wheel:GetSurfaceMaterial():lower()]
 			
-			self.VehicleData[ "SurfaceMul_" .. i ] = (surfacemul and surfacemul or 1) * dmgMul
+			self.VehicleData[ "SurfaceMul_" .. i ] = (surfacemul and math.max(surfacemul,0.001) or 1) * dmgMul
 			
 			local IsFrontWheel = i == 1 or i == 2
 			local WheelRadius = IsFrontWheel and self.FrontWheelRadius or self.RearWheelRadius
@@ -1128,7 +1121,7 @@ function ENT:SimulateWheels(left,right,k_clutch,LimitRPM)
 			
 			local PowerBiasMul = IsFrontWheel and (1 - self:GetPowerDistribution()) * 0.5 or (1 + self:GetPowerDistribution()) * 0.5
 			
-			local ForwardForce = self.EngineTorque * PowerBiasMul * IsPoweredWheel + (!IsFrontWheel and math.Clamp(-Fx,-self.HandBrake,self.HandBrake) or 0) * SurfaceMultiplicator
+			local ForwardForce = self.EngineTorque * PowerBiasMul * IsPoweredWheel + (!IsFrontWheel and math.Clamp(-Fx,-self.HandBrake,self.HandBrake) or 0)
 			
 			local TractionCycle = Vector(math.min(absFy,MaxTraction),ForwardForce,0):Length()
 			local GripLoss = math.max(TractionCycle - MaxTraction,0)
@@ -1140,7 +1133,7 @@ function ENT:SimulateWheels(left,right,k_clutch,LimitRPM)
 			
 			local Power = ForwardForce * Efficiency - GripLoss * signForwardForce + BrakeForce
 			
-			local Force = -Right * math.Clamp(Fy,-GripRemaining,GripRemaining) + Forward * Power * SurfaceMultiplicator
+			local Force = -Right * math.Clamp(Fy,-GripRemaining,GripRemaining) + Forward * Power
 			
 			local wRad = Wheel:GetDamaged() and Wheel.dRadius or WheelRadius
 			local TurnWheel = ((Fx + GripLoss * 35 * signEngineTorque * IsPoweredWheel) / wRad * 1.85) + self.EngineRPM / 80 * (1 - OnGround) * IsPoweredWheel * (1 - k_clutch)

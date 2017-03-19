@@ -9,15 +9,14 @@ if SERVER then
 	AddCSLuaFile("simfphys/client/poseparameter.lua")
 	
 	AddCSLuaFile("simfphys/anim.lua")
-	AddCSLuaFile("simfphys/convars.lua")
-	AddCSLuaFile("simfphys/particles.lua")
+	AddCSLuaFile("simfphys/base_functions.lua")
 	AddCSLuaFile("simfphys/rescuespawnlists.lua")
 	AddCSLuaFile("simfphys/base_lights.lua")
 	AddCSLuaFile("simfphys/base_vehicles.lua")
 	AddCSLuaFile("simfphys/view.lua")
 	AddCSLuaFile("simfphys/wheelpickup.lua")
 	
-	include("simfphys/convars.lua")
+	include("simfphys/base_functions.lua")
 	include("simfphys/server/exitpoints.lua")
 	include("simfphys/server/spawner.lua")
 	include("simfphys/server/seatcontrols.lua")
@@ -26,7 +25,7 @@ if SERVER then
 end
 	
 if CLIENT then
-	include("simfphys/convars.lua")
+	include("simfphys/base_functions.lua")
 	include("simfphys/client/killicons.lua")
 	include("simfphys/client/fonts.lua")
 	include("simfphys/client/tab.lua")
@@ -42,7 +41,6 @@ include("simfphys/base_lights.lua")
 include("simfphys/base_vehicles.lua")
 include("simfphys/view.lua")
 include("simfphys/wheelpickup.lua")
-include("simfphys/particles.lua")
 
 timer.Simple( 0.5, function()
 	include("simfphys/rescuespawnlists.lua")

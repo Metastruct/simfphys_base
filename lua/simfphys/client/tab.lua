@@ -314,6 +314,166 @@ local function buildmsmenu( self )
 	end
 end
 
+local function buildserversettingsmenu( self )
+	local Background = vgui.Create( "DShape", self.PropPanel)
+	Background:SetType( "Rect" )
+	Background:SetPos( 20, 20 )
+	Background:SetColor( Color( 0, 0, 0, 200 ) )
+	local y = 0
+	
+	--local MaxVel = physenv.GetPerformanceSettings().MaxVelocity  -- why isnt this synced with the server?
+	--local mph = MaxVel * 0.0568182
+	--local kmh = MaxVel * 0.09144
+	
+	if LocalPlayer():IsSuperAdmin() then
+		y = y + 25
+		local CheckBoxDamage = vgui.Create( "DCheckBoxLabel", self.PropPanel)
+		CheckBoxDamage:SetPos( 25, y )
+		CheckBoxDamage:SetText( "Enable Damage" )
+		CheckBoxDamage:SetValue( GetConVar( "sv_simfphys_enabledamage" ) :GetInt() )
+		CheckBoxDamage:SizeToContents()
+		
+		y = y + 25
+		local GibRemoveTimer = vgui.Create( "DNumSlider", self.PropPanel)
+		GibRemoveTimer:SetPos( 30, y )
+		GibRemoveTimer:SetSize( 345, 30 )
+		GibRemoveTimer:SetText( "Gib Lifetime\n(0 = never remove)" )
+		GibRemoveTimer:SetMin( 0 )
+		GibRemoveTimer:SetMax( 3600 )
+		GibRemoveTimer:SetDecimals( 0 )
+		GibRemoveTimer:SetValue( GetConVar( "sv_simfphys_gib_lifetime" ):GetInt() )
+		
+		y = y + 45
+		local tractionLabel = vgui.Create( "DLabel", self.PropPanel )
+		tractionLabel:SetPos( 25, y )
+		tractionLabel:SetText( "Traction Multiplicator for:" )
+		tractionLabel:SizeToContents()
+		
+		local NewTractionData = {}
+		local DemSliders = {}
+		y = y + 15
+		for k, v in pairs( simfphys.TractionData ) do
+			DemSliders[k] = vgui.Create( "DNumSlider", self.PropPanel)
+			DemSliders[k]:SetPos( 30, y )
+			DemSliders[k]:SetSize( 345, 30 )
+			DemSliders[k]:SetText( k )
+			DemSliders[k]:SetMin( 0 )
+			DemSliders[k]:SetMax( 5 )
+			DemSliders[k]:SetDecimals( 2 )
+			DemSliders[k]:SetValue( simfphys[k]:GetFloat() )
+			DemSliders[k].OnValueChanged = function( item, value )
+				NewTractionData[ k ] = value
+			end
+			y = y + 25
+		end
+		
+		--[[
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y + 35 )
+		Label:SetText( "Max possibe speed is: \n(playersize) "..math.Round(mph,0).." mph or "..math.Round(kmh,0).." km/h\n(worldsize) "..math.Round(mph * 0.75,0).." mph or "..math.Round(kmh * 0.75,0).." km/h" )
+		Label:SizeToContents()
+		
+		y = y + 80
+		]]--
+		
+		y = y + 30
+		local DermaButton = vgui.Create( "DButton" )
+		DermaButton:SetParent( self.PropPanel )
+		DermaButton:SetText( "Apply" )	
+		DermaButton:SetPos( 25, y - 10 )
+		DermaButton:SetSize( 340, 25 )
+		DermaButton.DoClick = function()
+			net.Start("simfphys_settings")
+				net.WriteBool( CheckBoxDamage:GetChecked() )
+				net.WriteFloat( GibRemoveTimer:GetValue() )
+				net.WriteTable( NewTractionData ) 
+			net.SendToServer()
+		end
+		
+		y = y + 30
+		local DermaButton = vgui.Create( "DButton" )
+		DermaButton:SetParent( self.PropPanel )
+		DermaButton:SetText( "Reset" )	
+		DermaButton:SetPos( 25, y - 10 )
+		DermaButton:SetSize( 340, 25 )
+		DermaButton.DoClick = function()
+			
+			NewTractionData["ice"] = 0.35
+			NewTractionData["gmod_ice"] = 0.1
+			NewTractionData["slipperyslime"] = 0.2
+			NewTractionData["snow"] = 0.7
+			NewTractionData["grass"] = 1
+			NewTractionData["sand"] = 1
+			NewTractionData["dirt"] = 1
+			NewTractionData["concrete"] = 1
+			NewTractionData["metal"] = 1
+			NewTractionData["glass"] = 1
+			NewTractionData["gravel"] = 1
+			NewTractionData["rock"] = 1
+			NewTractionData["wood"] = 1
+			
+			for k, v in pairs( NewTractionData ) do
+				DemSliders[k]:SetValue( 1 )
+			end
+			DemSliders.ice:SetValue( 0.35 )
+			DemSliders.gmod_ice:SetValue( 0.1 )
+			DemSliders.snow:SetValue( 0.7 )
+			DemSliders.slipperyslime:SetValue( 0.2 )
+			
+			CheckBoxDamage:SetValue( 1 )
+			GibRemoveTimer:SetValue( 120 )
+			
+			net.Start("simfphys_settings")
+				net.WriteBool( true )
+				net.WriteFloat( 120 )
+				net.WriteTable( NewTractionData ) 
+			net.SendToServer()
+		end
+	else
+		y = y + 25
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y )
+		Label:SetText( "Damage is "..((GetConVar( "sv_simfphys_enabledamage" ):GetInt() > 0) and "enabled" or "disabled") )
+		Label:SizeToContents()
+
+		y = y + 25
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		local lifetime = GetConVar( "sv_simfphys_gib_lifetime" ):GetInt()
+		Label:SetPos( 30, y )
+		Label:SetText( (lifetime > 0) and ("Gib Lifetime = "..lifetime.." seconds") or "Gibs never despawn" )
+		Label:SizeToContents()
+
+		y = y + 45
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y )
+		Label:SetText( "Traction multiplier for..." )
+		Label:SizeToContents()
+
+		y = y + 15
+		for k, v in pairs( simfphys.TractionData ) do
+			local tractionLabel = vgui.Create( "DLabel", self.PropPanel )
+			tractionLabel:SetPos( 105, y )
+			tractionLabel:SetText( k )
+			tractionLabel:SizeToContents()
+			
+			local tractionLabel = vgui.Create( "DLabel", self.PropPanel )
+			tractionLabel:SetPos( 170, y )
+			tractionLabel:SetText( "=" )
+			tractionLabel:SizeToContents()
+			
+			local tractionLabel = vgui.Create( "DLabel", self.PropPanel )
+			tractionLabel:SetPos( 185, y )
+			tractionLabel:SetText( math.Round(v,2) )
+			tractionLabel:SizeToContents()
+			
+			y = y + 25
+		end
+		y = y - 25
+	end
+	
+	Background:SetSize( 350, y )
+end
+
 
 hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, tree, node )
 
@@ -422,25 +582,19 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 		pnlContent:SwitchPanel( self.PropPanel )
 	end
 	
-	--[[
 	-- SERVER SETTINGS
-	if LocalPlayer():IsSuperAdmin() then
-		local node = tree:AddNode( "Server Settings", "icon16/wrench_orange.png" )
-		node.DoPopulate = function( self )
-			if ( self.PropPanel ) then return end
-			
-			self.PropPanel = vgui.Create( "ContentContainer", pnlContent )
-			self.PropPanel:SetVisible( false )
-			self.PropPanel:SetTriggerSpawnlistChange( false )
+	local node = tree:AddNode( "Server Settings", "icon16/wrench_orange.png" )
+	node.DoPopulate = function( self )
+		self.PropPanel = vgui.Create( "ContentContainer", pnlContent )
+		self.PropPanel:SetVisible( false )
+		self.PropPanel:SetTriggerSpawnlistChange( false )
 
-			--buildclientsettingsmenu( self )
-		end
-		node.DoClick = function( self )
-			self:DoPopulate()
-			pnlContent:SwitchPanel( self.PropPanel )
-		end
+		buildserversettingsmenu( self )
 	end
-	]]--
+	node.DoClick = function( self )
+		self:DoPopulate()
+		pnlContent:SwitchPanel( self.PropPanel )
+	end
 
 	
 	-- Select the first node

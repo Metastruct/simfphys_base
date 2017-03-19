@@ -13,21 +13,17 @@ TOOL.ClientConVar[ "height_r" ] = 0
 TOOL.ClientConVar[ "damping_f" ] = 2500
 TOOL.ClientConVar[ "damping_r" ] = 2500
 
-
 if CLIENT then
 	language.Add( "tool.simfphyssuspensioneditor.name", "simfphys suspension editor" )
 	language.Add( "tool.simfphyssuspensioneditor.desc", "A tool used to edit suspension on simfphys vehicles" )
 	language.Add( "tool.simfphyssuspensioneditor.0", "Left click apply settings. Reload to reset" )
 	language.Add( "tool.simfphyssuspensioneditor.1", "Left click apply settings. Reload to reset" )
 end
+
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	local data = {
 		[1] = {tonumber( self:GetClientInfo( "constant_f" ) ),tonumber( self:GetClientInfo( "damping_f" ) )},
@@ -78,11 +74,7 @@ function TOOL:Reload( trace )
 	local ent = trace.Entity
 	local ply = self:GetOwner()
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	if (SERVER) then
 		local vname = ent:GetSpawn_List()
