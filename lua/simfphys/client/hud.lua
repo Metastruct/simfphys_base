@@ -27,6 +27,7 @@ local ForceSimpleHud = !file.Exists( "materials/simfphys/hud/hud.vmt", "GAME" ) 
 local ShowHud = false
 local ShowHud_ms = false
 local AltHud = false
+local AltHudarcs = false
 local Hudmph = false
 local Hudreal = false
 local isMouseSteer = false
@@ -42,6 +43,7 @@ local ms_key_freelook = KEY_Y
 cvars.AddChangeCallback( "cl_simfphys_hud", function( convar, oldValue, newValue ) ShowHud = tonumber( newValue )~=0 end)
 cvars.AddChangeCallback( "cl_simfphys_ms_hud", function( convar, oldValue, newValue ) ShowHud_ms = tonumber( newValue )~=0 end)
 cvars.AddChangeCallback( "cl_simfphys_althud", function( convar, oldValue, newValue ) AltHud = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_althud_arcs", function( convar, oldValue, newValue ) AltHudarcs = tonumber( newValue )~=0 end)
 cvars.AddChangeCallback( "cl_simfphys_hudmph", function( convar, oldValue, newValue ) Hudmph = tonumber( newValue )~=0 end)
 cvars.AddChangeCallback( "cl_simfphys_hudrealspeed", function( convar, oldValue, newValue ) Hudreal = tonumber( newValue )~=0 end)
 cvars.AddChangeCallback( "cl_simfphys_mousesteer", function( convar, oldValue, newValue ) isMouseSteer = tonumber( newValue )~=0 end)
@@ -56,6 +58,7 @@ cvars.AddChangeCallback( "cl_simfphys_ms_keyfreelook", function( convar, oldValu
 ShowHud = GetConVar( "cl_simfphys_hud" ):GetBool()
 ShowHud_ms = GetConVar( "cl_simfphys_ms_hud" ):GetBool()
 AltHud = GetConVar( "cl_simfphys_althud" ):GetBool()
+AltHudarcs = GetConVar( "cl_simfphys_althud_arcs" ):GetBool()
 Hudmph = GetConVar( "cl_simfphys_hudmph" ):GetBool()
 Hudreal = GetConVar( "cl_simfphys_hudrealspeed" ):GetBool()
 isMouseSteer = GetConVar( "cl_simfphys_mousesteer" ):GetBool()
@@ -181,7 +184,10 @@ local function drawsimfphysHUD(vehicle)
 		
 		draw.NoTexture()
 		
-		for i = 0,r_rpm,1000 do
+		local step = 0
+		for i = 0,maxrpm,250 do
+			step = step + 1
+			
 			local anglestep = (255 / maxrpm) * i
 			
 			local n_col_on
@@ -199,9 +205,14 @@ local function drawsimfphysHUD(vehicle)
 			local cos_a = math.cos( math.rad(startang + anglestep) )
 			local sin_a = math.sin( math.rad(startang + anglestep) )
 			
-			surface.DrawLine( x + cos_a * radius / 1.3, y + sin_a * radius / 1.3, x + cos_a * radius, y + sin_a * radius)
-			local printnumber = tostring(i / 1000)
-			draw.SimpleText(printnumber, "simfphysfont3", x + cos_a * radius / 1.5, y + sin_a * radius / 1.5,u_col, 1, 1 )
+			if step > 4 then
+				step = 1
+				surface.DrawLine( x + cos_a * radius / 1.3, y + sin_a * radius / 1.3, x + cos_a * radius, y + sin_a * radius)
+				local printnumber = tostring(i / 1000)
+				draw.SimpleText(printnumber, "simfphysfont3", x + cos_a * radius / 1.5, y + sin_a * radius / 1.5,u_col, 1, 1 )
+			else
+				surface.DrawLine( x + cos_a * radius / 1.05, y + sin_a * radius / 1.05, x + cos_a * radius, y + sin_a * radius)
+			end
 		end
 		
 		local center_ncol = in_red and Color(0,254,235,200) or Color( 255, 0, 0, 255 )
@@ -210,19 +221,22 @@ local function drawsimfphysHUD(vehicle)
 		surface.DrawLine( x + c_ang * radius / 3.5, y + s_ang * radius / 3.5, x + c_ang * radius, y + s_ang * radius)
 		surface.SetDrawColor( 255, 255, 255, 255 )
 		
-		draw.Arc(x,y,radius,radius / 6.66,startang,math.min(endang,ang_pend),1,Color(255,255,255,150),true)
-		
-		-- middle
-		--draw.Arc(x,y,radius / 3.5,radius / 66,startang,360,15,Color(255,255,255,50),true)
-		
-		-- outer
-		--draw.Arc(x,y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
-		draw.Arc(x,y,radius,radius / 6.66,ang_pend,360,1,Color(120,0,0,230),true)
-		
-		draw.Arc(x,y,radius,radius / 6.66,math.Round(ang_pend - 1,0),startang + (s_smoothrpm / maxrpm) * 255,1,Color(255,0,0,140),true)
-		
-		--inner
-		--draw.Arc(x,y,radius / 5,radius / 70,0,360,15,center_ncol,true)
+		if AltHudarcs then
+			
+			draw.Arc(x,y,radius,radius / 6.66,startang,math.min(endang,ang_pend),1,Color(255,255,255,150),true)
+			
+			-- middle
+			--draw.Arc(x,y,radius / 3.5,radius / 66,startang,360,15,Color(255,255,255,50),true)
+			
+			-- outer
+			--draw.Arc(x,y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
+			draw.Arc(x,y,radius,radius / 6.66,ang_pend,360,1,Color(120,0,0,230),true)
+			
+			draw.Arc(x,y,radius,radius / 6.66,math.Round(ang_pend - 1,0),startang + (s_smoothrpm / maxrpm) * 255,1,Color(255,0,0,140),true)
+			
+			--inner
+			--draw.Arc(x,y,radius / 5,radius / 70,0,360,15,center_ncol,true)
+		end
 		
 		draw.SimpleText( (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)), "simfphysfont2", x * 0.999, y * 0.996, center_ncol, 1, 1 )
 		
