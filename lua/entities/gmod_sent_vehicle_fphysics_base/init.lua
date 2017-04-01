@@ -236,8 +236,6 @@ end
 
 function ENT:SimulateVehicle( curtime )
 	local Active = self:GetActive()
-	local TurboCharged = self:GetTurboCharged()
-	local SuperCharged = self:GetSuperCharged()
 	
 	local EngineData = self:GetEngineData()
 	
@@ -302,7 +300,7 @@ function ENT:SimulateVehicle( curtime )
 		
 		local cruise = self:GetIsCruiseModeOn()
 		
-		local k_sanic =  IsValidDriver and ply:GetInfoNum( "cl_simfphys_sanic", 0 ) or 1
+		local k_sanic = IsValidDriver and ply:GetInfoNum( "cl_simfphys_sanic", 0 ) or 1
 		local sanicmode = isnumber( k_sanic ) and k_sanic or 0
 		local k_Shift = self.PressedKeys["Shift"]
 		local Shift = (sanicmode == 1) and (k_Shift and 0 or 1) or (k_Shift and 1 or 0)
@@ -314,8 +312,6 @@ function ENT:SimulateVehicle( curtime )
 		local Alt = self.PressedKeys["Alt"] and 1 or 0
 		local Space = self.PressedKeys["Space"] and 1 or 0
 		
-		local boost = (TurboCharged and self:SimulateTurbo(LimitRPM) or 0) * 0.3 + (SuperCharged and self:SimulateBlower(LimitRPM) or 0)
-		
 		if cruise then
 			if k_Shift then
 				self.cc_speed = math.Round(self:GetVelocity():Length(),0) + 70
@@ -326,8 +322,10 @@ function ENT:SimulateVehicle( curtime )
 		end
 		
 		self:SimulateTransmission(W,S,Shift,Alt,Space,GearUp,GearDown,transmode,IdleRPM,Powerbandstart,Powerbandend,sportsmode,cruise,curtime)
-		self:SimulateEngine(W,S,aA,aD,boost,IdleRPM,LimitRPM,Powerbandstart,Powerbandend,curtime,aW,aS)
-		self:SimulateWheels(A,D,math.max(Space,Alt),LimitRPM)
+		
+		self:SimulateEngine( IdleRPM, LimitRPM, Powerbandstart, Powerbandend, curtime )
+		self:SimulateWheels( math.max(Space,Alt), LimitRPM )
+		self:SimulateAirControls( aW, aS, aA, aD )
 		
 		if self.WheelOnGroundDelay < curtime then
 			self:WheelOnGround()
@@ -337,12 +335,6 @@ function ENT:SimulateVehicle( curtime )
 	
 	if self.CustomWheels then
 		self:PhysicalSteer()
-	end
-end
-
-function ENT:SetControl( Data )
-	for k,v in pairs(Data) do
-		self.PressedKeys[k] = v
 	end
 end
 

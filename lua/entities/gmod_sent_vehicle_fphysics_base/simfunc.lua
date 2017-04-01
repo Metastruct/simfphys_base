@@ -42,7 +42,17 @@ function ENT:WheelOnGround()
 	self.DriveWheelsOnGround = math.max(self.FrontWheelPowered and FrontOnGround or 0,self.RearWheelPowered and RearOnGround or 0)
 end
 
-function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time,tilt_forward,tilt_back)
+function ENT:SimulateAirControls(tilt_forward,tilt_back,tilt_left,tilt_right)
+	if self:IsDriveWheelsOnGround() then return end
+	
+	local PObj = self:GetPhysicsObject()
+	
+	local TiltForce = ((self.Right * (tilt_right - tilt_left) * 1.8) + (self.Forward * (tilt_forward - tilt_back) * 6)) * math.acos( math.Clamp( self.Up:Dot(Vector(0,0,1)) ,-1,1) ) * (180 / math.pi) * self.Mass
+	PObj:ApplyForceOffset( TiltForce, PObj:GetMassCenter() + self.Up )
+	PObj:ApplyForceOffset( -TiltForce, PObj:GetMassCenter() - self.Up )
+end
+
+function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 	local PObj = self:GetPhysicsObject()
 
 	local Throttle = self:GetThrottle()
@@ -69,7 +79,9 @@ function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRP
 	local DesRPM = Lerp(InvClutch, math.max(IdleRPM + (LimitRPM - IdleRPM) * Throttle,0), GearedRPM )
 	local Drag = (MaxTorque * (math.max( self.EngineRPM - IdleRPM, 0) / Powerbandend) * ( 1 - Throttle) / 0.15) * InvClutch
 	
-	local boost = torqueboost or 0
+	local TurboCharged = self:GetTurboCharged()
+	local SuperCharged = self:GetSuperCharged()
+	local boost = (TurboCharged and self:SimulateTurbo(LimitRPM) or 0) * 0.3 + (SuperCharged and self:SimulateBlower(LimitRPM) or 0)
 	
 	self.EngineRPM = math.Clamp(self.EngineRPM + math.Clamp(DesRPM - self.EngineRPM,-math.max(self.EngineRPM / 15, 1 ),math.max(-self.RpmDiff / 1.5 * InvClutch + (self.Torque * 5) / 0.15 * self.Clutch, 1)) + self.RPM_DIFFERENCE * Throttle,0,LimitRPM) * self.EngineIsOn
 	self.Torque = (Throttle + boost) * math.max(MaxTorque * math.min(self.EngineRPM / Powerbandstart, (LimitRPM - self.EngineRPM) / (LimitRPM - Powerbandend),1), 0)
@@ -107,17 +119,10 @@ function ENT:SimulateEngine(forward,back,tilt_left,tilt_right,torqueboost,IdleRP
 	
 	PObj:ApplyForceOffset( -self.Forward * self.Mass * ReactionForce, ReactionForcePos + self.Up ) 
 	PObj:ApplyForceOffset( self.Forward * self.Mass * ReactionForce, ReactionForcePos - self.Up )
-	
-	if self:IsDriveWheelsOnGround() then return end
-	
-	local TiltForce = ((self.Right * (tilt_right - tilt_left) * 1.8) + (self.Forward * (tilt_forward - tilt_back) * 6)) * math.acos( math.Clamp( self.Up:Dot(Vector(0,0,1)) ,-1,1) ) * (180 / math.pi) * self.Mass
-	PObj:ApplyForceOffset( TiltForce, PObj:GetMassCenter() + self.Up )
-	PObj:ApplyForceOffset( -TiltForce, PObj:GetMassCenter() - self.Up )
 end
 
 function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_handbrake,k_gearup,k_geardown,isauto,IdleRPM,Powerbandstart,Powerbandend,shiftmode,cruisecontrol,curtime)
 	local GearsCount = table.Count( self.Gears ) 
-	local ply = self:GetDriver()
 	local cruiseThrottle = math.min( math.max(self.cc_speed - math.abs(self.ForwardSpeed),0) / 10 ^ 2, 1)
 	
 	if isnumber(self.ForceTransmission) then
@@ -250,7 +255,7 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 	end
 end
 
-function ENT:SimulateWheels(left,right,k_clutch,LimitRPM)
+function ENT:SimulateWheels(k_clutch,LimitRPM)
 	local SteerAngForward = self.Forward:Angle()
 	local SteerAngRight = self.Right:Angle()
 	local SteerAngForward2 = self.Forward:Angle()
