@@ -72,6 +72,7 @@ ms_exponent = GetConVar( "cl_simfphys_ms_exponent" ):GetFloat()
 ms_key_freelook = GetConVar( "cl_simfphys_ms_keyfreelook" ):GetInt()
 
 local ms_pos_x = 0
+local sm_throttle = 0
 
 hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
 	if ply != LocalPlayer() then return end
@@ -106,7 +107,7 @@ hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
 end)
 
 local function drawsimfphysHUD(vehicle)
-	if (isMouseSteer and ShowHud_ms) then
+	if isMouseSteer and ShowHud_ms then
 		local MousePos = ms_pos_x
 		local m_size = sizex * 0.15
 		
@@ -122,7 +123,7 @@ local function drawsimfphysHUD(vehicle)
 		end
 	end
 	
-	if (!ShowHud) then return end
+	if not ShowHud then return end
 	
 	local maxrpm = vehicle:GetLimitRPM()
 	local rpm = vehicle:GetRPM()
@@ -140,9 +141,9 @@ local function drawsimfphysHUD(vehicle)
 	local wirekmh = math.Round(speed * 0.09144 * 0.75,0)
 	local cruisecontrol = vehicle:GetIsCruiseModeOn()
 	local gear = vehicle:GetGear()
-	local DrawGear = !slushbox and (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)) or (gear == 1 and "R" or gear == 2 and "N" or "(".. (gear - 2)..")")
+	local DrawGear = not slushbox and (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)) or (gear == 1 and "R" or gear == 2 and "N" or "(".. (gear - 2)..")")
 	
-	if AltHud and !ForceSimpleHud then
+	if AltHud and not ForceSimpleHud then
 		local LightsOn = vehicle:GetLightsEnabled()
 		local LampsOn = vehicle:GetLampsEnabled()
 		local FogLightsOn = vehicle:GetFogLightsEnabled()
@@ -259,9 +260,10 @@ local function drawsimfphysHUD(vehicle)
 		draw.SimpleText( digit_2/ 10, "simfphysfont4", x * 1.045, y * 1.11, col2, 1, 1 )
 		draw.SimpleText( digit_3 / 100, "simfphysfont4", x * 1.01, y * 1.11, col3, 1, 1 )
 		
+		sm_throttle = sm_throttle + (throttle - sm_throttle) * 0.1
 		local t_size = (sizey * 0.1)
 		draw.RoundedBox( 0, x * 1.12, y * 1.06, sizex * 0.007, sizey * 0.1, Color(150,150,150,50) )
-		draw.RoundedBox( 0, x * 1.12, y * 1.06 + t_size - t_size * math.min(throttle / 100,1), sizex * 0.007, t_size * math.min(throttle / 100,1), Color(255,255,255,150) )
+		draw.RoundedBox( 0, x * 1.12, y * 1.06 + t_size - t_size * math.min(sm_throttle / 100,1), sizex * 0.007, t_size * math.min(sm_throttle / 100,1), Color(255,255,255,150) )
 		
 		return
 	end
