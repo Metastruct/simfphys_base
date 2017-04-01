@@ -19,6 +19,11 @@ local mslockpitch = CreateClientConVar( "cl_simfphys_ms_lockpitch", "0", true, t
 local mshud = CreateClientConVar( "cl_simfphys_ms_hud", "1", true, false )
 local k_msfreelook = CreateClientConVar( "cl_simfphys_ms_keyfreelook", KEY_Y, true, true )
 
+local overwrite = CreateClientConVar( "cl_simfphys_overwrite", 0, true, true )
+local steerspeed = CreateClientConVar( "cl_simfphys_steerspeed", 8, true, true )
+local faststeerang = CreateClientConVar( "cl_simfphys_steerangfast", 10, true, true )
+local fadespeed = CreateClientConVar( "cl_simfphys_fadespeed", 535, true, true )
+
 CreateClientConVar( "cl_simfphys_hidesprites", "0", true, false )
 CreateClientConVar( "cl_simfphys_spritedamage", "1", true, false )
 CreateClientConVar( "cl_simfphys_frontlamps", "1", true, false )
@@ -199,25 +204,20 @@ local function buildclientsettingsmenu( self )
 	createcheckbox(25,260,"Automatic Transmission","cl_simfphys_auto",self.PropPanel,auto:GetInt())
 	createcheckbox(25,280,"Automatic Sportmode (late up and downshifts)","cl_simfphys_sport",self.PropPanel,sport:GetInt())
 	
-	local y = 310
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
-	Shape:SetPos( 20, y )
+	Shape:SetPos( 20, 310 )
 	Shape:SetSize( 350, 115 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	
-	y = y + 5
-	local ctitem_1 = createcheckbox(25,y,"Enable Countersteer","cl_simfphys_ctenable",self.PropPanel,ctenable:GetInt())
-	y = y + 20
-	local ctitem_2 = createslider(30,y,345,40,"Countersteer Mul","cl_simfphys_ctmul",self.PropPanel,0.1,2,ctmul:GetFloat())
-	y = y + 20
-	local ctitem_3 = createslider(30,y,345,40,"Countersteer MaxAng","cl_simfphys_ctang",self.PropPanel,1,90,ctang:GetFloat())
+	local ctitem_1 = createcheckbox(25,315,"Enable Countersteer","cl_simfphys_ctenable",self.PropPanel,ctenable:GetInt())
+	local ctitem_2 = createslider(30,335,345,40,"Countersteer Mul","cl_simfphys_ctmul",self.PropPanel,0.1,2,ctmul:GetFloat())
+	local ctitem_3 = createslider(30,355,345,40,"Countersteer MaxAng","cl_simfphys_ctang",self.PropPanel,1,90,ctang:GetFloat())
 	
-	y = y + 40
 	local Reset = vgui.Create( "DButton" )
 	Reset:SetParent( self.PropPanel )
 	Reset:SetText( "Reset" )	
-	Reset:SetPos( 25, y )
+	Reset:SetPos( 25, 395 )
 	Reset:SetSize( 340, 25 )
 	Reset.DoClick = function()
 		ctitem_1:SetValue( 1 )
@@ -226,6 +226,34 @@ local function buildclientsettingsmenu( self )
 		ctenable:SetInt( 1 )
 		ctmul:SetFloat( 0.7 )
 		ctang:SetFloat( 15 )
+	end
+	
+	local Shape = vgui.Create( "DShape", self.PropPanel)
+	Shape:SetType( "Rect" )
+	Shape:SetPos( 20, 435 )
+	Shape:SetSize( 350, 140 )
+	Shape:SetColor( Color( 0, 0, 0, 200 ) )
+	
+	local st_item_1 = createcheckbox(25,440,"Use these settings\n(you need to re-enter the vehicle)","cl_simfphys_overwrite",self.PropPanel,overwrite:GetInt())
+	local st_item_2 = createslider(30,460,345,40,"steer speed","cl_simfphys_steerspeed",self.PropPanel,1,16,steerspeed:GetFloat())
+	local st_item_3 = createslider(30,480,345,40,"fast speed steer angle","cl_simfphys_steerangfast",self.PropPanel,0,90,faststeerang:GetFloat())
+	local st_item_4 = createslider(30,505,345,40,"fade speed(units/seconds)\nfor fast speed steer angle","cl_simfphys_fadespeed",self.PropPanel,1,5000,fadespeed:GetFloat())
+	
+	local Reset = vgui.Create( "DButton" )
+	Reset:SetParent( self.PropPanel )
+	Reset:SetText( "Reset" )	
+	Reset:SetPos( 25, 545 )
+	Reset:SetSize( 340, 25 )
+	Reset.DoClick = function()
+		st_item_1:SetValue( 0 )
+		st_item_2:SetValue( 8 )
+		st_item_3:SetValue( 10 )
+		st_item_4:SetValue( 535 )
+		
+		overwrite:SetInt( 0 )
+		steerspeed:SetFloat( 8 )
+		faststeerang:SetFloat( 10 )
+		fadespeed:SetFloat( 535 )
 	end
 end
 

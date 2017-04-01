@@ -410,6 +410,13 @@ function ENT:SetupControls( ply )
 	end
 
 	if IsValid(ply) then
+		self.cl_SteerSettings = {
+			Overwrite = (ply:GetInfoNum( "cl_simfphys_overwrite", 0 ) >= 1),
+			TurnSpeed = ply:GetInfoNum( "cl_simfphys_steerspeed", 8 ),
+			fadespeed = ply:GetInfoNum( "cl_simfphys_fadespeed", 535 ),
+			fastspeedangle = ply:GetInfoNum( "cl_simfphys_steerangfast", 10 ),
+		}
+		
 		local W = ply:GetInfoNum( "cl_simfphys_keyforward", 0 )
 		local A = ply:GetInfoNum( "cl_simfphys_keyleft", 0 )
 		local S = ply:GetInfoNum( "cl_simfphys_keyreverse", 0 )
@@ -638,11 +645,23 @@ function ENT:PlayerSteerVehicle( ply, left, right )
 		local MaxHelpAngle = math.Clamp(ply:GetInfoNum( "cl_simfphys_ctang", 0 ) or 15,1,90)
 		
 		local Ang = self.MoveDir
-		local TurnSpeed = self:GetSteerSpeed()
-		local fadespeed = self:GetFastSteerConeFadeSpeed()
+		
+		local TurnSpeed
+		local fadespeed
+		local fastspeedangle
+		
+		if self.cl_SteerSettings.Overwrite then
+			TurnSpeed = self.cl_SteerSettings.TurnSpeed
+			fadespeed = self.cl_SteerSettings.fadespeed
+			fastspeedangle = self.cl_SteerSettings.fastspeedangle
+		else
+			TurnSpeed = self:GetSteerSpeed()
+			fadespeed = self:GetFastSteerConeFadeSpeed()
+			fastspeedangle = self:GetFastSteerAngle() * self.VehicleData["steerangle"]
+		end
 		
 		local SlowSteeringRate = (Ang > 20) and ((math.Clamp((self.ForwardSpeed - 150) / 25,0,1) == 1) and 60 or self.VehicleData["steerangle"]) or self.VehicleData["steerangle"]
-		local FastSteeringAngle = math.Clamp(self:GetFastSteerAngle() * self.VehicleData["steerangle"],1,SlowSteeringRate)
+		local FastSteeringAngle = math.Clamp(fastspeedangle,1,SlowSteeringRate)
 		
 		local FastSteeringRate = FastSteeringAngle + ((Ang > (FastSteeringAngle-1)) and 1 or 0) * math.min(Ang,90 - FastSteeringAngle)
 		
