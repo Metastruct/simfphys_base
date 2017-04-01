@@ -39,7 +39,7 @@ numpad.Register( "k_right", function( pl, ent, keydown )
 end )
 
 numpad.Register( "k_a_forward", function( pl, ent, keydown )
-	if not IsValid(pl) or IsValid(ent) then return false end
+	if not IsValid(pl) or not IsValid(ent) then return false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["aW"] = keydown
