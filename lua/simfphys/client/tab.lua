@@ -352,7 +352,7 @@ local function buildserversettingsmenu( self )
 	Background:SetColor( Color( 0, 0, 0, 200 ) )
 	local y = 0
 	
-	--local MaxVel = physenv.GetPerformanceSettings().MaxVelocity  -- why isnt this synced with the server?
+	--local MaxVel = physenv.GetPerformanceSettings().MaxVelocity
 	--local mph = MaxVel * 0.0568182
 	--local kmh = MaxVel * 0.09144
 	
@@ -496,6 +496,14 @@ local function buildserversettingsmenu( self )
 			y = y + 25
 		end
 		y = y - 25
+		
+		--[[
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y + 35 )
+		Label:SetText( "Max possibe speed is: \n(playersize) "..math.Round(mph,0).." mph or "..math.Round(kmh,0).." km/h\n(worldsize) "..math.Round(mph * 0.75,0).." mph or "..math.Round(kmh * 0.75,0).." km/h" )
+		Label:SizeToContents()
+		y = y + 65
+		]]--
 	end
 	
 	Background:SetSize( 350, y )
