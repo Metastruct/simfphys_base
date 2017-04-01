@@ -33,9 +33,6 @@ if CLIENT then
 	language.Add( "tool.simfphysgeareditor.desc", "A tool used to edit gear ratios on simfphys vehicles" )
 	language.Add( "tool.simfphysgeareditor.0", "Left click apply settings. Right click copy settings. Reload to reset" )
 	language.Add( "tool.simfphysgeareditor.1", "Left click apply settings. Right click copy settings. Reload to reset" )
-	
-	language.Add( "tool.simfphysgeareditor.differential", "Differential" )
-	language.Add( "tool.simfphysgeareditor.differential.help", "Multiplier for all gears" )
 end
 
 function TOOL:LeftClick( trace )
@@ -107,130 +104,78 @@ local ConVarsDefault = TOOL:BuildConVarList()
 function TOOL.BuildCPanel( panel )
 	panel:AddControl( "Header", { Text = "#tool.simfphysgeareditor.name", Description = "#tool.simfphysgeareditor.desc" } )
 	panel:AddControl( "ComboBox", { MenuButton = 1, Folder = "transeditor", Options = { [ "#preset.default" ] = ConVarsDefault }, CVars = table.GetKeys( ConVarsDefault ) } )
-	panel:AddControl( "Label",  { Text = "" } )
 	
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Amount Gears",
-		Type 	= "Int",
-		Min 	= "1",
-		Max 	= "12",
-		Command = "simfphysgeareditor_numgears"
-	})
-	panel:AddControl( "Label",  { Text = "Ratios:" } )
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 1",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_1"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 2",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_2"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 3",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_3"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 4",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_4"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 5",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_5"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 6",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_6"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 7",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_7"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 8",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_8"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 9",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_9"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 10",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_10"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 11",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_11"
-	})
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Gear 12",
-		Type 	= "Float",
-		Min 	= "0.001",
-		Max 	= "2",
-		Command = "simfphysgeareditor_gear_12"
-	})
-	panel:AddControl( "Label",  { Text = "" } )
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "Reverse",
-		Type 	= "Float",
-		Min 	= "-2",
-		Max 	= "-0.001",
-		Command = "simfphysgeareditor_gear_r"
-	})
-	panel:AddControl( "Label",  { Text = "" } )
-	panel:AddControl( "Slider", 
-	{
-		Label 	= "#tool.simfphysgeareditor.differential",
-		Type 	= "Float",
-		Min 	= "0.2",
-		Max 	= "6",
-		Command = "simfphysgeareditor_gear_diff",
-		Help = true
-	})
+	local Frame = vgui.Create( "DPanel", panel )
+	Frame:SetPos( 10, 130 )
+	Frame:SetSize( 275, 700 )
+	Frame.Paint = function( self, w, h )
+	end
+	
+	local Label = vgui.Create( "DLabel", panel )
+	Label:SetPos( 15, 80 )
+	Label:SetSize( 280, 40 )
+	Label:SetText( "Amount Gears" )
+	Label:SetTextColor( Color(0,0,0,255) )
+	
+	local n_slider = vgui.Create( "DNumSlider", panel)
+	n_slider:SetPos( 15, 80 )
+	n_slider:SetSize( 280, 40 )
+	n_slider:SetMin( 1 )
+	n_slider:SetMax( 12 )
+	n_slider:SetDecimals( 0 )
+	n_slider:SetConVar( "simfphysgeareditor_numgears" )
+	n_slider.OnValueChanged = function( self, amount )
+		Frame:Clear() 
+		
+		local value = math.Round( amount, 0 )
+		local yy = 0
+		
+		for i = 1, value do
+			local Label = vgui.Create( "DLabel", Frame )
+			Label:SetPos( 5, yy )
+			Label:SetSize( 275, 40 )
+			Label:SetText( "Gear "..i )
+			Label:SetTextColor( Color(0,0,0,255) )
+		
+			local g_slider = vgui.Create( "DNumSlider", Frame)
+			g_slider:SetPos( 5, yy )
+			g_slider:SetSize( 275, 40 )
+			g_slider:SetMin( 0.001 )
+			g_slider:SetMax( 5 )
+			g_slider:SetDecimals( 3 )
+			g_slider:SetConVar( "simfphysgeareditor_gear_"..i )
+			
+			yy = yy + 25
+		end
+		
+		yy = yy + 25
+		
+		local Label = vgui.Create( "DLabel", Frame )
+		Label:SetPos( 5, yy )
+		Label:SetSize( 275, 40 )
+		Label:SetText( "Reverse" )
+		Label:SetTextColor( Color(0,0,0,255) )
+		local g_slider = vgui.Create( "DNumSlider", Frame)
+		g_slider:SetPos( 5, yy )
+		g_slider:SetSize( 275, 40 )
+		g_slider:SetMin( 0.001 )
+		g_slider:SetMax( 5 )
+		g_slider:SetDecimals( 3 )
+		g_slider:SetConVar( "simfphysgeareditor_gear_r" )
+		
+		yy = yy + 50
+		
+		local Label = vgui.Create( "DLabel", Frame )
+		Label:SetPos( 5, yy )
+		Label:SetSize( 275, 40 )
+		Label:SetText( "Final Gear (Differential)" )
+		Label:SetTextColor( Color(0,0,0,255) )
+		local g_slider = vgui.Create( "DNumSlider", Frame)
+		g_slider:SetPos( 5, yy )
+		g_slider:SetSize( 275, 40 )
+		g_slider:SetMin( 0.001 )
+		g_slider:SetMax( 5 )
+		g_slider:SetDecimals( 3 )
+		g_slider:SetConVar( "simfphysgeareditor_gear_diff" )
+	end
 end
