@@ -517,7 +517,7 @@ end
 function ENT:PlayAnimation( animation )
 	local anims = string.Implode( ",", self:GetSequenceList() )
 	
-	if not string.match( string.lower(anims), string.lower( animation ), 1 ) then print(animation) return end
+	if not animation or not string.match( string.lower(anims), string.lower( animation ), 1 ) then return end
 	
 	local sequence = self:LookupSequence( animation )
 	
