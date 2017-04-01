@@ -29,7 +29,7 @@ end
 duplicator.RegisterEntityModifier( "gearmod", SetGears )
 
 if CLIENT then
-	language.Add( "tool.simfphysgeareditor.name", "simfphys Transmission Editor" )
+	language.Add( "tool.simfphysgeareditor.name", "Transmission Editor" )
 	language.Add( "tool.simfphysgeareditor.desc", "A tool used to edit gear ratios on simfphys vehicles" )
 	language.Add( "tool.simfphysgeareditor.0", "Left click apply settings. Right click copy settings. Reload to reset" )
 	language.Add( "tool.simfphysgeareditor.1", "Left click apply settings. Right click copy settings. Reload to reset" )

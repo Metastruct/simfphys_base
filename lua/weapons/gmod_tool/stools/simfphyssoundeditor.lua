@@ -1,5 +1,5 @@
 TOOL.Category		= "simfphys"
-TOOL.Name			= "#Engine Sound Editor"
+TOOL.Name			= "#Sound Editor"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 
@@ -21,7 +21,7 @@ TOOL.ClientConVar[ "ThrottlePitch" ] = 0.65
 TOOL.ClientConVar[ "ThrottleVolume" ] = 1
 
 if CLIENT then
-	language.Add( "tool.simfphyssoundeditor.name", "simfphys engine sound editor" )
+	language.Add( "tool.simfphyssoundeditor.name", "Sound Editor" )
 	language.Add( "tool.simfphyssoundeditor.desc", "A tool used to edit engine sounds on simfphys vehicles" )
 	language.Add( "tool.simfphyssoundeditor.0", "Left click apply settings. Reload to reset" )
 	language.Add( "tool.simfphyssoundeditor.1", "Left click apply settings. Reload to reset" )
