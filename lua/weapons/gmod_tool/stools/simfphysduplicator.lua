@@ -471,7 +471,7 @@ function TOOL:LeftClick( trace )
 			if elastics then
 				for i = 1, table.Count( elastics ) do
 					local elastic = elastics[i]
-					if (ent.StrengthenSuspension == true) then
+					if (Ent.StrengthenSuspension == true) then
 						if (IsValid(elastic)) then
 							elastic:Fire( "SetSpringConstant", data[i][1] * 0.5, 0 )
 							elastic:Fire( "SetSpringDamping", data[i][2] * 0.5, 0 )
