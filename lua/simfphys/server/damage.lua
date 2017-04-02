@@ -118,6 +118,8 @@ local function DamageVehicle( ent , damage )
 end
 
 local function HurtPlayers( ent, damage )
+	if not simfphys.pDamageEnabled then return end
+	
 	local Driver = ent:GetDriver()
 	
 	if IsValid(Driver) then
@@ -156,7 +158,7 @@ local function onCollide( ent, data )
 			
 			HurtPlayers( ent , 5 )
 			
-			ent:TakeDamage(data.Speed / 7, Entity(0), Entity(0) )
+			ent:TakeDamage( (data.Speed / 7) * simfphys.DamageMul, Entity(0), Entity(0) )
 			
 			bcDamage( ent , ent:WorldToLocal( pos ) , true )
 		else
@@ -171,7 +173,7 @@ local function onCollide( ent, data )
 			
 			if (data.Speed > 500) then
 				HurtPlayers( ent , 2 )
-				ent:TakeDamage(data.Speed / 14, Entity(0), Entity(0) )
+				ent:TakeDamage( (data.Speed / 14) * simfphys.DamageMul, Entity(0), Entity(0) )
 			end
 		end
 	end

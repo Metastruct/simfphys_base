@@ -1,6 +1,8 @@
 CreateConVar( "sv_simfphys_devmode", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"1 = enabled, 0 = disabled   (requires a restart)" )
 CreateConVar( "sv_simfphys_enabledamage", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"1 = enabled, 0 = disabled" )
 CreateConVar( "sv_simfphys_gib_lifetime", "30", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"How many seconds before removing the gibs (0 = never remove)" )
+CreateConVar( "sv_simfphys_playerdamage", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"should players take damage from collisions in vehicles?" )
+CreateConVar( "sv_simfphys_damagemultiplicator", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"vehicle damage multiplicator" )
 
 game.AddParticles("particles/vehicle.pcf")
 game.AddParticles("particles/fire_01.pcf")
@@ -12,9 +14,16 @@ PrecacheParticleSystem("burning_engine_01")
 
 simfphys = {}
 simfphys.DamageEnabled = false
+simfphys.DamageMul = 1
+simfphys.pDamageEnabled = false
 
 cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue, newValue ) simfphys.DamageEnabled = ( tonumber( newValue )~=0 ) end)
+cvars.AddChangeCallback( "sv_simfphys_damagemultiplicator", function( convar, oldValue, newValue ) simfphys.DamageMul = tonumber( newValue ) end)
+cvars.AddChangeCallback( "sv_simfphys_playerdamage", function( convar, oldValue, newValue ) simfphys.pDamageEnabled = ( tonumber( newValue )~=0 ) end)
+
 simfphys.DamageEnabled = GetConVar( "sv_simfphys_enabledamage" ):GetBool()
+simfphys.DamageMul = GetConVar( "sv_simfphys_damagemultiplicator" ):GetFloat()
+simfphys.pDamageEnabled = GetConVar( "sv_simfphys_playerdamage" ):GetBool()
 
 simfphys.ice = CreateConVar( "sv_simfphys_traction_ice", "0.35", {FCVAR_REPLICATED , FCVAR_ARCHIVE})
 simfphys.gmod_ice = CreateConVar( "sv_simfphys_traction_gmod_ice", "0.1", {FCVAR_REPLICATED , FCVAR_ARCHIVE})
@@ -40,16 +49,22 @@ end
 
 if SERVER then
 	util.AddNetworkString( "simfphys_settings" )
-
+	
 	net.Receive( "simfphys_settings", function( length, ply )
 		if not IsValid( ply ) or not ply:IsSuperAdmin() then return end
 		
 		local dmgEnabled = tostring(net.ReadBool() and 1 or 0)
 		local giblifetime = tostring(net.ReadFloat())
+		
+		local dmgMul = tostring(net.ReadFloat())
+		local pdmgEnabled = tostring(net.ReadBool() and 1 or 0)
+		
 		local newtraction = net.ReadTable() 
 		
 		RunConsoleCommand("sv_simfphys_enabledamage", dmgEnabled ) 
-		RunConsoleCommand("sv_simfphys_gib_lifetime", giblifetime ) 
+		RunConsoleCommand("sv_simfphys_gib_lifetime", giblifetime )
+		RunConsoleCommand("sv_simfphys_damagemultiplicator", dmgMul ) 
+		RunConsoleCommand("sv_simfphys_playerdamage", pdmgEnabled ) 
 		
 		for k, v in pairs( newtraction ) do
 			RunConsoleCommand("sv_simfphys_traction_"..k, v) 

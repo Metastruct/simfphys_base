@@ -364,6 +364,23 @@ local function buildserversettingsmenu( self )
 		CheckBoxDamage:SetValue( GetConVar( "sv_simfphys_enabledamage" ) :GetInt() )
 		CheckBoxDamage:SizeToContents()
 		
+		y = y + 18
+		local DamageMul = vgui.Create( "DNumSlider", self.PropPanel)
+		DamageMul:SetPos( 30, y )
+		DamageMul:SetSize( 345, 30 )
+		DamageMul:SetText( "Damage Multiplicator" )
+		DamageMul:SetMin( 0 )
+		DamageMul:SetMax( 10 )
+		DamageMul:SetDecimals( 3 )
+		DamageMul:SetValue( GetConVar( "sv_simfphys_damagemultiplicator" ):GetFloat() )
+		
+		y = y + 32
+		local CheckBoxpDamage = vgui.Create( "DCheckBoxLabel", self.PropPanel)
+		CheckBoxpDamage:SetPos( 25, y )
+		CheckBoxpDamage:SetText( "Enable Player Damage (On Collision)" )
+		CheckBoxpDamage:SetValue( GetConVar( "sv_simfphys_playerdamage" ) :GetInt() )
+		CheckBoxpDamage:SizeToContents()
+		
 		y = y + 25
 		local GibRemoveTimer = vgui.Create( "DNumSlider", self.PropPanel)
 		GibRemoveTimer:SetPos( 30, y )
@@ -417,6 +434,8 @@ local function buildserversettingsmenu( self )
 			net.Start("simfphys_settings")
 				net.WriteBool( CheckBoxDamage:GetChecked() )
 				net.WriteFloat( GibRemoveTimer:GetValue() )
+				net.WriteFloat( DamageMul:GetValue() )
+				net.WriteBool( CheckBoxpDamage:GetChecked() )
 				net.WriteTable( NewTractionData ) 
 			net.SendToServer()
 		end
@@ -449,10 +468,14 @@ local function buildserversettingsmenu( self )
 			
 			CheckBoxDamage:SetValue( 1 )
 			GibRemoveTimer:SetValue( 120 )
+			DamageMul:SetValue( 1 )
+			CheckBoxpDamage:SetValue( 1 )
 			
 			net.Start("simfphys_settings")
 				net.WriteBool( true )
 				net.WriteFloat( 120 )
+				net.WriteFloat( 1 )
+				net.WriteBool( true )
 				net.WriteTable( NewTractionData ) 
 			net.SendToServer()
 		end
@@ -463,6 +486,20 @@ local function buildserversettingsmenu( self )
 		Label:SetText( "Damage is "..((GetConVar( "sv_simfphys_enabledamage" ):GetInt() > 0) and "enabled" or "disabled") )
 		Label:SizeToContents()
 
+		y = y + 25
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y )
+		Label:SetText( "Damage Multiplicator is: "..GetConVar( "sv_simfphys_damagemultiplicator" ):GetFloat() )
+		Label:SizeToContents()
+		
+		y = y + 25
+		local yes = "Players can take damage from collisions"
+		local no = "Players can't take damage from collisions"
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y )
+		Label:SetText( GetConVar( "sv_simfphys_playerdamage" ):GetBool() and yes or no )
+		Label:SizeToContents()
+		
 		y = y + 25
 		local Label = vgui.Create( "DLabel", self.PropPanel )
 		local lifetime = GetConVar( "sv_simfphys_gib_lifetime" ):GetInt()
