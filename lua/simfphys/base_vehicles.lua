@@ -111,7 +111,6 @@ local V = {
 		Sound_Throttle = "",
 		Sound_ThrottlePitch = 0,
 		Sound_ThrottleVolume = 0,
-		--
 		
 		snd_horn = "simulated_vehicles/horn_5.wav", 
 		

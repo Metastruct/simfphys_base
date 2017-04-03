@@ -13,21 +13,17 @@ TOOL.ClientConVar[ "height_r" ] = 0
 TOOL.ClientConVar[ "damping_f" ] = 2500
 TOOL.ClientConVar[ "damping_r" ] = 2500
 
-
 if CLIENT then
-	language.Add( "tool.simfphyssuspensioneditor.name", "simfphys suspension editor" )
+	language.Add( "tool.simfphyssuspensioneditor.name", "Suspension Editor" )
 	language.Add( "tool.simfphyssuspensioneditor.desc", "A tool used to edit suspension on simfphys vehicles" )
-	language.Add( "tool.simfphyssuspensioneditor.0", "Left click apply settings. Reload to reset" )
-	language.Add( "tool.simfphyssuspensioneditor.1", "Left click apply settings. Reload to reset" )
+	language.Add( "tool.simfphyssuspensioneditor.0", "Left click apply settings. Right click copy settings. Reload to reset" )
+	language.Add( "tool.simfphyssuspensioneditor.1", "Left click apply settings. Right click copy settings. Reload to reset" )
 end
+
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	local data = {
 		[1] = {tonumber( self:GetClientInfo( "constant_f" ) ),tonumber( self:GetClientInfo( "damping_f" ) )},
@@ -56,6 +52,11 @@ function TOOL:LeftClick( trace )
 					elastic:Fire( "SetSpringDamping", data[i][2], 0 )
 				end
 			end
+			
+			ent.FrontDampingOverride = data[1][2]
+			ent.FrontConstantOverride = data[1][1]
+			ent.RearDampingOverride = data[4][2]
+			ent.RearConstantOverride = data[4][1]
 		end
 	end
 	
@@ -66,18 +67,41 @@ function TOOL:LeftClick( trace )
 end
 
 function TOOL:RightClick( trace )
-	return false
+	local ent = trace.Entity
+	local ply = self:GetOwner()
+	
+	if not simfphys.IsCar( ent ) then return false end
+	
+	if (SERVER) then
+		local vname = ent:GetSpawn_List()
+		local VehicleList = list.Get( "simfphys_vehicles" )[vname]
+		
+		if ent.FrontDampingOverride and ent.FrontConstantOverride and ent.RearDampingOverride and ent.RearConstantOverride then
+			ply:ConCommand( "simfphyssuspensioneditor_constant_f " ..ent.FrontConstantOverride )
+			ply:ConCommand( "simfphyssuspensioneditor_constant_r " ..ent.RearConstantOverride )
+			
+			ply:ConCommand( "simfphyssuspensioneditor_damping_f " ..ent.FrontDampingOverride )
+			ply:ConCommand( "simfphyssuspensioneditor_damping_r " ..ent.RearDampingOverride )
+		else
+			ply:ConCommand( "simfphyssuspensioneditor_constant_f " ..VehicleList.Members.FrontConstant )
+			ply:ConCommand( "simfphyssuspensioneditor_constant_r " ..VehicleList.Members.RearConstant )
+			
+			ply:ConCommand( "simfphyssuspensioneditor_damping_f " ..VehicleList.Members.FrontDamping )
+			ply:ConCommand( "simfphyssuspensioneditor_damping_r " ..VehicleList.Members.RearDamping )
+		end
+		
+		ply:ConCommand( "simfphyssuspensioneditor_height_f " ..ent:GetFrontSuspensionHeight() )
+		ply:ConCommand( "simfphyssuspensioneditor_height_r " ..ent:GetRearSuspensionHeight() )
+	end
+
+	return true
 end
 
 function TOOL:Reload( trace )
 	local ent = trace.Entity
 	local ply = self:GetOwner()
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	if (SERVER) then
 		local vname = ent:GetSpawn_List()

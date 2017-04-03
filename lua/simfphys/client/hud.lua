@@ -10,100 +10,120 @@ local y = ypos * 1.015
 local radius = 0.085 * sizex
 local startang = 105
 
-local ShowHud = false
-cvars.AddChangeCallback( "cl_simfphys_hud", function( convar, oldValue, newValue )
-	ShowHud = ( tonumber( newValue )~=0 )
-end)
-ShowHud = GetConVar( "cl_simfphys_hud" ):GetBool()
-
-local ShowHud_ms = false
-cvars.AddChangeCallback( "cl_simfphys_ms_hud", function( convar, oldValue, newValue )
-	ShowHud_ms = ( tonumber( newValue )~=0 )
-end)
-ShowHud_ms = GetConVar( "cl_simfphys_ms_hud" ):GetBool()
-
-local AltHud = false
-cvars.AddChangeCallback( "cl_simfphys_althud", function( convar, oldValue, newValue )
-	AltHud = ( tonumber( newValue )~=0 )
-end)
-AltHud = GetConVar( "cl_simfphys_althud" ):GetBool()
-
-local Hudmph = false
-cvars.AddChangeCallback( "cl_simfphys_hudmph", function( convar, oldValue, newValue )
-	Hudmph = ( tonumber( newValue )~=0 )
-end)
-Hudmph = GetConVar( "cl_simfphys_hudmph" ):GetBool()
-
-local Hudreal = false
-cvars.AddChangeCallback( "cl_simfphys_hudrealspeed", function( convar, oldValue, newValue )
-	Hudreal = ( tonumber( newValue )~=0 )
-end)
-Hudreal = GetConVar( "cl_simfphys_hudrealspeed" ):GetBool()
-
-local isMouseSteer = false
-cvars.AddChangeCallback( "cl_simfphys_mousesteer", function( convar, oldValue, newValue )
-	isMouseSteer = ( tonumber( newValue )~=0 )
-end)
-isMouseSteer = GetConVar( "cl_simfphys_mousesteer" ):GetBool()
-
-local hasCounterSteerEnabled = false
-cvars.AddChangeCallback( "cl_simfphys_ctenable", function( convar, oldValue, newValue )
-	hasCounterSteerEnabled = ( tonumber( newValue )~=0 )
-end)
-hasCounterSteerEnabled = GetConVar( "cl_simfphys_ctenable" ):GetBool()
-
-local slushbox = false
-cvars.AddChangeCallback( "cl_simfphys_auto", function( convar, oldValue, newValue )
-	slushbox = ( tonumber( newValue )~=0 )
-end)
-slushbox = GetConVar( "cl_simfphys_auto" ):GetBool()
-
 local lights_on = Material( "simfphys/hud/low_beam_on" )
 local lights_on2 = Material( "simfphys/hud/high_beam_on" )
 local lights_off = Material( "simfphys/hud/low_beam_off" )
-
 local fog_on = Material( "simfphys/hud/fog_light_on" )
 local fog_off = Material( "simfphys/hud/fog_light_off" )
-
 local cruise_on = Material( "simfphys/hud/cc_on" )
 local cruise_off = Material( "simfphys/hud/cc_off" )
-
 local hbrake_on = Material( "simfphys/hud/handbrake_on" )
 local hbrake_off = Material( "simfphys/hud/handbrake_off" )
-
 local HUD_1 = Material( "simfphys/hud/hud" )
 local HUD_2 = Material( "simfphys/hud/hud_center" )
 local HUD_3 = Material( "simfphys/hud/hud_center_red" )
-
 local ForceSimpleHud = !file.Exists( "materials/simfphys/hud/hud.vmt", "GAME" ) -- lets check if the background material exists, if not we will force the old hud to prevent fps drop
 
+local ShowHud = false
+local ShowHud_ms = false
+local AltHud = false
+local AltHudarcs = false
+local Hudmph = false
+local Hudreal = false
+local isMouseSteer = false
+local hasCounterSteerEnabled = false
+local slushbox = false
+
+local ms_sensitivity = 1
+local ms_fade = 1
+local ms_deadzone = 1.5
+local ms_exponent = 2
+local ms_key_freelook = KEY_Y
+
+cvars.AddChangeCallback( "cl_simfphys_hud", function( convar, oldValue, newValue ) ShowHud = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_ms_hud", function( convar, oldValue, newValue ) ShowHud_ms = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_althud", function( convar, oldValue, newValue ) AltHud = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_althud_arcs", function( convar, oldValue, newValue ) AltHudarcs = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_hudmph", function( convar, oldValue, newValue ) Hudmph = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_hudrealspeed", function( convar, oldValue, newValue ) Hudreal = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_mousesteer", function( convar, oldValue, newValue ) isMouseSteer = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_ctenable", function( convar, oldValue, newValue ) hasCounterSteerEnabled = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_auto", function( convar, oldValue, newValue ) slushbox = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_ms_sensitivity", function( convar, oldValue, newValue )  ms_sensitivity = tonumber( newValue ) end)
+cvars.AddChangeCallback( "cl_simfphys_ms_return", function( convar, oldValue, newValue )  ms_fade = tonumber( newValue ) end)
+cvars.AddChangeCallback( "cl_simfphys_ms_deadzone", function( convar, oldValue, newValue )  ms_deadzone = tonumber( newValue ) end)
+cvars.AddChangeCallback( "cl_simfphys_ms_exponent", function( convar, oldValue, newValue ) ms_exponent = tonumber( newValue ) end)
+cvars.AddChangeCallback( "cl_simfphys_ms_keyfreelook", function( convar, oldValue, newValue ) ms_key_freelook = tonumber( newValue ) end)
+
+ShowHud = GetConVar( "cl_simfphys_hud" ):GetBool()
+ShowHud_ms = GetConVar( "cl_simfphys_ms_hud" ):GetBool()
+AltHud = GetConVar( "cl_simfphys_althud" ):GetBool()
+AltHudarcs = GetConVar( "cl_simfphys_althud_arcs" ):GetBool()
+Hudmph = GetConVar( "cl_simfphys_hudmph" ):GetBool()
+Hudreal = GetConVar( "cl_simfphys_hudrealspeed" ):GetBool()
+isMouseSteer = GetConVar( "cl_simfphys_mousesteer" ):GetBool()
+hasCounterSteerEnabled = GetConVar( "cl_simfphys_ctenable" ):GetBool()
+slushbox = GetConVar( "cl_simfphys_auto" ):GetBool()
+
+ms_sensitivity = GetConVar( "cl_simfphys_ms_sensitivity" ):GetFloat()
+ms_fade = GetConVar( "cl_simfphys_ms_return" ):GetFloat()
+ms_deadzone = GetConVar( "cl_simfphys_ms_deadzone" ):GetFloat()
+ms_exponent = GetConVar( "cl_simfphys_ms_exponent" ):GetFloat()
+ms_key_freelook = GetConVar( "cl_simfphys_ms_keyfreelook" ):GetInt()
+
+local ms_pos_x = 0
+local sm_throttle = 0
+
+hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
+	if ply != LocalPlayer() then return end
+	
+	local vehicle = ply:GetVehicle()
+	if not IsValid(vehicle) then return end
+	
+	if isMouseSteer then
+		local freelook = input.IsButtonDown( ms_key_freelook )
+		ply.Freelook = freelook
+		if not freelook then 
+			local frametime = RealFrameTime()
+			
+			local ms_delta_x = cmd:GetMouseX()
+			local ms_return = ms_fade * frametime
+			
+			local Moving = math.abs(ms_delta_x) > 0
+			
+			ms_pos_x = Moving and math.Clamp(ms_pos_x + ms_delta_x * frametime * 0.05 * ms_sensitivity,-1,1) or (ms_pos_x + math.Clamp(-ms_pos_x,-ms_return,ms_return))
+			
+			SteerVehicle = ((math.max( math.abs(ms_pos_x) - ms_deadzone / 16, 0) ^ ms_exponent) / (1 - ms_deadzone / 16))  * ((ms_pos_x > 0) and 1 or -1)
+			
+		end
+	else
+		SteerVehicle = 0
+	end
+	
+	net.Start( "simfphys_mousesteer" )
+		net.WriteEntity( vehicle )
+		net.WriteFloat( SteerVehicle )
+	net.SendToServer()
+end)
+
 local function drawsimfphysHUD(vehicle)
-	if (isMouseSteer and ShowHud_ms) then
-		local MousePos = vehicle:GetMousePos()
-		local deadzone = vehicle:GetDeadZone()
+	if isMouseSteer and ShowHud_ms then
+		local MousePos = ms_pos_x
 		local m_size = sizex * 0.15
 		
 		draw.SimpleText( "V", "simfphysfont", sizex * 0.5 + MousePos * m_size - 1, sizey * 0.45, Color( 240, 230, 200, 255 ), 1, 1 )
 		draw.SimpleText( "[", "simfphysfont", sizex * 0.5 - m_size * 1.05, sizey * 0.45, Color( 240, 230, 200, 180 ), 1, 1 )
 		draw.SimpleText( "]", "simfphysfont", sizex * 0.5 + m_size * 1.05, sizey * 0.45, Color( 240, 230, 200, 180 ), 1, 1 )
 		
-		if (deadzone > 0) then
-			draw.SimpleText( "^", "simfphysfont", sizex * 0.5 - deadzone * m_size, sizey * 0.453, Color( 240, 230, 200, 180 ), 1, 2 )
-			draw.SimpleText( "^", "simfphysfont", sizex * 0.5 + deadzone * m_size, sizey * 0.453, Color( 240, 230, 200, 180 ), 1, 2 )
+		if (ms_deadzone > 0) then
+			draw.SimpleText( "^", "simfphysfont", sizex * 0.5 - (ms_deadzone / 16) * m_size, sizey * 0.453, Color( 240, 230, 200, 180 ), 1, 2 )
+			draw.SimpleText( "^", "simfphysfont", sizex * 0.5 + (ms_deadzone / 16) * m_size, sizey * 0.453, Color( 240, 230, 200, 180 ), 1, 2 )
 		else
 			draw.SimpleText( "^", "simfphysfont", sizex * 0.5, sizey * 0.453, Color( 240, 230, 200, 180 ), 1, 2 )
 		end
-		
-		if (hasCounterSteerEnabled) then
-			local ctpos = vehicle:GetctPos()
-			if (math.abs(ctpos) > 0.1) then
-				local hudctpos = math.Clamp(ctpos + deadzone * (ctpos < 0 and -1 or 1),-1,1)
-				draw.SimpleText( "|", "simfphysfont", sizex * 0.5 + hudctpos * m_size, sizey * 0.45, Color( 255, 235, 0, 255 ), 1, 1 )
-			end
-		end
 	end
 	
-	if (!ShowHud) then return end
+	if not ShowHud then return end
 	
 	local maxrpm = vehicle:GetLimitRPM()
 	local rpm = vehicle:GetRPM()
@@ -121,9 +141,9 @@ local function drawsimfphysHUD(vehicle)
 	local wirekmh = math.Round(speed * 0.09144 * 0.75,0)
 	local cruisecontrol = vehicle:GetIsCruiseModeOn()
 	local gear = vehicle:GetGear()
-	local DrawGear = !slushbox and (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)) or (gear == 1 and "R" or gear == 2 and "N" or "(".. (gear - 2)..")")
+	local DrawGear = not slushbox and (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)) or (gear == 1 and "R" or gear == 2 and "N" or "(".. (gear - 2)..")")
 	
-	if AltHud and !ForceSimpleHud then
+	if AltHud and not ForceSimpleHud then
 		local LightsOn = vehicle:GetLightsEnabled()
 		local LampsOn = vehicle:GetLampsEnabled()
 		local FogLightsOn = vehicle:GetFogLightsEnabled()
@@ -165,7 +185,10 @@ local function drawsimfphysHUD(vehicle)
 		
 		draw.NoTexture()
 		
-		for i = 0,r_rpm,1000 do
+		local step = 0
+		for i = 0,maxrpm,250 do
+			step = step + 1
+			
 			local anglestep = (255 / maxrpm) * i
 			
 			local n_col_on
@@ -183,9 +206,14 @@ local function drawsimfphysHUD(vehicle)
 			local cos_a = math.cos( math.rad(startang + anglestep) )
 			local sin_a = math.sin( math.rad(startang + anglestep) )
 			
-			surface.DrawLine( x + cos_a * radius / 1.3, y + sin_a * radius / 1.3, x + cos_a * radius, y + sin_a * radius)
-			local printnumber = tostring(i / 1000)
-			draw.SimpleText(printnumber, "simfphysfont3", x + cos_a * radius / 1.5, y + sin_a * radius / 1.5,u_col, 1, 1 )
+			if step > 4 then
+				step = 1
+				surface.DrawLine( x + cos_a * radius / 1.3, y + sin_a * radius / 1.3, x + cos_a * radius, y + sin_a * radius)
+				local printnumber = tostring(i / 1000)
+				draw.SimpleText(printnumber, "simfphysfont3", x + cos_a * radius / 1.5, y + sin_a * radius / 1.5,u_col, 1, 1 )
+			else
+				surface.DrawLine( x + cos_a * radius / 1.05, y + sin_a * radius / 1.05, x + cos_a * radius, y + sin_a * radius)
+			end
 		end
 		
 		local center_ncol = in_red and Color(0,254,235,200) or Color( 255, 0, 0, 255 )
@@ -194,19 +222,22 @@ local function drawsimfphysHUD(vehicle)
 		surface.DrawLine( x + c_ang * radius / 3.5, y + s_ang * radius / 3.5, x + c_ang * radius, y + s_ang * radius)
 		surface.SetDrawColor( 255, 255, 255, 255 )
 		
-		draw.Arc(x,y,radius,radius / 6.66,startang,math.min(endang,ang_pend),1,Color(255,255,255,150),true)
-		
-		-- middle
-		--draw.Arc(x,y,radius / 3.5,radius / 66,startang,360,15,Color(255,255,255,50),true)
-		
-		-- outer
-		--draw.Arc(x,y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
-		draw.Arc(x,y,radius,radius / 6.66,ang_pend,360,1,Color(120,0,0,230),true)
-		
-		draw.Arc(x,y,radius,radius / 6.66,math.Round(ang_pend - 1,0),startang + (s_smoothrpm / maxrpm) * 255,1,Color(255,0,0,140),true)
-		
-		--inner
-		--draw.Arc(x,y,radius / 5,radius / 70,0,360,15,center_ncol,true)
+		if AltHudarcs then
+			
+			draw.Arc(x,y,radius,radius / 6.66,startang,math.min(endang,ang_pend),1,Color(255,255,255,150),true)
+			
+			-- middle
+			--draw.Arc(x,y,radius / 3.5,radius / 66,startang,360,15,Color(255,255,255,50),true)
+			
+			-- outer
+			--draw.Arc(x,y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
+			draw.Arc(x,y,radius,radius / 6.66,ang_pend,360,1,Color(120,0,0,230),true)
+			
+			draw.Arc(x,y,radius,radius / 6.66,math.Round(ang_pend - 1,0),startang + (s_smoothrpm / maxrpm) * 255,1,Color(255,0,0,140),true)
+			
+			--inner
+			--draw.Arc(x,y,radius / 5,radius / 70,0,360,15,center_ncol,true)
+		end
 		
 		draw.SimpleText( (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)), "simfphysfont2", x * 0.999, y * 0.996, center_ncol, 1, 1 )
 		
@@ -229,9 +260,10 @@ local function drawsimfphysHUD(vehicle)
 		draw.SimpleText( digit_2/ 10, "simfphysfont4", x * 1.045, y * 1.11, col2, 1, 1 )
 		draw.SimpleText( digit_3 / 100, "simfphysfont4", x * 1.01, y * 1.11, col3, 1, 1 )
 		
+		sm_throttle = sm_throttle + (throttle - sm_throttle) * 0.1
 		local t_size = (sizey * 0.1)
 		draw.RoundedBox( 0, x * 1.12, y * 1.06, sizex * 0.007, sizey * 0.1, Color(150,150,150,50) )
-		draw.RoundedBox( 0, x * 1.12, y * 1.06 + t_size - t_size * math.min(throttle / 100,1), sizex * 0.007, t_size * math.min(throttle / 100,1), Color(255,255,255,150) )
+		draw.RoundedBox( 0, x * 1.12, y * 1.06 + t_size - t_size * math.min(sm_throttle / 100,1), sizex * 0.007, t_size * math.min(sm_throttle / 100,1), Color(255,255,255,150) )
 		
 		return
 	end

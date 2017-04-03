@@ -4,13 +4,13 @@ TOOL.Name			= "#Wheel Model Editor"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 
-TOOL.ClientConVar[ "frontwheelmodel" ] = ""
-TOOL.ClientConVar[ "rearwheelmodel" ] = ""
+TOOL.ClientConVar[ "frontwheelmodel" ] = "models/props_vehicles/apc_tire001.mdl"
+TOOL.ClientConVar[ "rearwheelmodel" ] = "models/props_vehicles/apc_tire001.mdl"
 TOOL.ClientConVar[ "sameasfront" ] = 1
 TOOL.ClientConVar[ "camber" ] = 0
 
 if CLIENT then
-	language.Add( "tool.simfphyswheeleditor.name", "simfphys wheel model editor" )
+	language.Add( "tool.simfphyswheeleditor.name", "Wheel Model Editor" )
 	language.Add( "tool.simfphyswheeleditor.desc", "Changes the wheels for simfphys vehicles with CustomWheels Enabled" )
 	language.Add( "tool.simfphyswheeleditor.0", "Left click apply wheel model. Reload to reset" )
 	language.Add( "tool.simfphyswheeleditor.1", "Left click apply wheel model. Reload to reset" )
@@ -111,11 +111,7 @@ end
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	if (SERVER) then
 		local front_model = self:GetClientInfo("frontwheelmodel")
@@ -141,6 +137,7 @@ function TOOL:LeftClick( trace )
 					end
 				end
 				
+				ent.Camber = camber
 				ApplyWheel(self:GetOwner(), ent, {front_model,front_angle,rear_model,rear_angle,camber})
 			end
 		end
@@ -155,11 +152,7 @@ end
 function TOOL:Reload( trace )
 	local ent = trace.Entity
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	if (SERVER) then
 		local vname = ent:GetSpawn_List()
@@ -214,24 +207,6 @@ function TOOL.BuildCPanel( panel )
 
 end
 
---[[
-list.Set( "simfphys_Wheels", "models/props_phx/wheels/magnetic_small_base.mdl", {Angle = Angle(90,0,0)} )
-list.Set( "simfphys_Wheels", "models/props_vehicles/apc_tire001.mdl", {Angle = Angle(0,180,0)} )
-list.Set( "simfphys_Wheels", "models/red_hd_brera/red_hd_brera_wheel.mdl", {Angle = Angle(0,90,0)} )
-list.Set( "simfphys_Wheels", "models/winningrook/gtav/dukes/dukes_wheel.mdl", {Angle = Angle(0,-90,0)} )
-list.Set( "simfphys_Wheels", "models/salza/hatchback/hatchback_wheel.mdl", {Angle = Angle(0,90,0)} )
-list.Set( "simfphys_Wheels", "models/salza/van/van_wheel.mdl", {Angle = Angle(0,-90,0)} )
-list.Set( "simfphys_Wheels", "models/salza/moskvich/moskvich_wheel.mdl", {Angle = Angle(0,0,0)} )
-list.Set( "simfphys_Wheels", "models/salza/trabant/trabant_wheel.mdl", {Angle = Angle(0,0,0)} )
-list.Set( "simfphys_Wheels", "models/salza/trabant/trabant02_wheel.mdl", {Angle = Angle(0,0,0)} )
-list.Set( "simfphys_Wheels", "models/salza/volga/volga_wheel.mdl", {Angle = Angle(0,-90,0)} )
-list.Set( "simfphys_Wheels", "models/salza/zaz/zaz_wheel.mdl", {Angle = Angle(0,90,0)} )
-list.Set( "simfphys_Wheels", "models/salza/gaz52/gaz52_wheel.mdl", {Angle = Angle(0,180,0)} )
-list.Set( "simfphys_Wheels", "models/salza/skoda_liaz/skoda_liaz_fwheel.mdl", {Angle = Angle(0,180,0)} )
-list.Set( "simfphys_Wheels", "models/salza/skoda_liaz/skoda_liaz_rwheel.mdl", {Angle = Angle(0,180,0)} )
-list.Set( "simfphys_Wheels", "models/salza/avia/avia_wheel.mdl", {Angle = Angle(0,180,0)} )
-]]--
-
 list.Set( "simfphys_Wheels", "models/props_phx/wheels/magnetic_large.mdl", {Angle = Angle(90,0,0)} )
 list.Set( "simfphys_Wheels", "models/props_phx/smallwheel.mdl", {Angle = Angle(90,0,0)} )
 list.Set( "simfphys_Wheels", "models/props_phx/normal_tire.mdl", {Angle = Angle(90,0,0)} )
@@ -260,6 +235,37 @@ list.Set( "simfphys_Wheels", "models/xeon133/racewheelskinny/race-wheel-30_s.mdl
 list.Set( "simfphys_Wheels", "models/NatesWheel/nateswheel.mdl", {Angle = Angle(0,180,0)} )
 list.Set( "simfphys_Wheels", "models/XQM/airplanewheel1medium.mdl", {Angle = Angle(0,180,0)} )
 list.Set( "simfphys_Wheels", "models/xeon133/offroad/off-road-30.mdl", {Angle = Angle(0,180,0)} )
+
+local LW_Wheels = {
+	"models/lonewolfie/wheels/wheel_2015chargerpolice.mdl",
+	"models/lonewolfie/wheels/wheel_ametorqthrust.mdl",
+	"models/lonewolfie/wheels/wheel_ametorqthrust_eaglest.mdl",
+	"models/lonewolfie/wheels/wheel_com_rt_gold.mdl",
+	"models/lonewolfie/wheels/wheel_com_th2.mdl",
+	"models/lonewolfie/wheels/wheel_cucv_big.mdl",
+	"models/lonewolfie/wheels/wheel_cucv_small.mdl",
+	"models/lonewolfie/wheels/wheel_fiat595.mdl",
+	"models/lonewolfie/wheels/wheel_ham_edition_race.mdl",
+	"models/lonewolfie/wheels/wheel_impalapolice.mdl",
+	"models/lonewolfie/wheels/wheel_laxaniltc701.mdl",
+	"models/lonewolfie/wheels/wheel_miktometdrag_big.mdl",
+	"models/lonewolfie/wheels/wheel_miktometdrag_highprofile.mdl",
+	"models/lonewolfie/wheels/wheel_miktometdrag_lowprofile.mdl",
+	"models/lonewolfie/wheels/wheel_monstertruck.mdl",
+	"models/lonewolfie/wheels/wheel_oet_type_rxx.mdl",
+	"models/lonewolfie/wheels/wheel_speedline22b.mdl",
+	"models/lonewolfie/wheels/wheel_suvpolice.mdl",
+	"models/lonewolfie/wheels/wheel_volkte37.mdl",
+	"models/lonewolfie/wheels/wheel_wed_sa_97.mdl",
+	"models/lonewolfie/wheels/wheel_welddrag.mdl",
+	"models/lonewolfie/wheels/wheel_welddrag_big.mdl"
+}
+
+for i = 1, table.Count( LW_Wheels ) do
+	if file.Exists( LW_Wheels[i], "GAME" ) then
+		list.Set( "simfphys_Wheels", LW_Wheels[i], {Angle = Angle(0,90,0)} )
+	end
+end
 
 timer.Simple( 0.1, function()
 	local v_list = list.Get( "simfphys_vehicles" )

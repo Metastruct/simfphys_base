@@ -22,7 +22,6 @@ TOOL.ClientConVar[ "tractionbias" ] = -0.02
 TOOL.ClientConVar[ "brakepower" ] = 45
 TOOL.ClientConVar[ "powerdistribution" ] = 1
 TOOL.ClientConVar[ "efficiency" ] = 1.25
-TOOL.ClientConVar[ "hornsound" ] = ""
 
 if CLIENT then
 	language.Add( "tool.simfphyseditor.name", "simfphys vehicle editor" )
@@ -51,37 +50,10 @@ if CLIENT then
 	
 end
 
-local function IsValidSound( sound )
-	local soundlist = list.Get( "SimfphysHornSounds" )
-	for snd, _ in pairs( soundlist ) do
-		if (soundlist[snd].simfphyseditor_hornsound:lower() == sound:lower() ) then return true end
-	end
-	return false
-end
-
-function TOOL:Think()
-	if CLIENT then
-		local trace = self:GetOwner():GetEyeTrace()
-		local ent = trace.Entity
-		
-		if !IsValid(ent) then return end
-		
-		local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-		
-		if IsVehicle then
-			AddWorldTip( nil, "test\ntest\ntest", nil, trace.HitPos, ent )
-		end
-	end
-end
-
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	ent:SetSteerSpeed( tonumber( self:GetClientInfo( "steerspeed" ) ) )
 	ent:SetFastSteerConeFadeSpeed( tonumber( self:GetClientInfo( "fadespeed" ) ) )
@@ -102,10 +74,6 @@ function TOOL:LeftClick( trace )
 	ent:SetPowerDistribution( math.Clamp(tonumber( self:GetClientInfo( "powerdistribution" ) ) ,-1,1) )
 	ent:SetEfficiency( tonumber( self:GetClientInfo( "efficiency" ) ) )
 	
-	if (IsValidSound( self:GetClientInfo("hornsound") )) then
-		ent.snd_horn = self:GetClientInfo("hornsound")
-	end
-	
 	return true
 end
 
@@ -113,11 +81,7 @@ function TOOL:RightClick( trace )
 	local ent = trace.Entity
 	local ply = self:GetOwner()
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	ply:ConCommand( "simfphyseditor_steerspeed " ..ent:GetSteerSpeed() )
 	ply:ConCommand( "simfphyseditor_fadespeed " ..ent:GetFastSteerConeFadeSpeed() )
@@ -145,11 +109,7 @@ function TOOL:Reload( trace )
 	local ent = trace.Entity
 	local ply = self:GetOwner()
 	
-	if (!IsValid(ent)) then return false end
-	
-	local IsVehicle = ent:GetClass() == "gmod_sent_vehicle_fphysics_base"
-	
-	if (!IsVehicle) then return false end
+	if not simfphys.IsCar( ent ) then return false end
 	
 	if (SERVER) then
 		local vname = ent:GetSpawn_List()
@@ -337,9 +297,6 @@ function TOOL.BuildCPanel( panel )
 		Command = "simfphyseditor_efficiency",
 		Help = true
 	})
-	panel:AddControl( "Label",  { Text = "" } )
-	panel:AddControl( "Label",  { Text = "--- misc ---" } )
-	panel:AddControl( "ListBox", { Label = "Hornsound", Options = list.Get( "SimfphysHornSounds" ) } )
 end
 
 list.Set( "SimfphysHornSounds", "Horn 5", { simfphyseditor_hornsound = "simulated_vehicles/horn_5.wav" } )

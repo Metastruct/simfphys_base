@@ -6,17 +6,25 @@ local ctmul = CreateClientConVar( "cl_simfphys_ctmul", 0.7 , true, true )
 local ctang = CreateClientConVar( "cl_simfphys_ctang", 15 , true, true )
 local hud = CreateClientConVar( "cl_simfphys_hud", "1", true, false )
 local alt_hud = CreateClientConVar( "cl_simfphys_althud", "1", true, false )
+local alt_hud_arc = CreateClientConVar( "cl_simfphys_althud_arcs", "0", true, false )
+
 local hud_mph = CreateClientConVar( "cl_simfphys_hudmph", "0", true, false )
 local hud_realspeed = CreateClientConVar( "cl_simfphys_hudrealspeed", "0", true, false )
+local autostart = CreateClientConVar( "cl_simfphys_autostart", "1", true, true )
 
 local mousesteer = CreateClientConVar( "cl_simfphys_mousesteer", "0", true, true )
 local mssensitivity = CreateClientConVar( "cl_simfphys_ms_sensitivity", "1", true, true )
-local msretract = CreateClientConVar( "cl_simfphys_ms_return", "0", true, true )
-local msdeadzone = CreateClientConVar( "cl_simfphys_ms_deadzone", "4", true, true )
+local msretract = CreateClientConVar( "cl_simfphys_ms_return", "1", true, true )
+local msdeadzone = CreateClientConVar( "cl_simfphys_ms_deadzone", "3", true, true )
 local msexponent = CreateClientConVar( "cl_simfphys_ms_exponent", "1.5", true, true )
 local mslockpitch = CreateClientConVar( "cl_simfphys_ms_lockpitch", "0", true, true )
 local mshud = CreateClientConVar( "cl_simfphys_ms_hud", "1", true, false )
 local k_msfreelook = CreateClientConVar( "cl_simfphys_ms_keyfreelook", KEY_Y, true, true )
+
+local overwrite = CreateClientConVar( "cl_simfphys_overwrite", 0, true, true )
+local steerspeed = CreateClientConVar( "cl_simfphys_steerspeed", 8, true, true )
+local faststeerang = CreateClientConVar( "cl_simfphys_steerangfast", 10, true, true )
+local fadespeed = CreateClientConVar( "cl_simfphys_fadespeed", 535, true, true )
 
 CreateClientConVar( "cl_simfphys_hidesprites", "0", true, false )
 CreateClientConVar( "cl_simfphys_spritedamage", "1", true, false )
@@ -174,6 +182,7 @@ local function buildclientsettingsmenu( self )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	createcheckbox(25,25,"Show Hud","cl_simfphys_hud",self.PropPanel,hud:GetInt())
 	createcheckbox(210,25,"Alternative Hud","cl_simfphys_althud",self.PropPanel,alt_hud:GetInt())
+	createcheckbox(210,45,"Draw Arcs\n(will cause problems\nwith multicore!)","cl_simfphys_althud_arcs",self.PropPanel,alt_hud_arc:GetInt())
 	createcheckbox(25,45,"MPH instead of KMH","cl_simfphys_hudmph",self.PropPanel,hud_mph:GetInt())
 	createcheckbox(25,65,"Speed relative to \nplayersize instead \nworldsize","cl_simfphys_hudrealspeed",self.PropPanel,hud_realspeed:GetInt())
 	
@@ -191,31 +200,27 @@ local function buildclientsettingsmenu( self )
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
 	Shape:SetPos( 20, 215 )
-	Shape:SetSize( 350, 65 )
+	Shape:SetSize( 350, 85 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	createcheckbox(25,220,"Always Fullthrottle","cl_simfphys_sanic",self.PropPanel,sanic:GetInt())
-	createcheckbox(25,240,"Automatic Transmission","cl_simfphys_auto",self.PropPanel,auto:GetInt())
-	createcheckbox(25,260,"Automatic Sportmode (late up and downshifts)","cl_simfphys_sport",self.PropPanel,sport:GetInt())
+	createcheckbox(25,240,"Engine Autostart","cl_simfphys_autostart",self.PropPanel,autostart:GetInt())
+	createcheckbox(25,260,"Automatic Transmission","cl_simfphys_auto",self.PropPanel,auto:GetInt())
+	createcheckbox(25,280,"Automatic Sportmode (late up and downshifts)","cl_simfphys_sport",self.PropPanel,sport:GetInt())
 	
-	local y = 290
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
-	Shape:SetPos( 20, y )
+	Shape:SetPos( 20, 310 )
 	Shape:SetSize( 350, 115 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	
-	y = y + 5
-	local ctitem_1 = createcheckbox(25,y,"Enable Countersteer","cl_simfphys_ctenable",self.PropPanel,ctenable:GetInt())
-	y = y + 20
-	local ctitem_2 = createslider(30,y,345,40,"Countersteer Mul","cl_simfphys_ctmul",self.PropPanel,0.1,2,ctmul:GetFloat())
-	y = y + 20
-	local ctitem_3 = createslider(30,y,345,40,"Countersteer MaxAng","cl_simfphys_ctang",self.PropPanel,1,90,ctang:GetFloat())
+	local ctitem_1 = createcheckbox(25,315,"Enable Countersteer","cl_simfphys_ctenable",self.PropPanel,ctenable:GetInt())
+	local ctitem_2 = createslider(30,335,345,40,"Countersteer Mul","cl_simfphys_ctmul",self.PropPanel,0.1,2,ctmul:GetFloat())
+	local ctitem_3 = createslider(30,355,345,40,"Countersteer MaxAng","cl_simfphys_ctang",self.PropPanel,1,90,ctang:GetFloat())
 	
-	y = y + 40
 	local Reset = vgui.Create( "DButton" )
 	Reset:SetParent( self.PropPanel )
 	Reset:SetText( "Reset" )	
-	Reset:SetPos( 25, y )
+	Reset:SetPos( 25, 395 )
 	Reset:SetSize( 340, 25 )
 	Reset.DoClick = function()
 		ctitem_1:SetValue( 1 )
@@ -224,6 +229,34 @@ local function buildclientsettingsmenu( self )
 		ctenable:SetInt( 1 )
 		ctmul:SetFloat( 0.7 )
 		ctang:SetFloat( 15 )
+	end
+	
+	local Shape = vgui.Create( "DShape", self.PropPanel)
+	Shape:SetType( "Rect" )
+	Shape:SetPos( 20, 435 )
+	Shape:SetSize( 350, 140 )
+	Shape:SetColor( Color( 0, 0, 0, 200 ) )
+	
+	local st_item_1 = createcheckbox(25,440,"Use these settings\n(you need to re-enter the vehicle)","cl_simfphys_overwrite",self.PropPanel,overwrite:GetInt())
+	local st_item_2 = createslider(30,460,345,40,"steer speed","cl_simfphys_steerspeed",self.PropPanel,1,16,steerspeed:GetFloat())
+	local st_item_3 = createslider(30,480,345,40,"fast speed steer angle","cl_simfphys_steerangfast",self.PropPanel,0,90,faststeerang:GetFloat())
+	local st_item_4 = createslider(30,505,345,40,"fade speed(units/seconds)\nfor fast speed steer angle","cl_simfphys_fadespeed",self.PropPanel,1,5000,fadespeed:GetFloat())
+	
+	local Reset = vgui.Create( "DButton" )
+	Reset:SetParent( self.PropPanel )
+	Reset:SetText( "Reset" )	
+	Reset:SetPos( 25, 545 )
+	Reset:SetSize( 340, 25 )
+	Reset.DoClick = function()
+		st_item_1:SetValue( 0 )
+		st_item_2:SetValue( 8 )
+		st_item_3:SetValue( 10 )
+		st_item_4:SetValue( 535 )
+		
+		overwrite:SetInt( 0 )
+		steerspeed:SetFloat( 8 )
+		faststeerang:SetFloat( 10 )
+		fadespeed:SetFloat( 535 )
 	end
 end
 
@@ -295,21 +328,222 @@ local function buildmsmenu( self )
 		msitem_1:SetValue( 0 )
 		msitem_2:SetValue( 0 )
 		msitem_3:SetValue( KEY_Y )
-		msitem_4:SetValue( 4 )
+		msitem_4:SetValue( 3 )
 		msitem_5:SetValue( 1.5 )
 		msitem_6:SetValue( 1 )
-		msitem_7:SetValue( 0 )
+		msitem_7:SetValue( 1 )
 		msitem_8:SetValue( 1 )
 		
 		mshud:SetInt( 1 )
 		mousesteer:SetInt( 0 )
 		mssensitivity:SetInt( 1 )
-		msretract:SetInt( 0 )
-		msdeadzone:SetFloat( 4 )
+		msretract:SetInt( 1 )
+		msdeadzone:SetFloat( 3 )
 		msexponent:SetFloat( 1.5 )
 		mslockpitch:SetInt( 0 )
 		k_msfreelook:SetInt( KEY_Y )
 	end
+end
+
+local function buildserversettingsmenu( self )
+	local Background = vgui.Create( "DShape", self.PropPanel)
+	Background:SetType( "Rect" )
+	Background:SetPos( 20, 20 )
+	Background:SetColor( Color( 0, 0, 0, 200 ) )
+	local y = 0
+	
+	--local MaxVel = physenv.GetPerformanceSettings().MaxVelocity
+	--local mph = MaxVel * 0.0568182
+	--local kmh = MaxVel * 0.09144
+	
+	if LocalPlayer():IsSuperAdmin() then
+		y = y + 25
+		local CheckBoxDamage = vgui.Create( "DCheckBoxLabel", self.PropPanel)
+		CheckBoxDamage:SetPos( 25, y )
+		CheckBoxDamage:SetText( "Enable Damage" )
+		CheckBoxDamage:SetValue( GetConVar( "sv_simfphys_enabledamage" ) :GetInt() )
+		CheckBoxDamage:SizeToContents()
+		
+		y = y + 18
+		local DamageMul = vgui.Create( "DNumSlider", self.PropPanel)
+		DamageMul:SetPos( 30, y )
+		DamageMul:SetSize( 345, 30 )
+		DamageMul:SetText( "Damage Multiplicator" )
+		DamageMul:SetMin( 0 )
+		DamageMul:SetMax( 10 )
+		DamageMul:SetDecimals( 3 )
+		DamageMul:SetValue( GetConVar( "sv_simfphys_damagemultiplicator" ):GetFloat() )
+		
+		y = y + 32
+		local CheckBoxpDamage = vgui.Create( "DCheckBoxLabel", self.PropPanel)
+		CheckBoxpDamage:SetPos( 25, y )
+		CheckBoxpDamage:SetText( "Enable Player Damage (On Collision)" )
+		CheckBoxpDamage:SetValue( GetConVar( "sv_simfphys_playerdamage" ) :GetInt() )
+		CheckBoxpDamage:SizeToContents()
+		
+		y = y + 25
+		local GibRemoveTimer = vgui.Create( "DNumSlider", self.PropPanel)
+		GibRemoveTimer:SetPos( 30, y )
+		GibRemoveTimer:SetSize( 345, 30 )
+		GibRemoveTimer:SetText( "Gib Lifetime\n(0 = never remove)" )
+		GibRemoveTimer:SetMin( 0 )
+		GibRemoveTimer:SetMax( 3600 )
+		GibRemoveTimer:SetDecimals( 0 )
+		GibRemoveTimer:SetValue( GetConVar( "sv_simfphys_gib_lifetime" ):GetInt() )
+		
+		y = y + 45
+		local tractionLabel = vgui.Create( "DLabel", self.PropPanel )
+		tractionLabel:SetPos( 25, y )
+		tractionLabel:SetText( "Traction Multiplicator for:" )
+		tractionLabel:SizeToContents()
+		
+		local NewTractionData = {}
+		local DemSliders = {}
+		y = y + 15
+		for k, v in pairs( simfphys.TractionData ) do
+			DemSliders[k] = vgui.Create( "DNumSlider", self.PropPanel)
+			DemSliders[k]:SetPos( 30, y )
+			DemSliders[k]:SetSize( 345, 30 )
+			DemSliders[k]:SetText( k )
+			DemSliders[k]:SetMin( 0 )
+			DemSliders[k]:SetMax( 2 )
+			DemSliders[k]:SetDecimals( 2 )
+			DemSliders[k]:SetValue( simfphys[k]:GetFloat() )
+			DemSliders[k].OnValueChanged = function( item, value )
+				NewTractionData[ k ] = value
+			end
+			y = y + 25
+		end
+		
+		--[[
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y + 35 )
+		Label:SetText( "Max possibe speed is: \n(playersize) "..math.Round(mph,0).." mph or "..math.Round(kmh,0).." km/h\n(worldsize) "..math.Round(mph * 0.75,0).." mph or "..math.Round(kmh * 0.75,0).." km/h" )
+		Label:SizeToContents()
+		
+		y = y + 80
+		]]--
+		
+		y = y + 30
+		local DermaButton = vgui.Create( "DButton" )
+		DermaButton:SetParent( self.PropPanel )
+		DermaButton:SetText( "Apply" )	
+		DermaButton:SetPos( 25, y - 10 )
+		DermaButton:SetSize( 340, 25 )
+		DermaButton.DoClick = function()
+			net.Start("simfphys_settings")
+				net.WriteBool( CheckBoxDamage:GetChecked() )
+				net.WriteFloat( GibRemoveTimer:GetValue() )
+				net.WriteFloat( DamageMul:GetValue() )
+				net.WriteBool( CheckBoxpDamage:GetChecked() )
+				net.WriteTable( NewTractionData ) 
+			net.SendToServer()
+		end
+		
+		y = y + 30
+		local DermaButton = vgui.Create( "DButton" )
+		DermaButton:SetParent( self.PropPanel )
+		DermaButton:SetText( "Reset" )	
+		DermaButton:SetPos( 25, y - 10 )
+		DermaButton:SetSize( 340, 25 )
+		DermaButton.DoClick = function()
+			
+			NewTractionData["ice"] = 0.35
+			NewTractionData["gmod_ice"] = 0.1
+			NewTractionData["slipperyslime"] = 0.2
+			NewTractionData["snow"] = 0.7
+			NewTractionData["grass"] = 1
+			NewTractionData["sand"] = 1
+			NewTractionData["dirt"] = 1
+			NewTractionData["concrete"] = 1
+			NewTractionData["metal"] = 1
+			NewTractionData["glass"] = 1
+			NewTractionData["gravel"] = 1
+			NewTractionData["rock"] = 1
+			NewTractionData["wood"] = 1
+			
+			for k, v in pairs( NewTractionData ) do
+				DemSliders[k]:SetValue( v )
+			end
+			
+			CheckBoxDamage:SetValue( 1 )
+			GibRemoveTimer:SetValue( 120 )
+			DamageMul:SetValue( 1 )
+			CheckBoxpDamage:SetValue( 1 )
+			
+			net.Start("simfphys_settings")
+				net.WriteBool( true )
+				net.WriteFloat( 120 )
+				net.WriteFloat( 1 )
+				net.WriteBool( true )
+				net.WriteTable( NewTractionData ) 
+			net.SendToServer()
+		end
+	else
+		y = y + 25
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y )
+		Label:SetText( "Damage is "..((GetConVar( "sv_simfphys_enabledamage" ):GetInt() > 0) and "enabled" or "disabled") )
+		Label:SizeToContents()
+
+		y = y + 25
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y )
+		Label:SetText( "Damage Multiplicator is: "..GetConVar( "sv_simfphys_damagemultiplicator" ):GetFloat() )
+		Label:SizeToContents()
+		
+		y = y + 25
+		local yes = "Players can take damage from collisions"
+		local no = "Players can't take damage from collisions"
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y )
+		Label:SetText( GetConVar( "sv_simfphys_playerdamage" ):GetBool() and yes or no )
+		Label:SizeToContents()
+		
+		y = y + 25
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		local lifetime = GetConVar( "sv_simfphys_gib_lifetime" ):GetInt()
+		Label:SetPos( 30, y )
+		Label:SetText( (lifetime > 0) and ("Gib Lifetime = "..lifetime.." seconds") or "Gibs never despawn" )
+		Label:SizeToContents()
+
+		y = y + 45
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y )
+		Label:SetText( "Traction multiplier for..." )
+		Label:SizeToContents()
+
+		y = y + 15
+		for k, v in pairs( simfphys.TractionData ) do
+			local tractionLabel = vgui.Create( "DLabel", self.PropPanel )
+			tractionLabel:SetPos( 105, y )
+			tractionLabel:SetText( k )
+			tractionLabel:SizeToContents()
+			
+			local tractionLabel = vgui.Create( "DLabel", self.PropPanel )
+			tractionLabel:SetPos( 170, y )
+			tractionLabel:SetText( "=" )
+			tractionLabel:SizeToContents()
+			
+			local tractionLabel = vgui.Create( "DLabel", self.PropPanel )
+			tractionLabel:SetPos( 185, y )
+			tractionLabel:SetText( math.Round(v,2) )
+			tractionLabel:SizeToContents()
+			
+			y = y + 25
+		end
+		y = y - 25
+		
+		--[[
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y + 35 )
+		Label:SetText( "Max possibe speed is: \n(playersize) "..math.Round(mph,0).." mph or "..math.Round(kmh,0).." km/h\n(worldsize) "..math.Round(mph * 0.75,0).." mph or "..math.Round(kmh * 0.75,0).." km/h" )
+		Label:SizeToContents()
+		y = y + 65
+		]]--
+	end
+	
+	Background:SetSize( 350, y )
 end
 
 
@@ -423,22 +657,18 @@ hook.Add( "PopulateVehicles", "simfphys", function( pnlContent, tree, _ )
 	end
 	
 	-- SERVER SETTINGS
-	--[[
 	local node = tree:AddNode( "Server Settings", "icon16/wrench_orange.png" )
 	node.DoPopulate = function( self )
-		if ( self.PropPanel ) then return end
-		
 		self.PropPanel = vgui.Create( "ContentContainer", pnlContent )
 		self.PropPanel:SetVisible( false )
 		self.PropPanel:SetTriggerSpawnlistChange( false )
 
-		--buildclientsettingsmenu( self )
+		buildserversettingsmenu( self )
 	end
 	node.DoClick = function( self )
 		self:DoPopulate()
 		pnlContent:SwitchPanel( self.PropPanel )
 	end
-	]]--
 
 	
 	-- Select the first node

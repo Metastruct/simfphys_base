@@ -19,7 +19,7 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self:GetPhysicsObject():EnableMotion(true)
 	self:GetPhysicsObject():Wake()
-	self:SetCollisionGroup( COLLISION_GROUP_WEAPON  ) 
+	self:SetCollisionGroup( COLLISION_GROUP_DEBRIS ) 
 	self:SetRenderMode( RENDERMODE_TRANSALPHA )
 	
 	self:SetMaterial( "models/player/player_chrome1" )

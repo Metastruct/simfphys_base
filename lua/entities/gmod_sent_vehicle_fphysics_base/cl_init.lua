@@ -530,8 +530,8 @@ end
 
 function ENT:PrecacheSounds()
 	for index, sound in pairs( self.EngineSounds ) do
-		if (!isbool(sound)) then
-			if (file.Exists( "sound/"..sound, "GAME" )) then
+		if not isbool(sound) then
+			if file.Exists( "sound/"..sound, "GAME" ) then
 				util.PrecacheSound( sound )
 			else
 				print("Warning soundfile \""..sound.."\" not found. Using \"common/null.wav\" instead to prevent fps rape")
