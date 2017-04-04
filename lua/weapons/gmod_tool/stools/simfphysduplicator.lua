@@ -15,8 +15,8 @@ end
 if CLIENT then
 	language.Add( "tool.simfphysduplicator.name", "Vehicle Duplicator" )
 	language.Add( "tool.simfphysduplicator.desc", "Copy, Paste or Save your Vehicles" )
-	language.Add( "tool.simfphysduplicator.0", "Left click to spawn. Right click to copy" )
-	language.Add( "tool.simfphysduplicator.1", "Left click to spawn. Right click to copy" )
+	language.Add( "tool.simfphysduplicator.0", "Left click to spawn or update. Right click to copy" )
+	language.Add( "tool.simfphysduplicator.1", "Left click to spawn or update. Right click to copy" )
 	
 	local selecteditem	= nil
 	local TOOLMemory	= {}
@@ -384,6 +384,8 @@ end
 function TOOL:LeftClick( trace )
 	if CLIENT then return true end
 	
+	local Ent = trace.Entity
+	
 	local ply = self:GetOwner()
 	
 	if not istable(ply.TOOLMemory) then return end
@@ -402,7 +404,15 @@ function TOOL:LeftClick( trace )
 	SpawnAng.yaw = SpawnAng.yaw + 180 + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 	SpawnAng.roll = 0
 	
-	local Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle )
+	if simfphys.IsCar( Ent ) then
+		if vname ~= Ent:GetSpawn_List() then 
+			ply:PrintMessage( HUD_PRINTTALK, vname.." is not compatible with "..Ent:GetSpawn_List() )
+			return
+		end
+	else
+		Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle )
+	end
+	
 	if not IsValid( Ent ) then return end
 	
 	local tsc = string.Explode( ",", ply.TOOLMemory.TireSmokeColor )
