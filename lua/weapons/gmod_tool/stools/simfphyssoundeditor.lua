@@ -1,5 +1,5 @@
 TOOL.Category		= "simfphys"
-TOOL.Name			= "#Sound Editor"
+TOOL.Name			= "#Sound Editor - Engine"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 
@@ -24,7 +24,7 @@ TOOL.ClientConVar[ "ShiftUp" ] = ""
 TOOL.ClientConVar[ "RevDown" ] = ""
 
 if CLIENT then
-	language.Add( "tool.simfphyssoundeditor.name", "Sound Editor" )
+	language.Add( "tool.simfphyssoundeditor.name", "Engine Sound Editor" )
 	language.Add( "tool.simfphyssoundeditor.desc", "A tool used to edit engine sounds on simfphys vehicles" )
 	language.Add( "tool.simfphyssoundeditor.0", "Left click apply settings. Right click copy settings. Reload to reset" )
 	language.Add( "tool.simfphyssoundeditor.1", "Left click apply settings. Right click copy settings. Reload to reset" )
