@@ -112,13 +112,8 @@ function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 	local ReactionForce = (self.EngineTorque * 2 - math.Clamp(self.ForwardSpeed,-self.Brake,self.Brake)) * self.DriveWheelsOnGround
 	local BaseMassCenter = PObj:GetMassCenter()
 	
-	local FrontPos =(IsValid(self.Wheels[1]) and IsValid(self.Wheels[2])) and ((self.Wheels[1]:GetPos() + self.Wheels[2]:GetPos()) / 2) or BaseMassCenter
-	local RearPos = (IsValid(self.Wheels[3]) and IsValid(self.Wheels[4])) and ((self.Wheels[3]:GetPos() + self.Wheels[4]:GetPos()) / 2) or BaseMassCenter
-	
-	local ReactionForcePos = (self:GetPowerDistribution() > 0) and RearPos or (self:GetPowerDistribution() < 0) and FrontPos or BaseMassCenter
-	
-	PObj:ApplyForceOffset( -self.Forward * self.Mass * ReactionForce, ReactionForcePos + self.Up ) 
-	PObj:ApplyForceOffset( self.Forward * self.Mass * ReactionForce, ReactionForcePos - self.Up )
+	PObj:ApplyForceOffset( -self.Forward * self.Mass * ReactionForce, BaseMassCenter + self.Up * math.max(self:GetPowerDistribution(),0) ) 
+	PObj:ApplyForceOffset( self.Forward * self.Mass * ReactionForce, BaseMassCenter - self.Up * math.max(self:GetPowerDistribution(),0) ) 
 end
 
 function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_handbrake,k_gearup,k_geardown,isauto,IdleRPM,Powerbandstart,Powerbandend,shiftmode,cruisecontrol,curtime)
