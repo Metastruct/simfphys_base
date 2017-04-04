@@ -427,24 +427,42 @@ end
 function ENT:SetSoundPreset(index)
 	if (index == -1) then
 		local vehiclelist = list.Get( "simfphys_vehicles" )[self:GetSpawn_List()]
-		if (vehiclelist) then
-			local idle = vehiclelist.Members.snd_idle or ""
-			local low = vehiclelist.Members.snd_low or ""
-			local mid = vehiclelist.Members.snd_mid or ""
-			local revdown = vehiclelist.Members.snd_low_revdown or ""
-			local gearup = vehiclelist.Members.snd_mid_gearup or ""
-			local geardown = vehiclelist.Members.snd_mid_geardown or ""
+		if vehiclelist then
+			local soundoverride = self:GetSoundoverride()
+			local data = string.Explode( ",", soundoverride)
 			
-			self.EngineSounds[ "Idle" ] = idle != "" and idle or false
-			self.EngineSounds[ "LowRPM" ] = low != "" and low or false
-			self.EngineSounds[ "HighRPM" ] = mid != "" and mid or false
-			self.EngineSounds[ "RevDown" ] = revdown != "" and revdown or low
-			self.EngineSounds[ "ShiftUpToHigh" ] = gearup != "" and gearup or mid
-			self.EngineSounds[ "ShiftDownToHigh" ] = geardown != "" and geardown or gearup
-			
-			self.PitchMulLow = vehiclelist.Members.snd_low_pitch or 1
-			self.PitchMulHigh = vehiclelist.Members.snd_mid_pitch or 1
-			self.PitchMulAll = vehiclelist.Members.snd_pitch or 1
+			if soundoverride ~= "" and data[1] == "1"  then
+				
+				self.EngineSounds[ "Idle" ] = data[4]
+				self.EngineSounds[ "LowRPM" ] = data[6]
+				self.EngineSounds[ "HighRPM" ] = data[2]
+				self.EngineSounds[ "RevDown" ] = data[8]
+				self.EngineSounds[ "ShiftUpToHigh" ] = data[10]
+				self.EngineSounds[ "ShiftDownToHigh" ] = data[9]
+				
+				self.PitchMulLow = data[7]
+				self.PitchMulHigh = data[3]
+				self.PitchMulAll = data[5]
+			else 
+				
+				local idle = vehiclelist.Members.snd_idle or ""
+				local low = vehiclelist.Members.snd_low or ""
+				local mid = vehiclelist.Members.snd_mid or ""
+				local revdown = vehiclelist.Members.snd_low_revdown or ""
+				local gearup = vehiclelist.Members.snd_mid_gearup or ""
+				local geardown = vehiclelist.Members.snd_mid_geardown or ""
+				
+				self.EngineSounds[ "Idle" ] = idle != "" and idle or false
+				self.EngineSounds[ "LowRPM" ] = low != "" and low or false
+				self.EngineSounds[ "HighRPM" ] = mid != "" and mid or false
+				self.EngineSounds[ "RevDown" ] = revdown != "" and revdown or low
+				self.EngineSounds[ "ShiftUpToHigh" ] = gearup != "" and gearup or mid
+				self.EngineSounds[ "ShiftDownToHigh" ] = geardown != "" and geardown or gearup
+				
+				self.PitchMulLow = vehiclelist.Members.snd_low_pitch or 1
+				self.PitchMulHigh = vehiclelist.Members.snd_mid_pitch or 1
+				self.PitchMulAll = vehiclelist.Members.snd_pitch or 1
+			end
 		else
 			local ded = "common/bugreporter_failed.wav"
 			
@@ -476,7 +494,7 @@ function ENT:SetSoundPreset(index)
 		local soundoverride = self:GetSoundoverride()
 		local data = string.Explode( ",", soundoverride)
 		
-		if (soundoverride != "") then
+		if soundoverride ~= "" and data[1] ~= "1"  then
 			self.EngineSounds[ "IdleSound" ] = data[1]
 			self.Idle_PitchMul = data[2]
 			
