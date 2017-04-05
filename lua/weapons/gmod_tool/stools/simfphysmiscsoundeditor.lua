@@ -10,7 +10,7 @@ TOOL.ClientConVar[ "SuperChargerOff" ] = "simulated_vehicles/blower_spin.wav"
 TOOL.ClientConVar[ "HornSound" ] = "simulated_vehicles/horn_1.wav"
 
 if CLIENT then
-	language.Add( "tool.simfphysmiscsoundeditor.name", "Sound Editor - Misc" )
+	language.Add( "tool.simfphysmiscsoundeditor.name", "Misc Sound Editor" )
 	language.Add( "tool.simfphysmiscsoundeditor.desc", "A tool used to edit miscellaneous sounds on simfphys vehicles" )
 	language.Add( "tool.simfphysmiscsoundeditor.0", "Left click apply settings. Right click copy settings. Reload to reset" )
 	language.Add( "tool.simfphysmiscsoundeditor.1", "Left click apply settings. Right click copy settings. Reload to reset" )
@@ -30,29 +30,34 @@ function TOOL:LeftClick( trace )
 	
 	if not simfphys.IsCar( ent ) then return false end
 	
+	ent.snd_blowoff = self:GetClientInfo( "TurboBlowOff" )
+	ent.snd_spool = self:GetClientInfo( "TurboSpin" )
+	ent.snd_bloweroff = self:GetClientInfo( "SuperChargerOff" )
+	ent.snd_bloweron = self:GetClientInfo( "SuperChargerOn" )
+	ent.snd_horn = self:GetClientInfo( "HornSound" )
+	
 	return true
 end
 
 function TOOL:RightClick( trace )
 	local ent = trace.Entity
+	local ply = self:GetOwner()
 	
 	if not simfphys.IsCar( ent ) then return false end
 	
 	if SERVER then
-		local SoundType = ent:GetEngineSoundPreset()
 		local Sounds = {}
-		
-		local vehiclelist = list.Get( "simfphys_vehicles" )[ ent:GetSpawn_List() ]
-		
 		Sounds.TurboBlowOff = ent.snd_blowoff or "simulated_vehicles/turbo_blowoff.ogg"
 		Sounds.TurboSpin = ent.snd_spool or "simulated_vehicles/turbo_spin.wav"
-		
 		Sounds.SuperCharger1 = ent.snd_bloweroff or "simulated_vehicles/blower_spin.wav"
 		Sounds.SuperCharger2 = ent.snd_bloweron or "simulated_vehicles/blower_gearwhine.wav"
-		
 		Sounds.HornSound = ent.snd_horn or "simulated_vehicles/horn_1.wav"
 		
-		PrintTable( Sounds )
+		ply:ConCommand( "simfphysmiscsoundeditor_TurboBlowOff "..Sounds.TurboBlowOff )
+		ply:ConCommand( "simfphysmiscsoundeditor_TurboSpin "..Sounds.TurboSpin )
+		ply:ConCommand( "simfphysmiscsoundeditor_SuperChargerOn "..Sounds.SuperCharger2 )
+		ply:ConCommand( "simfphysmiscsoundeditor_SuperChargerOff "..Sounds.SuperCharger1 )
+		ply:ConCommand( "simfphysmiscsoundeditor_HornSound "..Sounds.HornSound )
 	end
 	
 	return true
@@ -62,6 +67,16 @@ function TOOL:Reload( trace )
 	local ent = trace.Entity
 	
 	if not simfphys.IsCar( ent ) then return false end
+	
+	if SERVER then
+		local vehiclelist = list.Get( "simfphys_vehicles" )[ ent:GetSpawn_List() ]
+		
+		ent.snd_blowoff = vehiclelist.Members.snd_blowoff or "simulated_vehicles/turbo_blowoff.ogg"
+		ent.snd_spool = vehiclelist.Members.snd_spool or "simulated_vehicles/turbo_spin.wav"
+		ent.snd_bloweroff = vehiclelist.Members.snd_bloweroff or "simulated_vehicles/blower_spin.wav"
+		ent.snd_bloweron = vehiclelist.Members.snd_bloweron or "simulated_vehicles/blower_gearwhine.wav"
+		ent.snd_horn = vehiclelist.Members.snd_horn or "simulated_vehicles/horn_1.wav"
+	end
 	
 	return true
 end
