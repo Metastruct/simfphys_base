@@ -1228,6 +1228,12 @@ function ENT:OnHighbeam( name, old, new)
 				self:SetSubMaterial( k )
 			end
 		end
+		
+		if datalights.SubMaterials.Lowbeam then
+			for k,v in pairs( datalights.SubMaterials.Lowbeam ) do
+				self:SetSubMaterial( k, v )
+			end
+		end
 	end
 end
 
