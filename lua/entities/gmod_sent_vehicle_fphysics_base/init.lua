@@ -1179,6 +1179,81 @@ function ENT:SetOnSmoke( bOn )
 	end
 end
 
+function ENT:OnLights( name, old, new)
+	if new == old then return end
+	
+	if not self.LightsTable then return end
+	
+	local datalights = list.Get( "simfphys_lights" )[ self.LightsTable ] or false
+	if not datalights or not datalights.SubMaterials then return end
+	
+	if new == true then
+		if datalights.SubMaterials.Lowbeam then
+			for k,v in pairs( datalights.SubMaterials.Lowbeam ) do
+				self:SetSubMaterial( k, v )
+			end
+		end
+	else
+		if datalights.SubMaterials.Lowbeam then
+			for k,v in pairs( datalights.SubMaterials.Lowbeam ) do
+				self:SetSubMaterial( k )
+			end
+		end
+		
+		if datalights.SubMaterials.Highbeam then
+			for k,v in pairs( datalights.SubMaterials.Highbeam ) do
+				self:SetSubMaterial( k )
+			end
+		end
+	end
+end
+
+function ENT:OnHighbeam( name, old, new)
+	if new == old then return end
+	
+	if not self.LightsTable then return end
+	
+	local datalights = list.Get( "simfphys_lights" )[ self.LightsTable ] or false
+	if not datalights or not datalights.SubMaterials then return end
+	
+	if new == true then
+		if datalights.SubMaterials.Highbeam then
+			for k,v in pairs( datalights.SubMaterials.Highbeam ) do
+				self:SetSubMaterial( k, v )
+			end
+		end
+	else
+		if datalights.SubMaterials.Highbeam then
+			for k,v in pairs( datalights.SubMaterials.Highbeam ) do
+				self:SetSubMaterial( k )
+			end
+		end
+	end
+end
+
+function ENT:OnFoglight( name, old, new)
+	if new == old then return end
+	
+	if not self.LightsTable then return end
+	
+	local datalights = list.Get( "simfphys_lights" )[ self.LightsTable ] or false
+	if not datalights or not datalights.SubMaterials then return end
+	
+	if new == true then
+		if datalights.SubMaterials.Foglight then
+			for k,v in pairs( datalights.SubMaterials.Foglight ) do
+				self:SetSubMaterial( k, v )
+			end
+		end
+	else
+		if datalights.SubMaterials.Foglight then
+			for k,v in pairs( datalights.SubMaterials.Foglight ) do
+				self:SetSubMaterial( k )
+			end
+		end
+	end
+end
+
 function ENT:s_MakeOwner( entity )
 	if CPPI then
 		if (IsValid( self.EntityOwner )) then
