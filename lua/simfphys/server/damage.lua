@@ -164,14 +164,18 @@ local function onCollide( ent, data )
 		else
 			Spark( pos , data.HitNormal , "MetalVehicle.ImpactSoft" )
 			
-			if (data.Speed > 250) then
+			if data.Speed > 250 then
 				local hitent = data.HitEntity:IsPlayer()
-				if !hitent then
+				if not hitent then
 					bcDamage( ent , ent:WorldToLocal( pos ) , true )
+					
+					if simfphys.DamageMul > 1 then
+						ent:TakeDamage( (data.Speed / 28) * simfphys.DamageMul, Entity(0), Entity(0) )
+					end
 				end
 			end
 			
-			if (data.Speed > 500) then
+			if data.Speed > 500 then
 				HurtPlayers( ent , 2 )
 				ent:TakeDamage( (data.Speed / 14) * simfphys.DamageMul, Entity(0), Entity(0) )
 			end
