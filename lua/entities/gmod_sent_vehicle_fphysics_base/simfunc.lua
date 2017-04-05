@@ -111,9 +111,10 @@ function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 	
 	local ReactionForce = (self.EngineTorque * 2 - math.Clamp(self.ForwardSpeed,-self.Brake,self.Brake)) * self.DriveWheelsOnGround
 	local BaseMassCenter = PObj:GetMassCenter()
+	local dt_mul = math.max( math.min(self:GetPowerDistribution() + 0.5,1),0)
 	
-	PObj:ApplyForceOffset( -self.Forward * self.Mass * ReactionForce, BaseMassCenter + self.Up * math.max(self:GetPowerDistribution(),0) ) 
-	PObj:ApplyForceOffset( self.Forward * self.Mass * ReactionForce, BaseMassCenter - self.Up * math.max(self:GetPowerDistribution(),0) ) 
+	PObj:ApplyForceOffset( -self.Forward * self.Mass * ReactionForce, BaseMassCenter + self.Up * dt_mul ) 
+	PObj:ApplyForceOffset( self.Forward * self.Mass * ReactionForce, BaseMassCenter - self.Up * dt_mul ) 
 end
 
 function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_handbrake,k_gearup,k_geardown,isauto,IdleRPM,Powerbandstart,Powerbandend,shiftmode,cruisecontrol,curtime)
