@@ -257,7 +257,6 @@ function ENT:ManageSounds(Active)
 			self.LowRPM:ChangeVolume( math.Clamp(Volume - (self.SmoothRPM - 2000) / 2000 * self.FadeThrottle,0,1) )
 			self.LowRPM:ChangePitch( math.Clamp( Pitch * self.PitchMulLow,0,255) )
 			
-			
 			local hivol = math.max((self.SmoothRPM - 2000) / 2000,0) * Volume
 			self.HighRPM:ChangeVolume( self.FadeThrottle < 0.4 and hivol * self.FadeThrottle or hivol * self.FadeThrottle * 2.5  )
 			self.HighRPM:ChangePitch( math.Clamp( Pitch * self.PitchMulHigh,0,255) )

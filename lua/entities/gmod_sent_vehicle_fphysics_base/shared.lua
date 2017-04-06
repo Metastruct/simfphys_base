@@ -71,10 +71,6 @@ function ENT:SetupDataTables()
 		self:NetworkVarNotify( "SuperCharged", self.OnSuperCharged )
 		self:NetworkVarNotify( "Active", self.OnActiveChanged )
 		self:NetworkVarNotify( "Throttle", self.OnThrottleChanged )
-		
-		self:NetworkVarNotify( "LightsEnabled", self.OnLights )
-		self:NetworkVarNotify( "LampsEnabled", self.OnHighbeam )
-		self:NetworkVarNotify( "FogLightsEnabled", self.OnFoglight )
 	end
 end
 
