@@ -251,14 +251,14 @@ function ENT:ManageSounds(Active)
 				self.OldGear = Gear
 			end
 			
-			self.Idle:ChangeVolume( math.Clamp( math.min((self.SmoothRPM / IdleRPM) * 3,1.5 + self.FadeThrottle  * 0.5) * 0.7 - self.SmoothRPM / 2000 ,0,1), 0.03 )
+			self.Idle:ChangeVolume( math.Clamp( math.min((self.SmoothRPM / IdleRPM) * 3,1.5 + self.FadeThrottle  * 0.5) * 0.7 - self.SmoothRPM / 2000 ,0,1) )
 			self.Idle:ChangePitch( math.Clamp( Pitch * 3,0,255) ) 
 			
-			self.LowRPM:ChangeVolume( math.Clamp(Volume - (self.SmoothRPM - 2000) / 2000 * self.FadeThrottle,0,1), 0.03 )
+			self.LowRPM:ChangeVolume( math.Clamp(Volume - (self.SmoothRPM - 2000) / 2000 * self.FadeThrottle,0,1) )
 			self.LowRPM:ChangePitch( math.Clamp( Pitch * self.PitchMulLow,0,255) )
 			
 			local hivol = math.max((self.SmoothRPM - 2000) / 2000,0) * Volume
-			self.HighRPM:ChangeVolume( self.FadeThrottle < 0.4 and hivol * self.FadeThrottle or hivol * self.FadeThrottle * 2.5 , 0.03 )
+			self.HighRPM:ChangeVolume( self.FadeThrottle < 0.4 and hivol * self.FadeThrottle or hivol * self.FadeThrottle * 2.5 )
 			self.HighRPM:ChangePitch( math.Clamp( Pitch * self.PitchMulHigh,0,255) )
 		else
 			if (Gear != self.OldGear) then
