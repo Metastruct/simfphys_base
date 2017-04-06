@@ -206,125 +206,7 @@ function ENT:SetColors()
 	end
 end
 
-function ENT:UpdateSubMats( Lowbeam, Highbeam, IsBraking, IsReversing )
-	if not self.LightsTable then return end
-	
-	if not self.SubMaterials then
-		local datalights = list.Get( "simfphys_lights" )[ self.LightsTable ] or false
-		
-		if not datalights or not datalights.SubMaterials then 
-			self.SubMaterials = false
-		else
-			self.SubMaterials = datalights.SubMaterials
-		end
-	end
-	
-	if not istable( self.SubMaterials ) then return end
-	
-	if self.WasReversing == IsReversing and self.WasBraking == IsBraking and self.WasLowbeam == Lowbeam and self.WasHighbeam == Highbeam then return end
-	
-	if Lowbeam then
-		if Highbeam then
-			if self.SubMaterials.on_highbeam then
-				if not IsReversing and not IsBraking then
-					if self.SubMaterials.on_highbeam.Base then
-						for k,v in pairs( self.SubMaterials.on_highbeam.Base ) do
-							self:SetSubMaterial( k, v )
-						end
-					end
-				elseif IsBraking then
-					if IsReversing then
-						if self.SubMaterials.on_highbeam.Brake_Reverse then
-							for k,v in pairs( self.SubMaterials.on_highbeam.Brake_Reverse ) do
-								self:SetSubMaterial( k, v )
-							end
-						end
-					else
-						if self.SubMaterials.on_highbeam.Brake then
-							for k,v in pairs( self.SubMaterials.on_highbeam.Brake ) do
-								self:SetSubMaterial( k, v )
-							end
-						end
-					end
-				else
-					if self.SubMaterials.on_highbeam.Reverse then
-						for k,v in pairs( self.SubMaterials.on_highbeam.Reverse ) do
-							self:SetSubMaterial( k, v )
-						end
-					end
-				end
-			end
-		else
-			if self.SubMaterials.on_lowbeam then
-				if not IsReversing and not IsBraking then
-					if self.SubMaterials.on_lowbeam.Base then
-						for k,v in pairs( self.SubMaterials.on_lowbeam.Base ) do
-							self:SetSubMaterial( k, v )
-						end
-					end
-				elseif IsBraking then
-					if IsReversing then
-						if self.SubMaterials.on_lowbeam.Brake_Reverse then
-							for k,v in pairs( self.SubMaterials.on_lowbeam.Brake_Reverse ) do
-								self:SetSubMaterial( k, v )
-							end
-						end
-					else
-						if self.SubMaterials.on_lowbeam.Brake then
-							for k,v in pairs( self.SubMaterials.on_lowbeam.Brake ) do
-								self:SetSubMaterial( k, v )
-							end
-						end
-					end
-				else
-					if self.SubMaterials.on_lowbeam.Reverse then
-						for k,v in pairs( self.SubMaterials.on_lowbeam.Reverse ) do
-							self:SetSubMaterial( k, v )
-						end
-					end
-				end
-			end
-		end
-	else
-		if self.SubMaterials.off then
-			if not IsReversing and not IsBraking then
-				if self.SubMaterials.off.Base then
-					for k,v in pairs( self.SubMaterials.off.Base ) do
-						self:SetSubMaterial( k, v )
-					end
-				end
-			elseif IsBraking then
-				if IsReversing then
-					if self.SubMaterials.off.Brake_Reverse then
-						for k,v in pairs( self.SubMaterials.off.Brake_Reverse ) do
-							self:SetSubMaterial( k, v )
-						end
-					end
-				else
-					if self.SubMaterials.off.Brake then
-						for k,v in pairs( self.SubMaterials.off.Brake ) do
-							self:SetSubMaterial( k, v )
-						end
-					end
-				end
-			else
-				if self.SubMaterials.off.Reverse then
-					for k,v in pairs( self.SubMaterials.off.Reverse ) do
-						self:SetSubMaterial( k, v )
-					end
-				end
-			end
-		end
-	end
-	
-	self.WasReversing = IsReversing
-	self.WasBraking = IsBraking
-	self.WasLowbeam = Lowbeam
-	self.WasHighbeam = Highbeam
-end
-
 function ENT:ControlLighting( curtime )
-	
 	if (self.NextLightCheck or 0) < curtime then
 		
 		if self.LightsActivated ~= self.DoCheck then
@@ -335,13 +217,6 @@ function ENT:ControlLighting( curtime )
 			end
 		end
 	end
-	
-	local IsReversing = self:GetGear() == 1
-	local IsBraking = self:GetIsBraking()
-	local Lowbeam = self:GetLightsEnabled()
-	local Highbeam = self:GetLampsEnabled()
-	
-	self:UpdateSubMats( Lowbeam, Highbeam, IsBraking, IsReversing )
 end
 
 function ENT:GetEngineData()

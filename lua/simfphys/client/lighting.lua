@@ -40,6 +40,111 @@ local function BodyGroupIsValid( bodygroups, entity )
 	return false
 end
 
+local function UpdateSubMats(ent, Lowbeam, Highbeam, IsBraking, IsReversing )
+	if not istable( ent.SubMaterials ) then return end
+	
+	if ent.WasReversing == IsReversing and ent.WasBraking == IsBraking and ent.WasLowbeam == Lowbeam and ent.WasHighbeam == Highbeam then return end
+	
+	if Lowbeam then
+		if Highbeam then
+			if ent.SubMaterials.on_highbeam then
+				if not IsReversing and not IsBraking then
+					if ent.SubMaterials.on_highbeam.Base then
+						for k,v in pairs( ent.SubMaterials.on_highbeam.Base ) do
+							ent:SetSubMaterial( k, v )
+						end
+					end
+				elseif IsBraking then
+					if IsReversing then
+						if ent.SubMaterials.on_highbeam.Brake_Reverse then
+							for k,v in pairs( ent.SubMaterials.on_highbeam.Brake_Reverse ) do
+								ent:SetSubMaterial( k, v )
+							end
+						end
+					else
+						if ent.SubMaterials.on_highbeam.Brake then
+							for k,v in pairs( ent.SubMaterials.on_highbeam.Brake ) do
+								ent:SetSubMaterial( k, v )
+							end
+						end
+					end
+				else
+					if ent.SubMaterials.on_highbeam.Reverse then
+						for k,v in pairs( ent.SubMaterials.on_highbeam.Reverse ) do
+							ent:SetSubMaterial( k, v )
+						end
+					end
+				end
+			end
+		else
+			if ent.SubMaterials.on_lowbeam then
+				if not IsReversing and not IsBraking then
+					if ent.SubMaterials.on_lowbeam.Base then
+						for k,v in pairs( ent.SubMaterials.on_lowbeam.Base ) do
+							ent:SetSubMaterial( k, v )
+						end
+					end
+				elseif IsBraking then
+					if IsReversing then
+						if ent.SubMaterials.on_lowbeam.Brake_Reverse then
+							for k,v in pairs( ent.SubMaterials.on_lowbeam.Brake_Reverse ) do
+								ent:SetSubMaterial( k, v )
+							end
+						end
+					else
+						if ent.SubMaterials.on_lowbeam.Brake then
+							for k,v in pairs( ent.SubMaterials.on_lowbeam.Brake ) do
+								ent:SetSubMaterial( k, v )
+							end
+						end
+					end
+				else
+					if ent.SubMaterials.on_lowbeam.Reverse then
+						for k,v in pairs( ent.SubMaterials.on_lowbeam.Reverse ) do
+							ent:SetSubMaterial( k, v )
+						end
+					end
+				end
+			end
+		end
+	else
+		if ent.SubMaterials.off then
+			if not IsReversing and not IsBraking then
+				if ent.SubMaterials.off.Base then
+					for k,v in pairs( ent.SubMaterials.off.Base ) do
+						ent:SetSubMaterial( k, v )
+					end
+				end
+			elseif IsBraking then
+				if IsReversing then
+					if ent.SubMaterials.off.Brake_Reverse then
+						for k,v in pairs( ent.SubMaterials.off.Brake_Reverse ) do
+							ent:SetSubMaterial( k, v )
+						end
+					end
+				else
+					if ent.SubMaterials.off.Brake then
+						for k,v in pairs( ent.SubMaterials.off.Brake ) do
+							ent:SetSubMaterial( k, v )
+						end
+					end
+				end
+			else
+				if ent.SubMaterials.off.Reverse then
+					for k,v in pairs( ent.SubMaterials.off.Reverse ) do
+						ent:SetSubMaterial( k, v )
+					end
+				end
+			end
+		end
+	end
+	
+	ent.WasReversing = IsReversing
+	ent.WasBraking = IsBraking
+	ent.WasLowbeam = Lowbeam
+	ent.WasHighbeam = Highbeam
+end
+
 local function ManageProjTextures()
 	if vtable then
 		for i, ent in pairs(vtable) do
@@ -53,6 +158,8 @@ local function ManageProjTextures()
 					[4] = ent:GetIsBraking(),
 					[5] = (ent:GetGear() == 1),
 				}
+				
+				UpdateSubMats(ent, ent.triggers[1], ent.triggers[2], ent.triggers[4], ent.triggers[5] )
 				
 				for i, proj in pairs( ent.Projtexts ) do
 					local trigger = ent.triggers[proj.trigger]
@@ -214,13 +321,19 @@ local function SetUpLights( vname , ent )
 	ent.Sprites = {}
 	
 	local vehiclelist = list.Get( "simfphys_lights" )[vname]
-	if (!vehiclelist) then return end
+	if not vehiclelist then ent.SubMaterials = false return end
 	
 	ent.LightsEMS = vehiclelist.ems_sprites or false 
 	local hl_col = vehiclelist.ModernLights and {215,240,255} or {220,205,160}
 	
 	SetupProjectedTextures( ent , vehiclelist )
 	
+	if not vehiclelist or not vehiclelist.SubMaterials then 
+		ent.SubMaterials = false
+	else
+		ent.SubMaterials = vehiclelist.SubMaterials
+	end
+
 	if istable(vehiclelist.ems_sprites) then
 		ent.PixVisEMS = {}
 		for i = 1, table.Count( vehiclelist.ems_sprites ) do
