@@ -9,9 +9,51 @@ function ENT:Think()
 	local Time = CurTime()
 	if IsValid( self.DriverSeat ) then
 		local Driver = self.DriverSeat:GetDriver()
-		if self:GetDriver() ~= Driver then
+		local OldDriver = self:GetDriver()
+		if OldDriver ~= Driver then
 			self:SetDriver( Driver )
-			self:SetActive( IsValid( Driver ) )
+			
+			local HadDriver = IsValid( OldDriver )
+			local HasDriver = IsValid( Driver )
+			
+			if HasDriver then
+				self:SetActive( true )
+				self:SetupControls( Driver )
+				
+				if Driver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
+					self:StartEngine()
+				end
+			else
+				self:UnLock()
+				
+				if self.PressedKeys then
+					for k,v in pairs( self.PressedKeys ) do
+						if isbool( v ) then
+							self.PressedKeys[k] = false
+						end
+					end
+				end
+				
+				if self.keys then
+					for i = 1, table.Count( self.keys ) do
+						numpad.Remove( self.keys[i] )
+					end
+				end
+				
+				if HadDriver then
+					if OldDriver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
+						self:StopEngine()
+						self:SetActive( false )
+					else
+						if not self:EngineActive() then
+							self:SetActive( false )
+						end
+					end
+				else
+					self:SetActive( false )
+					self:StopEngine()
+				end
+			end
 		end
 	end
 	
@@ -20,6 +62,10 @@ function ENT:Think()
 		self:SimulateVehicle( Time )
 		self:ControlLighting( Time )
 		self:ControlExFx()
+		
+		if istable( WireLib ) then
+			self:UpdateWireOutputs()
+		end
 		
 		self.NextWaterCheck = self.NextWaterCheck or 0
 		if self.NextWaterCheck < Time then
@@ -39,6 +85,118 @@ function ENT:Think()
 	return true
 end
 
+function ENT:createWireIO()
+	self.Inputs = WireLib.CreateInputs( self,{"Eject Driver","Eject Passengers","Lock","Engine Start","Engine Stop","Engine Toggle","Steer","Throttle","Brake/Reverse"} )
+	--self.Inputs = WireLib.CreateSpecialInputs(self, { "blah" }, { "NORMAL" })
+	
+	self.Outputs = WireLib.CreateSpecialOutputs( self, 
+		{ "Active","Health","RPM","Torque","DriverSeat","PassengerSeats","Driver" },
+		{ "NORMAL","NORMAL","NORMAL","NORMAL","ENTITY","ARRAY","ENTITY" }
+	)
+end
+
+function ENT:TriggerInput( name, value )
+	if name == "Engine Start" then
+		if value >= 1 then
+			self:SetActive( true )
+			self:StartEngine()
+		end
+	end
+	
+	if name == "Engine Stop" then
+		if value >= 1 then
+			self:SetActive( false )
+			self:StopEngine()
+		end
+	end
+	
+	if name == "Engine Toggle" then
+		if value >= 1 then
+			if self:GetActive() then
+				if not self:EngineActive() then
+					self:StartEngine()
+				else
+					self:StopEngine()
+					self:SetActive( false )
+				end
+			else
+				self:SetActive( true )
+				self:StartEngine()
+			end
+		end
+	end
+	
+	if name == "Lock" then
+		if value >= 1 then
+			self:Lock()
+		else
+			self:UnLock()
+		end
+	end
+	
+	if name == "Eject Driver" then
+		local Driver = self:GetDriver()
+		if IsValid( Driver ) then
+			Driver:ExitVehicle()
+		end
+	end
+	
+	if name == "Eject Passengers" then
+		if istable( self.pSeat ) then
+			for i = 1, table.Count( self.pSeat ) do
+				if IsValid( self.pSeat[i] ) then
+					
+					local Driver = self.pSeat[i]:GetDriver()
+					
+					if IsValid( Driver ) then
+						Driver:ExitVehicle()
+					end
+				end
+			end
+		end
+	end
+	
+	if name == "Steer" then
+		self:SteerVehicle( math.Clamp( value, -1 , 1) * self.VehicleData["steerangle"] )
+		for i = 1, table.Count(self.Wheels) do
+			local Wheel = self.Wheels[i]
+			if IsValid( Wheel ) then
+				Wheel:PhysWake()
+			end
+		end
+	end
+	
+	if name == "Throttle" then
+		self.PressedKeys["joystick_throttle"] = math.Clamp( value, 0, 1 )
+	end
+	
+	if name == "Brake/Reverse" then
+		self.PressedKeys["joystick_brake"] = math.Clamp( value, 0, 1 )
+	end
+end
+--[[
+self.PressedKeys["joystick_steer_left"] = 0
+self.PressedKeys["joystick_steer_right"] = 0
+self.PressedKeys["joystick_brake"] = 0
+self.PressedKeys["joystick_throttle"] = 0
+self.PressedKeys["joystick_gearup"] = 0
+self.PressedKeys["joystick_geardown"] = 0
+self.PressedKeys["joystick_handbrake"] = 0
+self.PressedKeys["joystick_clutch"] = 0
+]]--
+
+function ENT:UpdateWireOutputs()
+	WireLib.TriggerOutput(self, "Active", self:EngineActive() and 1 or 0 )
+	WireLib.TriggerOutput(self, "Health", self:GetCurHealth() )
+	
+	WireLib.TriggerOutput(self, "Driver", self:GetDriver() )
+	WireLib.TriggerOutput(self, "Torque", self.Torque )
+	WireLib.TriggerOutput(self, "RPM", self:GetEngineRPM() )
+	
+	--function ENT:GetEngineData()
+	--WireLib.TriggerOutput(self, "MaxHealth", self:GetMaxHealth() )
+end
+
 function ENT:OnActiveChanged( name, old, new)
 	if new == old then return end
 	
@@ -48,6 +206,7 @@ function ENT:OnActiveChanged( name, old, new)
 	local SuperCharged = self:GetSuperCharged()
 	
 	if new == true then
+		
 		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
 		
 		if self:GetEMSEnabled() then
@@ -68,22 +227,9 @@ function ENT:OnActiveChanged( name, old, new)
 			self.Blower:PlayEx(0,0)
 			self.BlowerWhine:PlayEx(0,0)
 		end
-		
-		local ply = self:GetDriver()
-		if IsValid( ply ) then
-			self:ResetJoystick()
-			self:SetupControls( ply )
-			
-			if ply:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
-				self:StartEngine()
-			end
-		else
-			self:StartEngine()
-		end
 	else
+		self:UnLock()
 		self:StopEngine()
-
-		self.IsLocked = false
 		
 		if self.ems then
 			self.ems:Stop()
@@ -102,20 +248,7 @@ function ENT:OnActiveChanged( name, old, new)
 			self.BlowerWhine:Stop()
 		end
 		
-		if self.PressedKeys then
-			for k,v in pairs( self.PressedKeys ) do
-				self.PressedKeys[k] = false
-			end
-		end
-		
-		if self.keys then
-			for i = 1, table.Count( self.keys ) do
-				numpad.Remove( self.keys[i] )
-			end
-		end
-		
 		self:SetIsBraking( false )
-		self:SetGear( 2 )
 	end
 	
 	if istable( self.Wheels ) then
@@ -398,7 +531,8 @@ function ENT:BodyGroupIsValid( bodygroups )
 end
 
 function ENT:SetupControls( ply )
-
+	self:ResetJoystick()
+	
 	if self.keys then
 		for i = 1, table.Count( self.keys ) do
 			numpad.Remove( self.keys[i] )
@@ -571,6 +705,21 @@ function ENT:GetRPM()
 	return RPM
 end
 
+function ENT:GetEngineRPM()
+	local flywheelrpm = self:GetRPM()
+	local rpm
+	if self:GetRevlimiter() then
+		local throttle = self:GetThrottle()
+		local maxrpm = self:GetLimitRPM()
+		local revlimiter = (maxrpm > 2500) and (throttle > 0)
+		rpm = math.Round(((flywheelrpm >= maxrpm - 200) and revlimiter) and math.Round(flywheelrpm - 200 + math.sin(CurTime()* 50) * 600,0) or flywheelrpm,0)
+	else
+		rpm = flywheelrpm
+	end
+	
+	return rpm
+end
+
 function ENT:GetDiffGear()
 	return math.max(self:GetDifferentialGear(),0.01)
 end
@@ -593,27 +742,29 @@ end
 function ENT:StopEngine()
 	if self:EngineActive() then
 		self:EmitSound( "vehicles/jetski/jetski_off.wav" )
-	end
 
-	self.EngineRPM = 0
-	self.EngineIsOn = 0
-	
-	self:SetFlyWheelRPM( 0 )
-	self:SetIsCruiseModeOn( false )
+		self.EngineRPM = 0
+		self.EngineIsOn = 0
+		
+		self:SetFlyWheelRPM( 0 )
+		self:SetIsCruiseModeOn( false )
+	end
 end
 
 function ENT:StartEngine( bIgnoreSettings )
-	if not bIgnoreSettings then
-		self.CurrentGear = 2
-	end
-		
-	if not self.IsInWater then
-		self.EngineRPM = self:GetEngineData().IdleRPM
-		self.EngineIsOn = 1
-	else
-		if self:GetDoNotStall() then
+	if not self:EngineActive() then
+		if not bIgnoreSettings then
+			self.CurrentGear = 2
+		end
+			
+		if not self.IsInWater then
 			self.EngineRPM = self:GetEngineData().IdleRPM
 			self.EngineIsOn = 1
+		else
+			if self:GetDoNotStall() then
+				self.EngineRPM = self:GetEngineData().IdleRPM
+				self.EngineIsOn = 1
+			end
 		end
 	end
 end
@@ -646,7 +797,7 @@ function ENT:PlayerSteerVehicle( ply, left, right )
 		local fadespeed
 		local fastspeedangle
 		
-		if self.cl_SteerSettings.Overwrite then
+		if istable(self.cl_SteerSettings) and self.cl_SteerSettings.Overwrite then
 			TurnSpeed = self.cl_SteerSettings.TurnSpeed
 			fadespeed = self.cl_SteerSettings.fadespeed
 			fastspeedangle = self.cl_SteerSettings.fastspeedangle

@@ -225,7 +225,7 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 			elseif (self.ForwardSpeed < 50 and self.ForwardSpeed > -350) then
 				
 				self.CurrentGear = (k_throttle == 1 and 3 or k_brake == 1 and 1 or self.PressedKeys["joystick_throttle"] > 0 and 3 or self.PressedKeys["joystick_brake"] > 0 and 1) or 3
-				self.Brake = self:GetBrakePower() * k_throttle * k_brake
+				self.Brake = self:GetBrakePower() * math.max(k_throttle * k_brake,self.PressedKeys["joystick_throttle"] * self.PressedKeys["joystick_brake"])
 				
 			elseif (self.ForwardSpeed >= -350) then
 				

@@ -177,6 +177,13 @@ function ENT:InitializeVehicle()
 		end
 	end
 	
+	if istable(WireLib) then
+		local passengersSeats = istable( self.pSeat ) and self.pSeat or {}
+		WireLib.TriggerOutput(self, "PassengerSeats", passengersSeats )
+		
+		WireLib.TriggerOutput(self, "DriverSeat", self.DriverSeat )
+	end
+	
 	if self.ExhaustPositions then
 		for i = 1, table.Count( self.ExhaustPositions ) do
 			self.exfx[i] = ents.Create( "info_particle_system" )
@@ -259,6 +266,12 @@ function ENT:ResetJoystick()
 end
 
 function ENT:SetValues()
+	if istable( WireLib ) then
+		self:createWireIO()
+	end
+	
+	self:SetGear( 2 )
+	
 	self.EnableSuspension = 0
 	self.WheelOnGroundDelay = 0
 	self.SmoothAng = 0
