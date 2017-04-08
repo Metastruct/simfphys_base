@@ -50,17 +50,10 @@ hook.Add("JoystickInitialize", "simfphys_joystick", function()
 		category = "Simfphys",
 	}
 	
-	simfphys.jcon.clutch1 = jcon.register{
-		uid = "joystick_clutch1",
-		type = "digital",
-		description = "Clutch (Digital)",
-		category = "Simfphys",
-	}
-	
-	simfphys.jcon.clutch2 = jcon.register{
-		uid = "joystick_clutch2",
+	simfphys.jcon.clutch = jcon.register{
+		uid = "joystick_clutch",
 		type = "analog",
-		description = "Clutch (Analog)",
+		description = "Clutch",
 		category = "Simfphys",
 	}
 	

@@ -251,8 +251,7 @@ function ENT:ResetJoystick()
 	self.PressedKeys["joystick_gearup"] = 0
 	self.PressedKeys["joystick_geardown"] = 0
 	self.PressedKeys["joystick_handbrake"] = 0
-	self.PressedKeys["joystick_clutch1"] = 0
-	self.PressedKeys["joystick_clutch2"] = 0
+	self.PressedKeys["joystick_clutch"] = 0
 	self.PressedKeys["joystick_air_w"] = 0
 	self.PressedKeys["joystick_air_a"] = 0
 	self.PressedKeys["joystick_air_s"] = 0

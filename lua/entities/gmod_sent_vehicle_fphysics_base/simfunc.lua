@@ -128,7 +128,7 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 	if not isauto then
 		self.Brake = self:GetBrakePower() * math.max( k_brake, self.PressedKeys["joystick_brake"] )
 		self.HandBrake = self.HandBrakePower * k_handbrake
-		self.Clutch = math.max( k_clutch, k_handbrake, self.PressedKeys["joystick_clutch2"] )
+		self.Clutch = math.max( k_clutch, k_handbrake, self.PressedKeys["joystick_clutch"] )
 		
 		local AutoThrottle = self:EngineActive() and ((self.EngineRPM < IdleRPM) and (IdleRPM - self.EngineRPM) / IdleRPM or 0) or 0
 		local Throttle = cruisecontrol and cruiseThrottle or ( math.max( (0.5 + 0.5 * k_fullthrottle) * k_throttle, self.PressedKeys["joystick_throttle"] ) + AutoThrottle)

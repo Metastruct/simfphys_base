@@ -309,10 +309,14 @@ function ENT:SimulateVehicle( curtime )
 		local k_auto = IsValidDriver and ply:GetInfoNum( "cl_simfphys_auto", 0 ) or 1
 		local transmode = (k_auto == 1)
 		
-		local Alt = self.PressedKeys["Alt"] and 1 or self.PressedKeys["joystick_clutch1"]
+		local Alt = self.PressedKeys["Alt"] and 1 or 0
 		local Space = self.PressedKeys["Space"] and 1 or self.PressedKeys["joystick_handbrake"]
 		
 		if cruise then
+			if (self.PressedKeys["joystick_gearup"] + self.PressedKeys["joystick_geardown"] + self.PressedKeys["joystick_handbrake"] + self.PressedKeys["joystick_throttle"] + self.PressedKeys["joystick_clutch"] + self.PressedKeys["joystick_brake"]) > 0 then
+				self:SetIsCruiseModeOn( false )
+			end
+			
 			if k_Shift then
 				self.cc_speed = math.Round(self:GetVelocity():Length(),0) + 70
 			end
