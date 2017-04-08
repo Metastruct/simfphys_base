@@ -22,6 +22,7 @@ if SERVER then
 	include("simfphys/server/seatcontrols.lua")
 	include("simfphys/server/damage.lua")
 	include("simfphys/server/poseparameter.lua")
+	include("simfphys/server/joystick.lua")
 end
 	
 if CLIENT then

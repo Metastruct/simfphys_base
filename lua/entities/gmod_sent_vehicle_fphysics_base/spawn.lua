@@ -243,6 +243,21 @@ function ENT:GetVehicleData()
 	end )
 end
 
+function ENT:ResetJoystick()
+	self.PressedKeys["joystick_steer_left"] = 0
+	self.PressedKeys["joystick_steer_right"] = 0
+	self.PressedKeys["joystick_brake"] = 0
+	self.PressedKeys["joystick_throttle"] = 0
+	self.PressedKeys["joystick_gearup"] = 0
+	self.PressedKeys["joystick_geardown"] = 0
+	self.PressedKeys["joystick_handbrake"] = 0
+	self.PressedKeys["joystick_clutch1"] = 0
+	self.PressedKeys["joystick_clutch2"] = 0
+	self.PressedKeys["joystick_air_w"] = 0
+	self.PressedKeys["joystick_air_a"] = 0
+	self.PressedKeys["joystick_air_s"] = 0
+	self.PressedKeys["joystick_air_d"] = 0
+end
 
 function ENT:SetValues()
 	self.EnableSuspension = 0
@@ -258,8 +273,9 @@ function ENT:SetValues()
 	self.Elastics = {}
 	self.GhostWheels = {}
 	self.PressedKeys = {}
-	self.ColorableProps = {}
+	self:ResetJoystick()
 	
+	self.ColorableProps = {}
 	self.posepositions = {}
 	
 	self.HandBrakePower = 0

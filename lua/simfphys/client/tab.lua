@@ -638,6 +638,14 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 		pnlContent:SwitchPanel( self.PropPanel )
 	end
 	
+	-- JOYSTICK
+	if istable(jcon) and file.Exists("lua/bin/gmcl_joystick_win32.dll", "GAME") then
+		local node = tree:AddNode( "Joystick Configuration", "icon16/joystick.png" )
+		node.DoClick = function( self )
+			RunConsoleCommand("joyconfig") 
+		end
+	end
+	
 	-- CLIENT SETTINGS
 	local node = tree:AddNode( "Client Settings", "icon16/wrench.png" )
 	node.DoPopulate = function( self )

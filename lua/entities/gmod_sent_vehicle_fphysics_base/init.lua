@@ -71,6 +71,7 @@ function ENT:OnActiveChanged( name, old, new)
 		
 		local ply = self:GetDriver()
 		if IsValid( ply ) then
+			self:ResetJoystick()
 			self:SetupControls( ply )
 			
 			if ply:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
@@ -282,20 +283,20 @@ function ENT:SimulateVehicle( curtime )
 		local ply = self:GetDriver()
 		local IsValidDriver = IsValid( ply )
 		
-		local GearUp = self.PressedKeys["M1"] and 1 or 0
-		local GearDown = self.PressedKeys["M2"] and 1 or 0
+		local GearUp = self.PressedKeys["M1"] and 1 or self.PressedKeys["joystick_gearup"]
+		local GearDown = self.PressedKeys["M2"] and 1 or self.PressedKeys["joystick_geardown"]
 		
 		local W = self.PressedKeys["W"] and 1 or 0
-		local A = self.PressedKeys["A"] and 1 or 0
+		local A = self.PressedKeys["A"] and 1 or self.PressedKeys["joystick_steer_left"]
 		local S = self.PressedKeys["S"] and 1 or 0
-		local D = self.PressedKeys["D"] and 1 or 0
+		local D = self.PressedKeys["D"] and 1 or self.PressedKeys["joystick_steer_right"]
 		
 		if IsValidDriver then self:PlayerSteerVehicle( ply, A, D ) end
 		
-		local aW = self.PressedKeys["aW"] and 1 or 0
-		local aA = self.PressedKeys["aA"] and 1 or 0
-		local aS = self.PressedKeys["aS"] and 1 or 0
-		local aD = self.PressedKeys["aD"] and 1 or 0
+		local aW = self.PressedKeys["aW"] and 1 or self.PressedKeys["joystick_air_w"]
+		local aA = self.PressedKeys["aA"] and 1 or self.PressedKeys["joystick_air_a"]
+		local aS = self.PressedKeys["aS"] and 1 or self.PressedKeys["joystick_air_s"]
+		local aD = self.PressedKeys["aD"] and 1 or self.PressedKeys["joystick_air_d"]
 		
 		local cruise = self:GetIsCruiseModeOn()
 		
@@ -308,8 +309,8 @@ function ENT:SimulateVehicle( curtime )
 		local k_auto = IsValidDriver and ply:GetInfoNum( "cl_simfphys_auto", 0 ) or 1
 		local transmode = (k_auto == 1)
 		
-		local Alt = self.PressedKeys["Alt"] and 1 or 0
-		local Space = self.PressedKeys["Space"] and 1 or 0
+		local Alt = self.PressedKeys["Alt"] and 1 or self.PressedKeys["joystick_clutch1"]
+		local Space = self.PressedKeys["Space"] and 1 or self.PressedKeys["joystick_handbrake"]
 		
 		if cruise then
 			if k_Shift then
