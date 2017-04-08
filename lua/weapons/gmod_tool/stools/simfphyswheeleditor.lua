@@ -69,6 +69,14 @@ local function ApplyWheel(ply, ent, data)
 	end)
 end
 
+local function ValidateModel( model )
+	if file.Exists( model, "GAME" ) then
+		return true
+	else
+		return false
+	end
+end
+
 local function GetAngleFromSpawnlist( model )
 	if (!model) then print("invalid model") return Angle(0,0,0) end
 	
@@ -117,11 +125,17 @@ function TOOL:LeftClick( trace )
 		local rear_model = sameasfront and front_model or self:GetClientInfo("rearwheelmodel")
 		local rear_angle = GetAngleFromSpawnlist(rear_model)
 		
-		if (!front_model or !rear_model or !front_angle or !rear_angle) then print("wtf bro how did you do this") return false end
+		if not front_model or not rear_model or not front_angle or not rear_angle then print("wtf bro how did you do this") return false end
+		
+		if not ValidateModel( front_model ) or not ValidateModel( rear_model ) then 
+			local ply = self:GetOwner()
+			ply:PrintMessage( HUD_PRINTTALK, "selected wheel does not exist on the server")
+			return false
+		end
 		
 		if (ent.CustomWheels) then
 			if (ent.GhostWheels) then
-				ent.SmoothAng = 0  -- lets make sure we are not steering
+				ent:SteerVehicle( 0 )
 				
 				for i = 1, table.Count( ent.Wheels ) do
 					local Wheel = ent.Wheels[ i ]
