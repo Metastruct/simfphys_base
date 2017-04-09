@@ -63,7 +63,6 @@ entity:GetMaxHealth()  -- returns the max health as number
 
 
 -- server
-entity:DisableLights()  -- removes all lights from the inbuild lighting system
 entity:SteerVehicle( number ) -- sets the angle of the steering
 entity:Lock()  -- locks the vehicle
 entity:UnLock() -- unlocks the vehicle
@@ -77,35 +76,3 @@ entity:DamagedStall() -- stalls the engine and restarts with backfiring
 entity:SetMaxHealth( nHealth ) -- sets the max health
 entity:SetCurHealth( nHealth ) -- sets the current health
 
-
-
-entity:SetControl( table ) -- controls the vehicle (only works without driver when the vehicle is active)
-
-for example: 
-
-entity:SetActive( true )  -- this will turn the vehicle on
-
-local Data = {
-	["W"] = true,
-	["S"] = true,
-}
-entity:SetControl( Data )
-
-car should do an burnout now
-
-available controls are:
-
-"M1" = gearup
-"M2" = geardown
-		
-"W" = throttle, forward
-"S" = throttle, reverse
-
-"aW" = air control, forward
-"aS" = air control, reverse
-
-"aA" = air control, left
-"aD" = air control, right
-"Shift" = halfthrottle
-"Alt" = clutch
-"Space" = handbrake
