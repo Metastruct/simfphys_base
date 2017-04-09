@@ -104,9 +104,9 @@ end
 function SWEP:PrimaryAttack()
 	if self:GetActive() then return false end
 	
-	local trace = self.Owner:GetEyeTrace()
-	local ent = trace.Entity
 	local ply = self.Owner
+	local trace = ply:GetEyeTrace()
+	local ent = trace.Entity
 	
 	if not simfphys.IsCar( ent ) then return false end
 	
