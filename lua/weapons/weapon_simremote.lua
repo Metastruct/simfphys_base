@@ -41,6 +41,8 @@ if (CLIENT) then
 		local weapon = ply:GetActiveWeapon()
 		
 		if IsValid( ply ) and IsValid( weapon ) then
+			if ply:InVehicle() then return end
+			
 			if weapon:GetClass() == "weapon_simremote" then
 				if not weapon:GetActive() then
 					local car = weapon:GetCar()
