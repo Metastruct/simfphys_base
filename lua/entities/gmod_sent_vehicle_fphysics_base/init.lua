@@ -97,12 +97,12 @@ function ENT:Think()
 end
 
 function ENT:createWireIO()
-	self.Inputs = WireLib.CreateInputs( self,{"Eject Driver","Eject Passengers","Lock","Engine Start","Engine Stop","Engine Toggle","Steer","Throttle","Brake/Reverse"} )
+	self.Inputs = WireLib.CreateInputs( self,{"Eject Driver","Eject Passengers","Lock","Engine Start","Engine Stop","Engine Toggle","Steer","Throttle","Gear Up","Gear Down","Set Gear","Clutch","Handbrake","Brake/Reverse"} )
 	--self.Inputs = WireLib.CreateSpecialInputs(self, { "blah" }, { "NORMAL" })
 	
 	self.Outputs = WireLib.CreateSpecialOutputs( self, 
-		{ "Active","Health","RPM","Torque","DriverSeat","PassengerSeats","Driver" },
-		{ "NORMAL","NORMAL","NORMAL","NORMAL","ENTITY","ARRAY","ENTITY" }
+		{ "Active","Health","RPM","Torque","DriverSeat","PassengerSeats","Driver","Gear","Ratio","Lights Enabled","Highbeams Enabled","Foglights Enabled","Sirens Enabled" },
+		{ "NORMAL","NORMAL","NORMAL","NORMAL","ENTITY","ARRAY","ENTITY","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL" }
 	)
 end
 
@@ -184,17 +184,34 @@ function ENT:TriggerInput( name, value )
 	if name == "Brake/Reverse" then
 		self.PressedKeys["joystick_brake"] = math.Clamp( value, 0, 1 )
 	end
+
+	if name == "Gear Up" then
+		if value >= 1 then
+			self.CurrentGear = math.Clamp(self.CurrentGear + 1,1,table.Count( self.Gears ) )
+			self:SetGear( self.CurrentGear )
+		end
+	end
+	
+	if name == "Gear Down" then
+		if value >= 1 then
+			self.CurrentGear = math.Clamp(self.CurrentGear - 1,1,table.Count( self.Gears ) )
+			self:SetGear( self.CurrentGear )
+		end
+	end
+	
+	if name == "Set Gear" then
+		self.CurrentGear = math.Clamp( math.Round( value, 0 ),1,table.Count( self.Gears ) )
+		self:SetGear( self.CurrentGear )
+	end
+	
+	if name == "Clutch" then
+		self.PressedKeys["joystick_clutch"] = math.Clamp( value, 0, 1 )
+	end
+	
+	if name == "Handbrake" then
+		self.PressedKeys["joystick_handbrake"] = (value > 0) and 1 or 0
+	end
 end
---[[
-self.PressedKeys["joystick_steer_left"] = 0
-self.PressedKeys["joystick_steer_right"] = 0
-self.PressedKeys["joystick_brake"] = 0
-self.PressedKeys["joystick_throttle"] = 0
-self.PressedKeys["joystick_gearup"] = 0
-self.PressedKeys["joystick_geardown"] = 0
-self.PressedKeys["joystick_handbrake"] = 0
-self.PressedKeys["joystick_clutch"] = 0
-]]--
 
 function ENT:UpdateWireOutputs()
 	WireLib.TriggerOutput(self, "Active", self:EngineActive() and 1 or 0 )
@@ -204,8 +221,13 @@ function ENT:UpdateWireOutputs()
 	WireLib.TriggerOutput(self, "Torque", self.Torque )
 	WireLib.TriggerOutput(self, "RPM", self:GetEngineRPM() )
 	
-	--function ENT:GetEngineData()
-	--WireLib.TriggerOutput(self, "MaxHealth", self:GetMaxHealth() )
+	WireLib.TriggerOutput(self, "Gear", self:GetGear() )
+	WireLib.TriggerOutput(self, "Ratio",self:GetGear() == 2 and 0 or (self.GearRatio or 0) )
+	
+	WireLib.TriggerOutput(self, "Lights Enabled", self:GetLightsEnabled() and 1 or 0 )
+	WireLib.TriggerOutput(self, "Highbeams Enabled", self:GetLampsEnabled() and 1 or 0 )
+	WireLib.TriggerOutput(self, "Foglights Enabled", self:GetFogLightsEnabled() and 1 or 0 )
+	WireLib.TriggerOutput(self, "Sirens Enabled", self:GetEMSEnabled() and 1 or 0 )
 end
 
 function ENT:OnActiveChanged( name, old, new)
