@@ -215,7 +215,7 @@ local function ValidateModel( model )
 			end
 			
 			if RearWheel then 
-				FrontWheel = string.lower( RearWheel )
+				RearWheel = string.lower( RearWheel )
 			end
 			
 			if model == FrontWheel or model == RearWheel then
@@ -393,7 +393,7 @@ local function GetAngleFromSpawnlist( model )
 			end
 			
 			if (RearWheel) then 
-				FrontWheel = string.lower( RearWheel )
+				RearWheel = string.lower( RearWheel )
 			end
 			
 			if (model == FrontWheel or model == RearWheel) then
