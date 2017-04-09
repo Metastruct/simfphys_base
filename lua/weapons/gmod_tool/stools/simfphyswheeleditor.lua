@@ -191,7 +191,7 @@ function TOOL:Reload( trace )
 
 		if (ent.CustomWheels) then
 			if (ent.GhostWheels) then
-				ent.SmoothAng = 0  -- lets make sure we are not steering
+				ent:SteerVehicle( 0 )
 				
 				for i = 1, table.Count( ent.Wheels ) do
 					local Wheel = ent.Wheels[ i ]
