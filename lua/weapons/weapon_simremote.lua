@@ -87,13 +87,11 @@ end
 function SWEP:OwnerChanged()
 end
 
-function SWEP:Think()
-	if not IsValid( self:GetCar() ) then return end
-	
+function SWEP:Think()	
 	local ply = self.Owner
 	
 	if ply:KeyPressed( IN_USE ) then
-		if self:GetActive() then
+		if self:GetActive() or not IsValid( self:GetCar() ) then
 			self:Disable()
 		else
 			self:Enable()
