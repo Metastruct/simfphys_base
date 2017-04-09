@@ -1,3 +1,5 @@
+AddCSLuaFile()
+
 SWEP.Category			= "simfphys"
 SWEP.Spawnable			= true
 SWEP.AdminSpawnable		= false
