@@ -9,7 +9,7 @@ function ENT:Think()
 	local Time = CurTime()
 	if IsValid( self.DriverSeat ) then
 		local Driver = self.DriverSeat:GetDriver()
-		Driver = IsValid( Driver ) and Driver or self.RemoteDriver
+		Driver = IsValid( self.RemoteDriver ) and self.RemoteDriver or Driver
 		
 		local OldDriver = self:GetDriver()
 		if OldDriver ~= Driver then
@@ -25,8 +25,17 @@ function ENT:Think()
 				if Driver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
 					self:StartEngine()
 				end
+				
 			else
 				self:UnLock()
+				
+				if self.ems then
+					self.ems:Stop()
+				end
+
+				if self.horn then
+					self.horn:Stop()
+				end
 				
 				if self.PressedKeys then
 					for k,v in pairs( self.PressedKeys ) do
@@ -232,14 +241,6 @@ function ENT:OnActiveChanged( name, old, new)
 	else
 		self:UnLock()
 		self:StopEngine()
-		
-		if self.ems then
-			self.ems:Stop()
-		end
-
-		if self.horn then
-			self.horn:Stop()
-		end
 		
 		if TurboCharged then
 			self.Turbo:Stop()
