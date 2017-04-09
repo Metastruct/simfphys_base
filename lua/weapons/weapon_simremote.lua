@@ -169,8 +169,6 @@ function SWEP:Disable()
 	
 	if IsValid( car ) then
 		car.RemoteDriver = nil
-		car:SetActive( false )
-		car:StopEngine()
 	end
 end
 
