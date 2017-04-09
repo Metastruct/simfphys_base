@@ -9,6 +9,8 @@ function ENT:Think()
 	local Time = CurTime()
 	if IsValid( self.DriverSeat ) then
 		local Driver = self.DriverSeat:GetDriver()
+		Driver = IsValid( Driver ) and Driver or self.RemoteDriver
+		
 		local OldDriver = self:GetDriver()
 		if OldDriver ~= Driver then
 			self:SetDriver( Driver )
