@@ -70,11 +70,33 @@ local function ApplyWheel(ply, ent, data)
 end
 
 local function ValidateModel( model )
-	if file.Exists( model, "GAME" ) then
-		return true
-	else
-		return false
+	local v_list = list.Get( "simfphys_vehicles" )
+	for listname, _ in pairs( v_list ) do
+		if (v_list[listname].Members.CustomWheels) then
+			local FrontWheel = v_list[listname].Members.CustomWheelModel
+			local RearWheel = v_list[listname].Members.CustomWheelModel_R
+			
+			if FrontWheel then 
+				FrontWheel = string.lower( FrontWheel )
+			end
+			
+			if RearWheel then 
+				FrontWheel = string.lower( RearWheel )
+			end
+			
+			if model == FrontWheel or model == RearWheel then
+				return true
+			end
+		end
 	end
+	
+	local list = list.Get( "simfphys_Wheels" )[model]
+	
+	if list then 
+		return true
+	end
+	
+	return false
 end
 
 local function GetAngleFromSpawnlist( model )

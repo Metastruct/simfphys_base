@@ -203,6 +203,36 @@ if CLIENT then
 	end
 end
 
+local function ValidateModel( model )
+	local v_list = list.Get( "simfphys_vehicles" )
+	for listname, _ in pairs( v_list ) do
+		if (v_list[listname].Members.CustomWheels) then
+			local FrontWheel = v_list[listname].Members.CustomWheelModel
+			local RearWheel = v_list[listname].Members.CustomWheelModel_R
+			
+			if FrontWheel then 
+				FrontWheel = string.lower( FrontWheel )
+			end
+			
+			if RearWheel then 
+				FrontWheel = string.lower( RearWheel )
+			end
+			
+			if model == FrontWheel or model == RearWheel then
+				return true
+			end
+		end
+	end
+	
+	local list = list.Get( "simfphys_Wheels" )[model]
+	
+	if list then 
+		return true
+	end
+	
+	return false
+end
+
 function TOOL:GetVehicleData( ent, ply )
 	if not IsValid(ent) then return end
 	if not istable(ply.TOOLMemory) then ply.TOOLMemory = {} end
@@ -540,9 +570,13 @@ function TOOL:LeftClick( trace )
 				local rear_angle = GetAngleFromSpawnlist(rear_model)
 				
 				if (!front_model or !rear_model or !front_angle or !rear_angle) then return end
-				--print("we apply the wheel")
-				Ent.Camber = camber
-				ApplyWheel(Ent, {front_model,front_angle,rear_model,rear_angle,camber})
+				
+				if ValidateModel( front_model ) and ValidateModel( rear_model ) then 
+					Ent.Camber = camber
+					ApplyWheel(Ent, {front_model,front_angle,rear_model,rear_angle,camber})
+				else
+					ply:PrintMessage( HUD_PRINTTALK, "selected wheel does not exist on the server")
+				end
 			end
 		end
 	end)
