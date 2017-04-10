@@ -82,7 +82,7 @@ __________________________________________________________________________
 
 there is no support for vehicle controlling yet but there is a hacky way to do by overriding the joystick controls:
 
-first step to decide if the vehicle should be manual or automatic.
+first step is to decide if the vehicle should be manual or automatic.
 Every vehicle without driver is in automatic transmission mode by default.
 If you want to change that you have to do:
 entity.ForceTransmission = 2  --(1 = automatic, 2 = manual)
