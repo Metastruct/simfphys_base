@@ -67,6 +67,7 @@ entity:SteerVehicle( number ) -- sets the angle of the steering
 entity:Lock()  -- locks the vehicle
 entity:UnLock() -- unlocks the vehicle
 
+entity:EngineActive()	-- returns true if the engine is running. false when not
 entity:StopEngine()	-- stops the engine
 entity:StartEngine( bKeepGear = false )  -- starts the engine and resets to neutral gear if bKeepGear is nil or false
 entity:StallAndRestart( ntime = 1, bKeepGear = false )  -- stalls the engine and restarts it after set amount of time.
@@ -75,4 +76,46 @@ entity:DamagedStall() -- stalls the engine and restarts with backfiring
 
 entity:SetMaxHealth( nHealth ) -- sets the max health
 entity:SetCurHealth( nHealth ) -- sets the current health
+
+__________________________________________________________________________
+-- vehicle controling without driver
+
+there is no support for vehicle controlling yet but there is a hacky way to do by overriding the joystick controls:
+
+first step to decide if the vehicle should be manual or automatic.
+Every vehicle without driver is in automatic transmission mode by default.
+If you want to change that you have to do:
+entity.ForceTransmission = 2  --(1 = automatic, 2 = manual)
+
+Now we have to set the vehicle to active.
+Note that an active vehicle doesn't mean that the engine will be running. Its just so the car sets itself into "waiting" state and sets the physics correctly:
+entity:SetActive( true ) 
+
+next step is to start the engine
+entity:StartEngine()
+
+ok. Now the vehicle should be running and be moveable with the physgun without the wheels locking up.
+
+To control the vehicle you have overwrite these variables (they go from 0 - 1):
+
+entity.PressedKeys["joystick_steer_left"] = 0
+entity.PressedKeys["joystick_steer_right"] = 0
+entity.PressedKeys["joystick_brake"] = 0      -- this is also used as "reverse throttle" when in automatic mode
+entity.PressedKeys["joystick_throttle"] = 0
+entity.PressedKeys["joystick_gearup"] = 0    -- only used on manual transmission
+entity.PressedKeys["joystick_geardown"] = 0    -- only used on manual transmission
+entity.PressedKeys["joystick_handbrake"] = 0
+entity.PressedKeys["joystick_clutch"] = 0    -- only used on manual transmission
+entity.PressedKeys["joystick_air_w"] = 0
+entity.PressedKeys["joystick_air_a"] = 0
+entity.PressedKeys["joystick_air_s"] = 0
+entity.PressedKeys["joystick_air_d"] = 0
+
+i think its obvious wich variable does what.
+
+for steering you can use both the joystick variables or the function:
+entity:SteerVehicle( number )
+
+
+
 
