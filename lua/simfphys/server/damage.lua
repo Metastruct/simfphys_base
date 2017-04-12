@@ -77,8 +77,11 @@ local function DestroyVehicle( ent )
 		end
 	end
 	
-	if IsValid(ent:GetDriver()) then
-		ent:GetDriver():Kill()
+	local Driver = ent:GetDriver()
+	if IsValid( Driver ) then
+		if ent.RemoteDriver ~= Driver then
+			Driver:Kill()
+		end
 	end
 	
 	if ent.PassengerSeats then
