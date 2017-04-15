@@ -56,6 +56,8 @@ function ENT:Think()
 						self:StopEngine()
 						self:SetActive( false )
 					else
+						self:ResetJoystick()
+						
 						if not self:EngineActive() then
 							self:SetActive( false )
 						end
