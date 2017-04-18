@@ -28,7 +28,7 @@ local function BloodEffect( pos )
 end
 
 local function DestroyVehicle( ent )
-	if !IsValid( ent ) then return end
+	if not IsValid( ent ) then return end
 	if ent.destroyed then return end
 	
 	ent.destroyed = true
@@ -87,7 +87,7 @@ local function DestroyVehicle( ent )
 	if ent.PassengerSeats then
 		for i = 1, table.Count( ent.PassengerSeats ) do
 			local Passenger = ent.pSeat[i]:GetDriver()
-			if IsValid(Passenger) then
+			if IsValid( Passenger ) then
 				Passenger:Kill()
 			end
 		end
@@ -125,7 +125,7 @@ local function HurtPlayers( ent, damage )
 	
 	local Driver = ent:GetDriver()
 	
-	if IsValid(Driver) then
+	if IsValid( Driver ) then
 		Driver:TakeDamage(damage, Entity(0), ent )
 	end
 	
@@ -189,7 +189,7 @@ end
 local function OnDamage( ent, dmginfo )
 	ent:TakePhysicsDamage( dmginfo )
 	
-	if (ent.EnableSuspension != 1) then return end
+	if not ent:IsInitialized() then return end
 	
 	local Damage = dmginfo:GetDamage() 
 	local DamagePos = dmginfo:GetDamagePosition() 
@@ -208,6 +208,8 @@ local function OnDamage( ent, dmginfo )
 	end
 	
 	DamageVehicle( ent , Damage * Mul )
+	
+	if ent.IsArmored then return end
 	
 	if IsValid(Driver) then
 		local Distance = (DamagePos - Driver:GetPos()):Length() 
@@ -237,9 +239,9 @@ local function OnDamage( ent, dmginfo )
 end
 
 hook.Add( "OnEntityCreated", "simfphys_damagestuff", function( ent )
-	if ent:GetClass() == "gmod_sent_vehicle_fphysics_base" then
+	if simfphys.IsCar( ent ) then
 		timer.Simple( 0.2, function()
-			if !IsValid(ent) then return end
+			if not IsValid( ent ) then return end
 			
 			local Health = math.floor(ent.MaxHealth and ent.MaxHealth or (1000 + ent:GetPhysicsObject():GetMass() / 3))
 			
