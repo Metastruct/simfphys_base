@@ -74,6 +74,36 @@ local function ApplyWheel(ply, ent, data)
 	end)
 end
 
+local function ValidateModel( model )
+	local v_list = list.Get( "simfphys_vehicles" )
+	for listname, _ in pairs( v_list ) do
+		if (v_list[listname].Members.CustomWheels) then
+			local FrontWheel = v_list[listname].Members.CustomWheelModel
+			local RearWheel = v_list[listname].Members.CustomWheelModel_R
+			
+			if FrontWheel then 
+				FrontWheel = string.lower( FrontWheel )
+			end
+			
+			if RearWheel then 
+				RearWheel = string.lower( RearWheel )
+			end
+			
+			if model == FrontWheel or model == RearWheel then
+				return true
+			end
+		end
+	end
+	
+	local list = list.Get( "simfphys_Wheels" )[model]
+	
+	if list then 
+		return true
+	end
+	
+	return false
+end
+
 local function GetAngleFromSpawnlist( model )
 	if (!model) then print("invalid model") return Angle(0,0,0) end
 	
@@ -90,7 +120,7 @@ local function GetAngleFromSpawnlist( model )
 			end
 			
 			if (RearWheel) then 
-				FrontWheel = string.lower( RearWheel )
+				RearWheel = string.lower( RearWheel )
 			end
 			
 			if (model == FrontWheel or model == RearWheel) then
@@ -122,11 +152,17 @@ function TOOL:LeftClick( trace )
 		local rear_model = sameasfront and front_model or self:GetClientInfo("rearwheelmodel")
 		local rear_angle = GetAngleFromSpawnlist(rear_model)
 		
-		if (!front_model or !rear_model or !front_angle or !rear_angle) then print("wtf bro how did you do this") return false end
+		if not front_model or not rear_model or not front_angle or not rear_angle then print("wtf bro how did you do this") return false end
+		
+		if not ValidateModel( front_model ) or not ValidateModel( rear_model ) then 
+			local ply = self:GetOwner()
+			ply:PrintMessage( HUD_PRINTTALK, "selected wheel does not exist on the server")
+			return false
+		end
 		
 		if (ent.CustomWheels) then
 			if (ent.GhostWheels) then
-				ent.SmoothAng = 0  -- lets make sure we are not steering
+				ent:SteerVehicle( 0 )
 				
 				for i = 1, table.Count( ent.Wheels ) do
 					local Wheel = ent.Wheels[ i ]
@@ -160,7 +196,7 @@ function TOOL:Reload( trace )
 
 		if (ent.CustomWheels) then
 			if (ent.GhostWheels) then
-				ent.SmoothAng = 0  -- lets make sure we are not steering
+				ent:SteerVehicle( 0 )
 				
 				for i = 1, table.Count( ent.Wheels ) do
 					local Wheel = ent.Wheels[ i ]

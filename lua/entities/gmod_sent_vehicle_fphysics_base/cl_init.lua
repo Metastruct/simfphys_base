@@ -257,7 +257,6 @@ function ENT:ManageSounds(Active)
 			self.LowRPM:ChangeVolume( math.Clamp(Volume - (self.SmoothRPM - 2000) / 2000 * self.FadeThrottle,0,1) )
 			self.LowRPM:ChangePitch( math.Clamp( Pitch * self.PitchMulLow,0,255) )
 			
-			
 			local hivol = math.max((self.SmoothRPM - 2000) / 2000,0) * Volume
 			self.HighRPM:ChangeVolume( self.FadeThrottle < 0.4 and hivol * self.FadeThrottle or hivol * self.FadeThrottle * 2.5  )
 			self.HighRPM:ChangePitch( math.Clamp( Pitch * self.PitchMulHigh,0,255) )
@@ -427,7 +426,24 @@ end
 function ENT:SetSoundPreset(index)
 	if (index == -1) then
 		local vehiclelist = list.Get( "simfphys_vehicles" )[self:GetSpawn_List()]
-		if (vehiclelist) then
+		if vehiclelist then
+			local soundoverride = self:GetSoundoverride()
+			local data = string.Explode( ",", soundoverride)
+			
+			if soundoverride ~= "" and data[1] == "1"  then
+				
+				self.EngineSounds[ "Idle" ] = data[4]
+				self.EngineSounds[ "LowRPM" ] = data[6]
+				self.EngineSounds[ "HighRPM" ] = data[2]
+				self.EngineSounds[ "RevDown" ] = data[8]
+				self.EngineSounds[ "ShiftUpToHigh" ] = data[10]
+				self.EngineSounds[ "ShiftDownToHigh" ] = data[9]
+				
+				self.PitchMulLow = data[7]
+				self.PitchMulHigh = data[3]
+				self.PitchMulAll = data[5]
+			else 
+				
 			local idle = vehiclelist.Members.snd_idle or ""
 			local low = vehiclelist.Members.snd_low or ""
 			local mid = vehiclelist.Members.snd_mid or ""
@@ -445,6 +461,7 @@ function ENT:SetSoundPreset(index)
 			self.PitchMulLow = vehiclelist.Members.snd_low_pitch or 1
 			self.PitchMulHigh = vehiclelist.Members.snd_mid_pitch or 1
 			self.PitchMulAll = vehiclelist.Members.snd_pitch or 1
+			end
 		else
 			local ded = "common/bugreporter_failed.wav"
 			
@@ -476,7 +493,7 @@ function ENT:SetSoundPreset(index)
 		local soundoverride = self:GetSoundoverride()
 		local data = string.Explode( ",", soundoverride)
 		
-		if (soundoverride != "") then
+		if soundoverride ~= "" and data[1] ~= "1"  then
 			self.EngineSounds[ "IdleSound" ] = data[1]
 			self.Idle_PitchMul = data[2]
 			

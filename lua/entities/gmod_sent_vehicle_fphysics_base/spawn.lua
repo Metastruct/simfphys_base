@@ -177,6 +177,13 @@ function ENT:InitializeVehicle()
 		end
 	end
 	
+	if istable(WireLib) then
+		local passengersSeats = istable( self.pSeat ) and self.pSeat or {}
+		WireLib.TriggerOutput(self, "PassengerSeats", passengersSeats )
+		
+		WireLib.TriggerOutput(self, "DriverSeat", self.DriverSeat )
+	end
+	
 	if self.ExhaustPositions then
 		for i = 1, table.Count( self.ExhaustPositions ) do
 			self.exfx[i] = ents.Create( "info_particle_system" )
@@ -243,8 +250,28 @@ function ENT:GetVehicleData()
 	end )
 end
 
+function ENT:ResetJoystick()
+	self.PressedKeys["joystick_steer_left"] = 0
+	self.PressedKeys["joystick_steer_right"] = 0
+	self.PressedKeys["joystick_brake"] = 0
+	self.PressedKeys["joystick_throttle"] = 0
+	self.PressedKeys["joystick_gearup"] = 0
+	self.PressedKeys["joystick_geardown"] = 0
+	self.PressedKeys["joystick_handbrake"] = 0
+	self.PressedKeys["joystick_clutch"] = 0
+	self.PressedKeys["joystick_air_w"] = 0
+	self.PressedKeys["joystick_air_a"] = 0
+	self.PressedKeys["joystick_air_s"] = 0
+	self.PressedKeys["joystick_air_d"] = 0
+end
 
 function ENT:SetValues()
+	if istable( WireLib ) then
+		self:createWireIO()
+	end
+	
+	self:SetGear( 2 )
+	
 	self.EnableSuspension = 0
 	self.WheelOnGroundDelay = 0
 	self.SmoothAng = 0
@@ -258,8 +285,9 @@ function ENT:SetValues()
 	self.Elastics = {}
 	self.GhostWheels = {}
 	self.PressedKeys = {}
-	self.ColorableProps = {}
+	self:ResetJoystick()
 	
+	self.ColorableProps = {}
 	self.posepositions = {}
 	
 	self.HandBrakePower = 0

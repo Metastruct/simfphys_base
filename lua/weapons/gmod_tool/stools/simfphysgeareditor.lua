@@ -19,6 +19,8 @@ TOOL.ClientConVar[ "gear_10" ] = 1
 TOOL.ClientConVar[ "gear_11" ] = 1.1
 TOOL.ClientConVar[ "gear_12" ] = 1.2
 TOOL.ClientConVar[ "gear_diff" ] = 0.5
+TOOL.ClientConVar[ "forcetype" ] = "0"
+TOOL.ClientConVar[ "type" ] = 2
 
 local function SetGears( ply, ent, gears)
 	if ( SERVER ) then
@@ -52,6 +54,12 @@ function TOOL:LeftClick( trace )
 		
 		SetGears(self:GetOwner(), ent, gears )
 		ent:SetDifferentialGear( tonumber( self:GetClientInfo( "gear_diff" ) ) )
+		
+		if tobool( self:GetClientInfo( "forcetype" ) ) then
+			ent.ForceTransmission =  math.Clamp(tonumber( self:GetClientInfo( "type" ) ),1,2)
+		else
+			ent.ForceTransmission = nil
+		end
 	end
 	
 	return true
@@ -78,6 +86,14 @@ function TOOL:RightClick( trace )
 		ply:ConCommand( "simfphysgeareditor_gear_r "..gears[1])
 		ply:ConCommand( "simfphysgeareditor_numgears "..num)
 		ply:ConCommand( "simfphysgeareditor_gear_diff "..diffgear)
+		
+		local forcetype = isnumber( ent.ForceTransmission )
+		
+		ply:ConCommand( "simfphysgeareditor_forcetype "..tostring(forcetype and 1 or 0) )
+		
+		if forcetype then
+			ply:ConCommand( "simfphysgeareditor_type "..ent.ForceTransmission)
+		end
 	end
 	
 	return true
@@ -95,6 +111,8 @@ function TOOL:Reload( trace )
 		
 		SetGears(self:GetOwner(), ent, VehicleList.Members.Gears )
 		ent:SetDifferentialGear( VehicleList.Members.DifferentialGear )
+		
+		ent.ForceTransmission = VehicleList.Members.ForceTransmission
 	end
 	
 	return true
@@ -177,5 +195,35 @@ function TOOL.BuildCPanel( panel )
 		g_slider:SetMax( 5 )
 		g_slider:SetDecimals( 3 )
 		g_slider:SetConVar( "simfphysgeareditor_gear_diff" )
+		
+		yy = yy + 50
+		
+		local Label = vgui.Create( "DLabel", Frame )
+		Label:SetPos( 30, yy )
+		Label:SetSize( 280, 40 )
+		Label:SetText( "Force Transmission Type" )
+		Label:SetTextColor( Color(0,0,0,255) )
+		
+		local CheckBox = vgui.Create( "DCheckBoxLabel", Frame )
+		CheckBox:SetPos( 5,yy )
+		CheckBox:SetText( "" )
+		CheckBox:SetConVar( "simfphysgeareditor_forcetype" )
+		CheckBox:SetSize( 280, 40 )
+		
+		yy = yy + 30
+		
+		local Label = vgui.Create( "DLabel", Frame )
+		Label:SetPos( 5, yy )
+		Label:SetSize( 275, 40 )
+		Label:SetText( "Type \n1 = Automatic\n2 = Manual" )
+		Label:SetTextColor( Color(0,0,0,255) )
+		local g_slider = vgui.Create( "DNumSlider", Frame)
+		g_slider:SetPos( 5, yy )
+		g_slider:SetSize( 275, 40 )
+		g_slider:SetMin( 1 )
+		g_slider:SetMax( 2 )
+		g_slider:SetDecimals( 0 )
+		g_slider:SetConVar( "simfphysgeareditor_type" )
+		
 	end
 end

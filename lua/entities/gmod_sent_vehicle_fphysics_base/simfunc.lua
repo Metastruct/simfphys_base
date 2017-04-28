@@ -111,14 +111,10 @@ function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 	
 	local ReactionForce = (self.EngineTorque * 2 - math.Clamp(self.ForwardSpeed,-self.Brake,self.Brake)) * self.DriveWheelsOnGround
 	local BaseMassCenter = PObj:GetMassCenter()
+	local dt_mul = math.max( math.min(self:GetPowerDistribution() + 0.5,1),0)
 	
-	local FrontPos =(IsValid(self.Wheels[1]) and IsValid(self.Wheels[2])) and ((self.Wheels[1]:GetPos() + self.Wheels[2]:GetPos()) / 2) or BaseMassCenter
-	local RearPos = (IsValid(self.Wheels[3]) and IsValid(self.Wheels[4])) and ((self.Wheels[3]:GetPos() + self.Wheels[4]:GetPos()) / 2) or BaseMassCenter
-	
-	local ReactionForcePos = (self:GetPowerDistribution() > 0) and RearPos or (self:GetPowerDistribution() < 0) and FrontPos or BaseMassCenter
-	
-	PObj:ApplyForceOffset( -self.Forward * self.Mass * ReactionForce, ReactionForcePos + self.Up ) 
-	PObj:ApplyForceOffset( self.Forward * self.Mass * ReactionForce, ReactionForcePos - self.Up )
+	PObj:ApplyForceOffset( -self.Forward * self.Mass * ReactionForce, BaseMassCenter + self.Up * dt_mul ) 
+	PObj:ApplyForceOffset( self.Forward * self.Mass * ReactionForce, BaseMassCenter - self.Up * dt_mul ) 
 end
 
 function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_handbrake,k_gearup,k_geardown,isauto,IdleRPM,Powerbandstart,Powerbandend,shiftmode,cruisecontrol,curtime)
@@ -130,12 +126,12 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 	end
 	
 	if not isauto then
-		self.Brake = self:GetBrakePower() * k_brake
+		self.Brake = self:GetBrakePower() * math.max( k_brake, self.PressedKeys["joystick_brake"] )
 		self.HandBrake = self.HandBrakePower * k_handbrake
-		self.Clutch = math.max(k_clutch,k_handbrake)
+		self.Clutch = math.max( k_clutch, k_handbrake, self.PressedKeys["joystick_clutch"] )
 		
 		local AutoThrottle = self:EngineActive() and ((self.EngineRPM < IdleRPM) and (IdleRPM - self.EngineRPM) / IdleRPM or 0) or 0
-		local Throttle = cruisecontrol and cruiseThrottle or ((0.5 + 0.5 * k_fullthrottle) * k_throttle + AutoThrottle)
+		local Throttle = cruisecontrol and cruiseThrottle or ( math.max( (0.5 + 0.5 * k_fullthrottle) * k_throttle, self.PressedKeys["joystick_throttle"] ) + AutoThrottle)
 		self:SetThrottle( Throttle )
 		
 		if k_gearup ~= self.GearUpPressed then
@@ -164,7 +160,14 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 			end
 		end
 	else 
-		local Throttle = cruisecontrol and cruiseThrottle or ((0.5 + 0.5 * k_fullthrottle) * (self.ForwardSpeed >= 50 and k_throttle or (self.ForwardSpeed < 50 and self.ForwardSpeed > -350) and math.max(k_throttle,k_brake) or (self.ForwardSpeed <= -350 and k_brake)))
+	
+		local throttleMod = 0.5 + 0.5 * k_fullthrottle
+		local throttleForward = math.max( k_throttle * throttleMod, self.PressedKeys["joystick_throttle"] )
+		local throttleReverse = math.max( k_brake * throttleMod, self.PressedKeys["joystick_brake"] )
+		local throttleStanding = math.max( k_throttle * throttleMod, k_brake * throttleMod, self.PressedKeys["joystick_brake"], self.PressedKeys["joystick_throttle"] )
+		local inputThrottle = self.ForwardSpeed >= 50 and throttleForward or ((self.ForwardSpeed < 50 and self.ForwardSpeed > -350) and throttleStanding or throttleReverse)
+		
+		local Throttle = cruisecontrol and cruiseThrottle or inputThrottle
 		local CalcRPM = self.EngineRPM - self.RPM_DIFFERENCE * Throttle
 		self:SetThrottle( Throttle )
 		
@@ -184,7 +187,7 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 
 		self.HandBrake = self.HandBrakePower * k_handbrake
 		
-		self.Brake = self:GetBrakePower() * (self.ForwardSpeed >= 0 and k_brake or k_throttle)
+		self.Brake = self:GetBrakePower() * (self.ForwardSpeed >= 0 and math.max(k_brake,self.PressedKeys["joystick_brake"]) or math.max(k_throttle,self.PressedKeys["joystick_throttle"]))
 		
 		if self:IsDriveWheelsOnGround() then
 			if self.ForwardSpeed >= 50 then	
@@ -221,8 +224,8 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 				
 			elseif (self.ForwardSpeed < 50 and self.ForwardSpeed > -350) then
 				
-				self.CurrentGear = (k_throttle == 1 and 3 or k_brake == 1 and 1) or 3
-				self.Brake = self:GetBrakePower() * k_throttle * k_brake
+				self.CurrentGear = (k_throttle == 1 and 3 or k_brake == 1 and 1 or self.PressedKeys["joystick_throttle"] > 0 and 3 or self.PressedKeys["joystick_brake"] > 0 and 1) or 3
+				self.Brake = self:GetBrakePower() * math.max(k_throttle * k_brake,self.PressedKeys["joystick_throttle"] * self.PressedKeys["joystick_brake"])
 				
 			elseif (self.ForwardSpeed >= -350) then
 				

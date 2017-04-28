@@ -15,8 +15,8 @@ end
 if CLIENT then
 	language.Add( "tool.simfphysduplicator.name", "Vehicle Duplicator" )
 	language.Add( "tool.simfphysduplicator.desc", "Copy, Paste or Save your Vehicles" )
-	language.Add( "tool.simfphysduplicator.0", "Left click to spawn. Right click to copy" )
-	language.Add( "tool.simfphysduplicator.1", "Left click to spawn. Right click to copy" )
+	language.Add( "tool.simfphysduplicator.0", "Left click to spawn or update. Right click to copy" )
+	language.Add( "tool.simfphysduplicator.1", "Left click to spawn or update. Right click to copy" )
 	
 	local selecteditem	= nil
 	local TOOLMemory	= {}
@@ -203,6 +203,36 @@ if CLIENT then
 	end
 end
 
+local function ValidateModel( model )
+	local v_list = list.Get( "simfphys_vehicles" )
+	for listname, _ in pairs( v_list ) do
+		if (v_list[listname].Members.CustomWheels) then
+			local FrontWheel = v_list[listname].Members.CustomWheelModel
+			local RearWheel = v_list[listname].Members.CustomWheelModel_R
+			
+			if FrontWheel then 
+				FrontWheel = string.lower( FrontWheel )
+			end
+			
+			if RearWheel then 
+				RearWheel = string.lower( RearWheel )
+			end
+			
+			if model == FrontWheel or model == RearWheel then
+				return true
+			end
+		end
+	end
+	
+	local list = list.Get( "simfphys_Wheels" )[model]
+	
+	if list then 
+		return true
+	end
+	
+	return false
+end
+
 function TOOL:GetVehicleData( ent, ply )
 	if not IsValid(ent) then return end
 	if not istable(ply.TOOLMemory) then ply.TOOLMemory = {} end
@@ -363,7 +393,7 @@ local function GetAngleFromSpawnlist( model )
 			end
 			
 			if (RearWheel) then 
-				FrontWheel = string.lower( RearWheel )
+				RearWheel = string.lower( RearWheel )
 			end
 			
 			if (model == FrontWheel or model == RearWheel) then
@@ -384,6 +414,8 @@ end
 function TOOL:LeftClick( trace )
 	if CLIENT then return true end
 	
+	local Ent = trace.Entity
+	
 	local ply = self:GetOwner()
 	
 	if not istable(ply.TOOLMemory) then return end
@@ -402,7 +434,15 @@ function TOOL:LeftClick( trace )
 	SpawnAng.yaw = SpawnAng.yaw + 180 + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 	SpawnAng.roll = 0
 	
-	local Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle )
+	if simfphys.IsCar( Ent ) then
+		if vname ~= Ent:GetSpawn_List() then 
+			ply:PrintMessage( HUD_PRINTTALK, vname.." is not compatible with "..Ent:GetSpawn_List() )
+			return
+		end
+	else
+		Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle )
+	end
+	
 	if not IsValid( Ent ) then return end
 	
 	local tsc = string.Explode( ",", ply.TOOLMemory.TireSmokeColor )
@@ -530,9 +570,13 @@ function TOOL:LeftClick( trace )
 				local rear_angle = GetAngleFromSpawnlist(rear_model)
 				
 				if (!front_model or !rear_model or !front_angle or !rear_angle) then return end
-				--print("we apply the wheel")
-				Ent.Camber = camber
-				ApplyWheel(Ent, {front_model,front_angle,rear_model,rear_angle,camber})
+				
+				if ValidateModel( front_model ) and ValidateModel( rear_model ) then 
+					Ent.Camber = camber
+					ApplyWheel(Ent, {front_model,front_angle,rear_model,rear_angle,camber})
+				else
+					ply:PrintMessage( HUD_PRINTTALK, "selected wheel does not exist on the server")
+				end
 			end
 		end
 	end)

@@ -203,7 +203,7 @@ local function buildclientsettingsmenu( self )
 	Shape:SetSize( 350, 85 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	createcheckbox(25,220,"Always Fullthrottle","cl_simfphys_sanic",self.PropPanel,sanic:GetInt())
-	createcheckbox(25,240,"Engine Autostart","cl_simfphys_autostart",self.PropPanel,autostart:GetInt())
+	createcheckbox(25,240,"Engine Auto Start/Stop","cl_simfphys_autostart",self.PropPanel,autostart:GetInt())
 	createcheckbox(25,260,"Automatic Transmission","cl_simfphys_auto",self.PropPanel,auto:GetInt())
 	createcheckbox(25,280,"Automatic Sportmode (late up and downshifts)","cl_simfphys_sport",self.PropPanel,sport:GetInt())
 	
@@ -638,6 +638,14 @@ hook.Add( "PopulateVehicles", "simfphys", function( pnlContent, tree, _ )
 	node.DoClick = function( self )
 		self:DoPopulate()
 		pnlContent:SwitchPanel( self.PropPanel )
+	end
+	
+	-- JOYSTICK
+	if istable(jcon) and file.Exists("lua/bin/gmcl_joystick_win32.dll", "GAME") then
+		local node = tree:AddNode( "Joystick Configuration", "icon16/joystick.png" )
+		node.DoClick = function( self )
+			RunConsoleCommand("joyconfig") 
+		end
 	end
 	
 	-- CLIENT SETTINGS

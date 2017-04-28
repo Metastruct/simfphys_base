@@ -28,7 +28,7 @@ local function BloodEffect( pos )
 end
 
 local function DestroyVehicle( ent )
-	if !IsValid( ent ) then return end
+	if not IsValid( ent ) then return end
 	if ent.destroyed then return end
 	
 	ent.destroyed = true
@@ -77,14 +77,17 @@ local function DestroyVehicle( ent )
 		end
 	end
 	
-	if IsValid(ent:GetDriver()) then
-		ent:GetDriver():Kill()
+	local Driver = ent:GetDriver()
+	if IsValid( Driver ) then
+		if ent.RemoteDriver ~= Driver then
+			Driver:Kill()
+		end
 	end
 	
 	if ent.PassengerSeats then
 		for i = 1, table.Count( ent.PassengerSeats ) do
 			local Passenger = ent.pSeat[i]:GetDriver()
-			if IsValid(Passenger) then
+			if IsValid( Passenger ) then
 				Passenger:Kill()
 			end
 		end
@@ -122,7 +125,7 @@ local function HurtPlayers( ent, damage )
 	
 	local Driver = ent:GetDriver()
 	
-	if IsValid(Driver) then
+	if IsValid( Driver ) then
 		Driver:TakeDamage(damage, Entity(0), ent )
 	end
 	
@@ -164,14 +167,18 @@ local function onCollide( ent, data )
 		else
 			Spark( pos , data.HitNormal , "MetalVehicle.ImpactSoft" )
 			
-			if (data.Speed > 250) then
+			if data.Speed > 250 then
 				local hitent = data.HitEntity:IsPlayer()
-				if !hitent then
+				if not hitent then
 					bcDamage( ent , ent:WorldToLocal( pos ) , true )
+					
+					if simfphys.DamageMul > 1 then
+						ent:TakeDamage( (data.Speed / 28) * simfphys.DamageMul, Entity(0), Entity(0) )
+					end
 				end
 			end
 			
-			if (data.Speed > 500) then
+			if data.Speed > 500 then
 				HurtPlayers( ent , 2 )
 				ent:TakeDamage( (data.Speed / 14) * simfphys.DamageMul, Entity(0), Entity(0) )
 			end
@@ -182,7 +189,7 @@ end
 local function OnDamage( ent, dmginfo )
 	ent:TakePhysicsDamage( dmginfo )
 	
-	if (ent.EnableSuspension != 1) then return end
+	if not ent:IsInitialized() then return end
 	
 	local Damage = dmginfo:GetDamage() 
 	local DamagePos = dmginfo:GetDamagePosition() 
@@ -201,6 +208,8 @@ local function OnDamage( ent, dmginfo )
 	end
 	
 	DamageVehicle( ent , Damage * Mul )
+	
+	if ent.IsArmored then return end
 	
 	if IsValid(Driver) then
 		local Distance = (DamagePos - Driver:GetPos()):Length() 
@@ -230,9 +239,9 @@ local function OnDamage( ent, dmginfo )
 end
 
 hook.Add( "OnEntityCreated", "simfphys_damagestuff", function( ent )
-	if ent:GetClass() == "gmod_sent_vehicle_fphysics_base" then
+	if simfphys.IsCar( ent ) then
 		timer.Simple( 0.2, function()
-			if !IsValid(ent) then return end
+			if not IsValid( ent ) then return end
 			
 			local Health = math.floor(ent.MaxHealth and ent.MaxHealth or (1000 + ent:GetPhysicsObject():GetMass() / 3))
 			
