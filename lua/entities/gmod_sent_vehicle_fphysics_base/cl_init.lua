@@ -55,7 +55,8 @@ function ENT:Think()
 end
 
 function ENT:SetPoseParameters( curtime )
-	self:SetPoseParameter("vehicle_steer", self:GetVehicleSteer() )
+	self.sm_vSteer = self.sm_vSteer and self.sm_vSteer + (self:GetVehicleSteer() - self.sm_vSteer) * 0.3 or 0
+	self:SetPoseParameter("vehicle_steer", self.sm_vSteer  )
 	
 	if !istable(self.pp_data) then
 		self.ppNextCheck = self.ppNextCheck or curtime + 0.5
