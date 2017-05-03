@@ -16,27 +16,8 @@ function ENT:Initialize()
 	self.Idle = CreateSound(self, "")
 	self.Valves = CreateSound(self, "")
 	self.DamageSnd = CreateSound(self, "simulated_vehicles/engine_damaged.wav")
-	
-	self.Materials = {
-		"particle/smokesprites_0001",
-		"particle/smokesprites_0002",
-		"particle/smokesprites_0003",
-		"particle/smokesprites_0004",
-		"particle/smokesprites_0005",
-		"particle/smokesprites_0006",
-		"particle/smokesprites_0007",
-		"particle/smokesprites_0008",
-		"particle/smokesprites_0009",
-		"particle/smokesprites_0010",
-		"particle/smokesprites_0011",
-		"particle/smokesprites_0012",
-		"particle/smokesprites_0013",
-		"particle/smokesprites_0014",
-		"particle/smokesprites_0015",
-		"particle/smokesprites_0016"
-	}
+
 	self.EngineSounds = {}
-	self.Emitter = {}
 end
 
 function ENT:Think()
@@ -308,116 +289,39 @@ function ENT:ManageSounds(Active)
 end
 
 function ENT:Backfire( damaged )
-	if (!self:GetBackFire() and !damaged) then return end
+	if not self:GetBackFire() and not damaged then return end
 	
 	local vehiclelist = list.Get( "simfphys_vehicles" )[self:GetSpawn_List()]
-	if (vehiclelist) then
+	if vehiclelist then
 		local expos = vehiclelist.Members.ExhaustPositions
 		
-		if (expos) then
+		if expos then
 			for i = 1, table.Count( expos ) do
-				if (math.Round(math.random(1,3),1) >= 2 or damaged) then
+				if math.Round(math.random(1,3),1) >= 2 or damaged then
 					local Pos = expos[i].pos
 					local Ang = expos[i].ang - Angle(90,0,0)
 					
-					if (expos[i].OnBodyGroups) then
-						if (self:BodyGroupIsValid( expos[i].OnBodyGroups )) then
-							self:BfFx(Pos,Ang,damaged)
+					if expos[i].OnBodyGroups then
+						if self:BodyGroupIsValid( expos[i].OnBodyGroups ) then
+							local effectdata = EffectData()
+								effectdata:SetOrigin( Pos )
+								effectdata:SetAngles( Ang )
+								effectdata:SetEntity( self )
+								effectdata:SetFlags( damaged and 1 or 0 ) 
+							util.Effect( "simfphys_backfire", effectdata )
 						end
 					else
-						self:BfFx(Pos,Ang,damaged)
+						local effectdata = EffectData()
+							effectdata:SetOrigin( Pos )
+							effectdata:SetAngles( Ang )
+							effectdata:SetEntity( self )
+							effectdata:SetFlags( damaged and 1 or 0 ) 
+						util.Effect( "simfphys_backfire", effectdata )
 					end
 				end
 			end
 		end
 	end
-end
-
-function ENT:BfFx( lPos , lAng , bdamaged)
-	local Delay = bdamaged and 0 or math.random(0,0.4)
-	timer.Simple( Delay, function()
-		if (!IsValid(self)) then return end
-		
-		local snd = bdamaged and "simulated_vehicles/sfx/ex_backfire_damaged_"..math.Round(math.random(1,3),1)..".ogg" or "simulated_vehicles/sfx/ex_backfire_"..math.Round(math.random(1,4),1)..".ogg"
-		self:EmitSound( snd )	
-		
-		local Vel = self:GetVelocity() * (game.SinglePlayer() and 0 or 1)
-		local Pos = self:LocalToWorld( lPos )
-		local Ang = self:LocalToWorldAngles( lAng )
-		
-		local dlight = DynamicLight( self:EntIndex() * math.random(1,4) )
-		if ( dlight ) then
-			dlight.pos = Pos + Vel / 66
-			dlight.r = 255
-			dlight.g = 180
-			dlight.b = 100
-			dlight.brightness = 2
-			dlight.Decay = 1000
-			dlight.Size = 120
-			dlight.DieTime = CurTime() + 0.5
-		end
-		
-		for i = 1, 10 do
-			local emitter1 = self:GetEmitter(i, Pos, false )
-			local emitter2 = self:GetEmitter(i, Pos, false )
-
-			local particle1 = emitter1:Add( "effects/muzzleflash2", Pos )
-			local particle2 = emitter2:Add( self.Materials[math.Round(math.Rand(1, table.Count(self.Materials) ),0)], Pos )
-
-			if ( particle1 ) then
-				particle1:SetVelocity( Vel + Ang:Forward() * 5 )
-				particle1:SetDieTime( 0.1 )
-				particle1:SetStartAlpha( 255 )
-				particle1:SetStartSize( math.random(4,12) )
-				particle1:SetEndSize( 0 )
-				particle1:SetRoll( math.Rand( -1, 1 ) )
-				particle1:SetColor( 255,255,255 )
-				particle1:SetCollide( false )
-			end
-			
-			if ( particle2 ) then
-				particle2:SetVelocity( Vel + Ang:Forward() * 10 )
-				particle2:SetDieTime( 0.3 )
-				particle2:SetStartAlpha( 60 )
-				particle2:SetStartSize( 0 )
-				particle2:SetEndSize( math.random(8,20) )
-				particle2:SetRoll( math.Rand( -1, 1 ) )
-				particle2:SetColor( 100,100,100 )
-				particle2:SetCollide( false )
-			end
-			
-			if bdamaged then
-				local emitter3 = self:GetEmitter(i, Pos, false )
-
-				local particle3 = emitter2:Add( self.Materials[math.Round(math.Rand(1, table.Count(self.Materials) ),0)], Pos )
-
-				if ( particle3 ) then
-					particle3:SetVelocity( Vel + Ang:Forward() * math.random(30,60) )
-					particle3:SetDieTime( 0.5 )
-					particle3:SetAirResistance( 20 ) 
-					particle3:SetStartAlpha( 100 )
-					particle3:SetStartSize( 0 )
-					particle3:SetEndSize( math.random(25,50) )
-					particle3:SetRoll( math.Rand( -1, 1 ) )
-					particle3:SetColor( 40,40,40 )
-					particle3:SetCollide( false )
-				end
-			end
-		end
-	end)
-end
-
-function ENT:GetEmitter( In, Pos, b3D )
-	if ( self.Emitter[In] ) then
-		if ( self.EmitterIs3Dr == b3D && self.EmitterTimer > CurTime() ) then
-			return self.Emitter[In] 
-		end
-	end
-	
-	self.Emitter[In] = ParticleEmitter( Pos, b3D )
-	self.EmitterIs3Dr = b3D
-	self.EmitterTimer = CurTime() + 2
-	return self.Emitter[In]
 end
 
 function ENT:Draw()
@@ -543,7 +447,7 @@ function ENT:SetSoundPreset(index)
 		return false
 	end
 	
-	if (index > 0) then  -- to be honest nobody should be using these anymore...  but i keep them in for backwards compatibility
+	if index > 0 then
 		local clampindex = math.Clamp(index,1,table.Count(simfphys.SoundPresets))
 		self.EngineSounds[ "Idle" ] = simfphys.SoundPresets[clampindex][1]
 		self.EngineSounds[ "LowRPM" ] = simfphys.SoundPresets[clampindex][2]
