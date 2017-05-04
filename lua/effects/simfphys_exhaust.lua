@@ -27,7 +27,7 @@ function EFFECT:Init( data )
 	local TurboCharged = Entity:GetTurboCharged()
 	local SuperCharged = Entity:GetSuperCharged()
 	
-	local BoostAdd = (TurboCharged and 30 or 0) + (SuperCharged and 30 or 0)
+	local BoostAdd = (TurboCharged and 20 or 0) + (SuperCharged and 20 or 0)
 	
 	if IsValid( Entity ) then
 		local Vel = Entity:GetVelocity()
@@ -36,19 +36,23 @@ function EFFECT:Init( data )
 		
 		local emitter = ParticleEmitter( Pos, false )
 
+		local MaxHealth = Entity:GetMaxHealth()
+		local Health = Entity:GetCurHealth()
+		
 		local particle = emitter:Add( Materials[ math.Round( math.Rand(1, table.Count( Materials ) ) , 0 ) ], Pos )
-		local cInt = math.Clamp(100 - (40 + BoostAdd * 0.5) * Size,0,255)
+		local cAdd = (1 - (Health / MaxHealth)) * 100
+		local cInt = math.Clamp(100 - (40 + BoostAdd * 0.33) * Size,0,255)
 		local rand = Vector( math.random(-1,1), math.random(-1,1), math.random(-1,1) ) * 0.25
 		
 		if particle then
 			particle:SetVelocity( Vel + (Dir + rand) * (50 + Size * 100) )
 			particle:SetDieTime( 0.4 + Size * 0.6 )
 			particle:SetAirResistance( 200 ) 
-			particle:SetStartAlpha( math.max(15 + Size ^ 3 * (10 + BoostAdd) - Vel:Length() / 800,0))
+			particle:SetStartAlpha( math.max(15 + Size ^ 3 * (10 + BoostAdd + cAdd) - Vel:Length() / 800,0))
 			particle:SetStartSize( ((SuperCharged and TurboCharged) and 4 or 2) )
 			particle:SetEndSize( 10 + Size * 60 )
 			particle:SetRoll( math.Rand( -1, 1 ) )
-			particle:SetColor( cInt, cInt, cInt )
+			particle:SetColor( math.Clamp(cInt - cAdd,0,255), math.Clamp(cInt - cAdd,0,255), math.Clamp(cInt - cAdd * 0.5,0,255) )
 			particle:SetGravity( Vector( 0, 0, 100 ) + Vel * 0.5 )
 			particle:SetCollide( false )
 		end
