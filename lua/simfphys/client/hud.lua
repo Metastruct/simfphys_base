@@ -84,7 +84,7 @@ hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
 		local freelook = input.IsButtonDown( ms_key_freelook )
 		ply.Freelook = freelook
 		if not freelook then 
-			local frametime = RealFrameTime()
+			local frametime = FrameTime()
 			
 			local ms_delta_x = cmd:GetMouseX()
 			local ms_return = ms_fade * frametime
