@@ -184,22 +184,6 @@ function ENT:InitializeVehicle()
 		WireLib.TriggerOutput(self, "DriverSeat", self.DriverSeat )
 	end
 	
-	if self.ExhaustPositions then
-		for i = 1, table.Count( self.ExhaustPositions ) do
-			self.exfx[i] = ents.Create( "info_particle_system" )
-			self.exfx[i]:SetKeyValue( "effect_name" , "Exhaust")
-			self.exfx[i]:SetKeyValue( "start_active" , 0)
-			self.exfx[i]:SetOwner( self )
-			self.exfx[i]:SetPos( self:LocalToWorld( self.ExhaustPositions[i].pos ) )
-			self.exfx[i]:SetAngles( self:LocalToWorldAngles( self.ExhaustPositions[i].ang ) )
-			self.exfx[i]:Spawn()
-			self.exfx[i]:Activate()
-			self.exfx[i]:SetParent( self )
-			self.exfx[i].DoNotDuplicate = true
-			self:s_MakeOwner( self.exfx[i] )
-		end
-	end
-	
 	if self.Attachments then
 		for i = 1, table.Count( self.Attachments ) do
 			local prop = ents.Create( ((self.Attachments[i].IsGlass == true) and "gmod_sent_vehicle_fphysics_attachment_translucent" or "gmod_sent_vehicle_fphysics_attachment") )

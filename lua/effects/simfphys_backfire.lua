@@ -81,7 +81,7 @@ function EFFECT:Init( data )
 				if bdamaged then
 					local emitter3 = ParticleEmitter( Pos, false )
 
-					local particle3 = emitter2:Add( Materials[ math.Round( math.Rand(1, table.Count( Materials ) ) , 0 ) ], Pos )
+					local particle3 = emitter3:Add( Materials[ math.Round( math.Rand(1, table.Count( Materials ) ) , 0 ) ], Pos )
 
 					if particle3 then
 						particle3:SetVelocity( Vel + Ang:Forward() * math.random(30,60) )

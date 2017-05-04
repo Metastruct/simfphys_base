@@ -74,7 +74,6 @@ function ENT:Think()
 		self:SetColors()
 		self:SimulateVehicle( Time )
 		self:ControlLighting( Time )
-		self:ControlExFx()
 		
 		if istable( WireLib ) then
 			self:UpdateWireOutputs()
@@ -502,47 +501,6 @@ function ENT:SimulateVehicle( curtime )
 	end
 end
 
-function ENT:ControlExFx()
-	if not self.ExhaustPositions then return end
-	
-	local IsOn = self:GetActive()
-	
-	self.EnableExFx = (math.abs(self.ForwardSpeed) <= 420) and (self.EngineIsOn == 1) and IsOn
-	self.CheckExFx = self.CheckExFx or false
-	
-	if self.CheckExFx ~= self.EnableExFx then
-		self.CheckExFx = self.EnableExFx
-		
-		if self.EnableExFx then
-			
-			for i = 1, table.Count( self.ExhaustPositions ) do
-				
-				local Fx = self.exfx[i]
-				
-				if (IsValid(Fx)) then
-					if (self.ExhaustPositions[i].OnBodyGroups) then
-						if (self:BodyGroupIsValid( self.ExhaustPositions[i].OnBodyGroups )) then
-							Fx:Fire( "Start" )
-						end
-					else
-						Fx:Fire( "Start" )
-					end
-				end
-			end
-			
-		else
-			for i = 1, table.Count( self.ExhaustPositions ) do
-				
-				local Fx = self.exfx[i]
-				
-				if IsValid(Fx) then
-					Fx:Fire( "Stop" )
-				end
-			end
-		end
-	end
-end
-
 function ENT:BodyGroupIsValid( bodygroups )
 	
 	for index, groups in pairs( bodygroups ) do
@@ -572,6 +530,7 @@ function ENT:SetupControls( ply )
 			TurnSpeed = ply:GetInfoNum( "cl_simfphys_steerspeed", 8 ),
 			fadespeed = ply:GetInfoNum( "cl_simfphys_fadespeed", 535 ),
 			fastspeedangle = ply:GetInfoNum( "cl_simfphys_steerangfast", 10 ),
+			smoothsteer = (ply:GetInfoNum( "cl_simfphys_smoothsteer", 0 ) >= 1),
 		}
 		
 		local W = ply:GetInfoNum( "cl_simfphys_keyforward", 0 )
@@ -813,7 +772,7 @@ function ENT:StallAndRestart( nTimer, bIgnoreSettings )
 end
 
 function ENT:PlayerSteerVehicle( ply, left, right )
-	if IsValid(ply) then
+	if IsValid( ply ) then
 		local CounterSteeringEnabled = (ply:GetInfoNum( "cl_simfphys_ctenable", 0 ) or 1) == 1
 		local CounterSteeringMul =  math.Clamp(ply:GetInfoNum( "cl_simfphys_ctmul", 0 ) or 0.7,0.1,2)
 		local MaxHelpAngle = math.Clamp(ply:GetInfoNum( "cl_simfphys_ctang", 0 ) or 15,1,90)
@@ -823,11 +782,13 @@ function ENT:PlayerSteerVehicle( ply, left, right )
 		local TurnSpeed
 		local fadespeed
 		local fastspeedangle
+		local extrasmooth = false
 		
 		if istable(self.cl_SteerSettings) and self.cl_SteerSettings.Overwrite then
 			TurnSpeed = self.cl_SteerSettings.TurnSpeed
 			fadespeed = self.cl_SteerSettings.fadespeed
 			fastspeedangle = self.cl_SteerSettings.fastspeedangle
+			extrasmooth =  self.cl_SteerSettings.smoothsteer
 		else
 			TurnSpeed = self:GetSteerSpeed()
 			fadespeed = self:GetFastSteerConeFadeSpeed()
@@ -848,7 +809,9 @@ function ENT:PlayerSteerVehicle( ply, left, right )
 		
 		local CounterSteer = CounterSteeringEnabled and (math.Clamp(LocalDrift * CounterSteeringMul * (((left + right) == 0) and 1 or 0),-MaxHelpAngle,MaxHelpAngle) * ((self.ForwardSpeed > 50) and 1 or 0)) or 0
 		
-		self.SmoothAng = self.SmoothAng + math.Clamp((Steer - CounterSteer) - self.SmoothAng,-TurnSpeed,TurnSpeed)
+		local Rate = extrasmooth and math.max( (math.abs(self.SmoothAng) / self.VehicleData["steerangle"]) ^ 1.5 * TurnSpeed, math.max(1 - self.ForwardSpeed / 2000,0.05) ) or TurnSpeed
+		
+		self.SmoothAng = self.SmoothAng + math.Clamp((Steer - CounterSteer) - self.SmoothAng,-Rate,Rate)
 		
 		self:SteerVehicle( self.SmoothAng )
 	end
