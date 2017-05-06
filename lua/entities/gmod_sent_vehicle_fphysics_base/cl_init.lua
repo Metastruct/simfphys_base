@@ -219,7 +219,7 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 							self.HighRPM:PlayEx(0,0)
 							
 							if self.SmoothRPM > LimitRPM * 0.6 then
-								if math.Round(math.random(0,4),1) >= 3 then
+								if math.random(0,4) >= 3 then
 									timer.Simple(0.4, function()
 										if not IsValid( self ) then return end
 										self:Backfire()
@@ -280,7 +280,7 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 					if Clutch ~= 1 then
 						if self.OldGear < Gear then
 							if self.SmoothRPM > LimitRPM * 0.6 then
-								if math.Round(math.random(0,4),1) >= 3 then
+								if math.random(0,4) >= 3 then
 									timer.Simple(0.4, function()
 										if not IsValid( self ) then return end
 										self:Backfire()
@@ -328,7 +328,7 @@ function ENT:Backfire( damaged )
 	local expos = self.ExhaustPositions
 	
 	for i = 1, table.Count( expos ) do
-		if math.Round(math.random(1,3),1) >= 2 or damaged then
+		if math.random(1,3) >= 2 or damaged then
 			local Pos = expos[i].pos
 			local Ang = expos[i].ang - Angle(90,0,0)
 			
