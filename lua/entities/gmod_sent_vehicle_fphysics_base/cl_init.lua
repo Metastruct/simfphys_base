@@ -75,10 +75,11 @@ function ENT:GetRPM()
 end
 
 function ENT:ManageEffects( Active, fThrottle, LimitRPM )
+	Active = Active and (self:GetFlyWheelRPM() ~= 0)
 	if not Active then return end
 	if not self.ExhaustPositions then return end
 	
-	local Scale = fThrottle * (0.2 + (self:GetRPM() / LimitRPM) * 0.8) ^ 2
+	local Scale = fThrottle * (0.2 + math.min(self:GetRPM() / LimitRPM,1) * 0.8) ^ 2
 	
 	for i = 1, table.Count( self.ExhaustPositions ) do
 		local effectdata = EffectData()
