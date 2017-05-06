@@ -340,7 +340,7 @@ if SERVER then
 		if ( data.Speed > 100 && data.DeltaTime > 0.2 ) then
 			if ( data.Speed > 400 ) then 
 				self:EmitSound( "Rubber_Tire.ImpactHard" )
-				self:EmitSound( "simulated_vehicles/suspension_creak_".. math.Round(math.random(1,6),0) ..".ogg" )
+				self:EmitSound( "simulated_vehicles/suspension_creak_".. math.random(1,6) ..".ogg" )
 			else 
 				self:EmitSound( "Rubber.ImpactSoft" )
 			end
@@ -367,8 +367,8 @@ if SERVER then
 					self.PreBreak = CreateSound(self, "ambient/gas/cannister_loop.wav")
 					self.PreBreak:PlayEx(0.5,100)
 					
-					timer.Simple(math.random(0.5,5), function() 
-						if IsValid(self) and !self:GetDamaged() then
+					timer.Simple(math.Rand(0.5,5), function() 
+						if IsValid(self) and not self:GetDamaged() then
 							self:SetDamaged( true )
 							if self.PreBreak then
 								self.PreBreak:Stop()
