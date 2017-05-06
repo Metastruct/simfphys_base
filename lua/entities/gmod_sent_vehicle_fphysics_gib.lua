@@ -5,7 +5,20 @@ ENT.Type            = "anim"
 ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
 
+if CLIENT then
+	net.Receive("simfphys_explosion_fx", function(length)
+		local self = net.ReadEntity()
+		if IsValid( self ) then
+			local effectdata = EffectData()
+				effectdata:SetOrigin( self:GetPos() )
+			util.Effect( "simfphys_explosion", effectdata )
+		end
+	end)
+end
+
 if SERVER then
+	util.AddNetworkString( "simfphys_explosion_fx" )
+	
 	function ENT:Initialize()
 		self:PhysicsInit( SOLID_VPHYSICS )
 		self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -21,6 +34,12 @@ if SERVER then
 		timer.Simple( 0.05, function()
 			if not IsValid( self ) then return end
 			if self.MakeSound == true then
+				net.Start( "simfphys_explosion_fx" )
+					net.WriteEntity( self )
+				net.Broadcast()
+				
+				util.ScreenShake( self:GetPos(), 50, 50, 1.5, 700 )
+				util.BlastDamage( self, Entity(0), self:GetPos(), 300,200 )
 				
 				local Light = ents.Create( "light_dynamic" )
 				Light:SetPos( self:GetPos() + Vector( 0, 0, 10 ) )
@@ -32,18 +51,23 @@ if SERVER then
 				Light:SetKeyValue( "brightness", 2 )
 				Light:SetParent( self )
 				Light:Spawn()
-				
-				self.particleeffect = ents.Create( "info_particle_system" )
-				self.particleeffect:SetKeyValue( "effect_name" , "fire_large_01")
-				self.particleeffect:SetKeyValue( "start_active" , 1)
-				self.particleeffect:SetOwner( self )
-				self.particleeffect:SetPos( self:LocalToWorld( self:GetPhysicsObject():GetMassCenter() + Vector(0,0,15) ) )
-				self.particleeffect:SetAngles( self:GetAngles() )
-				self.particleeffect:Spawn()
-				self.particleeffect:Activate()
-				self.particleeffect:SetParent( self )
-				
 				Light:Fire( "TurnOn", "", "0" )
+				
+				timer.Simple( 0.7, function()
+					if not IsValid( self ) then return end
+					self.particleeffect = ents.Create( "info_particle_system" )
+					self.particleeffect:SetKeyValue( "effect_name" , "fire_large_01")
+					self.particleeffect:SetKeyValue( "start_active" , 1)
+					self.particleeffect:SetOwner( self )
+					self.particleeffect:SetPos( self:LocalToWorld( self:GetPhysicsObject():GetMassCenter() + Vector(0,0,15) ) )
+					self.particleeffect:SetAngles( self:GetAngles() )
+					self.particleeffect:Spawn()
+					self.particleeffect:Activate()
+					self.particleeffect:SetParent( self )
+					
+					self.FireSound = CreateSound(self, "ambient/fire/firebig.wav")
+					self.FireSound:Play()
+				end)
 				
 				timer.Simple( 120, function()
 					if not IsValid(self) then return end
@@ -57,29 +81,6 @@ if SERVER then
 						self.FireSound:Stop()
 					end
 				end)
-				
-				local ran_n = math.Round(math.random(1,3),0)
-				
-				if (ran_n == 1) then
-					sound.Play( Sound( "ambient/explosions/explode_3.wav" ), self:GetPos(), 160, 100, 1 )
-				elseif (ran_n == 2) then
-					sound.Play( Sound( "ambient/explosions/explode_8.wav" ), self:GetPos(), 160, 140, 1 )
-				else
-					sound.Play( Sound( "ambient/explosions/explode_5.wav" ), self:GetPos(), 160, 100, 1 )
-				end
-				
-				self.FireSound = CreateSound(self, "ambient/fire/firebig.wav")
-				self.FireSound:Play()
-				
-				local effectdata = EffectData()
-					effectdata:SetOrigin( self:LocalToWorld( self:GetPhysicsObject():GetMassCenter() ) )
-					effectdata:SetAngles( Angle(0,0,0) )
-					effectdata:SetEntity( self )
-					effectdata:SetFlags( 4 ) 
-					util.Effect( "Explosion", effectdata, true, true )
-					
-				util.ScreenShake( self:GetPos(), 50, 50, 1.5, 700 )
-				util.BlastDamage( self, Entity(0), self:GetPos(), 300,200 )
 			else
 				self.particleeffect = ents.Create( "info_particle_system" )
 				self.particleeffect:SetKeyValue( "effect_name" , "fire_small_03")
