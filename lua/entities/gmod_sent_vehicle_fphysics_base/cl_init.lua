@@ -69,12 +69,83 @@ function ENT:SetPoseParameters( curtime )
 	self:InvalidateBoneCache()
 end
 
+function ENT:GetEnginePos()
+	local Attachment = self:GetAttachment( self:LookupAttachment( "vehicle_engine" ) )
+	local pos = self:GetPos()
+	
+	if Attachment then
+		pos = Attachment.Pos
+	end
+	
+	if not self.EnginePos then
+		local vehiclelist = list.Get( "simfphys_vehicles" )[ self:GetSpawn_List() ]
+		
+		self.EnginePos = vehiclelist.Members.EnginePos or false
+		
+	elseif isvector( self.EnginePos ) then
+		pos = self:LocalToWorld( self.EnginePos )
+	end
+	
+	return pos
+end
+
 function ENT:GetRPM()
 	local RPM = self.SmoothRPM and self.SmoothRPM or 0
 	return RPM
 end
 
+function ENT:DamageEffects()
+	local Pos = self:GetEnginePos()
+	local Scale = self:GetCurHealth() / self:GetMaxHealth()
+	local smoke = self:OnSmoke() and Scale <= 0.5
+	local fire = self:OnFire()
+	
+	if self.wasSmoke ~= smoke then
+		self.wasSmoke = smoke
+		if smoke then
+			self.smokesnd = CreateSound(self, "ambient/gas/steam2.wav")
+			self.smokesnd:PlayEx(0.2,90)
+		else
+			if self.smokesnd then
+				self.smokesnd:Stop()
+			end
+		end
+	end
+	
+	if self.wasFire ~= fire then
+		self.wasFire = fire
+		if fire then
+			self:EmitSound( "ambient/fire/mtov_flame2.wav" )
+			
+			self.firesnd = CreateSound(self, "ambient/fire/fire_small1.wav")
+			self.firesnd:Play()
+		else
+			if self.firesnd then
+				self.firesnd:Stop()
+			end
+		end
+	end
+	
+	if smoke then
+		if Scale <= 0.5 then
+			local effectdata = EffectData()
+				effectdata:SetOrigin( Pos )
+				effectdata:SetEntity( self )
+			util.Effect( "simfphys_engine_smoke", effectdata )
+		end
+	end
+	
+	if fire then
+		local effectdata = EffectData()
+			effectdata:SetOrigin( Pos )
+			effectdata:SetEntity( self )
+		util.Effect( "simfphys_engine_fire", effectdata )
+	end
+end
+
 function ENT:ManageEffects( Active, fThrottle, LimitRPM )
+	self:DamageEffects()
+	
 	Active = Active and (self:GetFlyWheelRPM() ~= 0)
 	if not Active then return end
 	if not self.ExhaustPositions then return end
@@ -539,6 +610,14 @@ end
 
 function ENT:OnRemove()
 	self:SaveStopSounds()
+	
+	if self.smokesnd then
+		self.smokesnd:Stop()
+	end
+	
+	if self.firesnd then
+		self.firesnd:Stop()
+	end
 end
 
 function ENT:BodyGroupIsValid( bodygroups )
