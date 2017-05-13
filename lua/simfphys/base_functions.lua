@@ -4,7 +4,7 @@ CreateConVar( "sv_simfphys_gib_lifetime", "30", {FCVAR_REPLICATED , FCVAR_ARCHIV
 CreateConVar( "sv_simfphys_playerdamage", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"should players take damage from collisions in vehicles?" )
 CreateConVar( "sv_simfphys_damagemultiplicator", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"vehicle damage multiplicator" )
 
-simfphys = {}
+simfphys = istable( simfphys ) and simfphys or {}
 simfphys.DamageEnabled = false
 simfphys.DamageMul = 1
 simfphys.pDamageEnabled = false
@@ -139,6 +139,7 @@ if SERVER then
 			
 			Ent:SetEngineSoundPreset( Ent.EngineSoundPreset )
 			Ent:SetMaxTorque( Ent.PeakTorque )
+
 			Ent:SetDifferentialGear( Ent.DifferentialGear )
 			
 			Ent:SetSteerSpeed( Ent.TurnSpeed )
@@ -166,7 +167,7 @@ if SERVER then
 			Ent:SetLights_List( Ent.LightsTable or "no_lights" )
 			
 			Ent:SetBulletProofTires( Ent.BulletProofTires or false )
-		
+			
 			duplicator.StoreEntityModifier( Ent, "VehicleMemDupe", VTable.Members )
 		end
 		
