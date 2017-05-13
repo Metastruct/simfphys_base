@@ -34,12 +34,10 @@ end)
 
 hook.Add( "OnSpawnMenuOpen", "simfphys_seatswitching_menuopen", function()
 	spawnmenuopen = true
-	lockControls( true )
 end)
 
 hook.Add( "OnSpawnMenuClose", "simfphys_seatswitching_menuclose", function()
 	spawnmenuopen = false
-	lockControls( false )
 end)
 
 hook.Add( "FinishChat", "simfphys_seatswitching_chatend", function()
