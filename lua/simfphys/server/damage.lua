@@ -2,14 +2,6 @@ util.AddNetworkString( "simfphys_spritedamage" )
 util.AddNetworkString( "simfphys_lightsfixall" )
 util.AddNetworkString( "simfphys_backfire" )
 
-local function SetEntOwner( ply , entity )
-	if CPPI then
-		if IsValid( ply ) then
-			entity:CPPISetOwner( ply )
-		end
-	end
-end
-
 local function Spark( pos , normal , snd )
 	local effectdata = EffectData()
 	effectdata:SetOrigin( pos - normal )
@@ -72,7 +64,7 @@ local function DestroyVehicle( ent )
 				prop.DoNotDuplicate = true
 				bprop:DeleteOnRemove( prop )
 				
-				SetEntOwner( ply , prop )
+				simfphys.SetOwner( ply , prop )
 			end
 		end
 	end

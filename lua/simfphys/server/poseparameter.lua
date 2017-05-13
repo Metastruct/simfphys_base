@@ -5,7 +5,7 @@ local function sendppdata( length, ply )
 	local ent = net.ReadEntity()
 	
 	if IsValid(ent) then
-		if ent.EnableSuspension == 1 then
+		if ent:IsInitialized() then
 			net.Start( "simfphys_send_ppdata" )
 				net.WriteEntity( ent )
 				net.WriteBool( ent.CustomWheels )
