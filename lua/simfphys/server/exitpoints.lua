@@ -24,10 +24,13 @@ local function ExitUsingMyTraces( ent, ply, b_ent )
 			mins = -HullSize,
 			filter = Filter1
 		} )
+		
 		local exitpoint = tr.HitPos + Vector(0,0,10)
 		
-		ply:SetPos(exitpoint)
-		ply:SetEyeAngles((pos - exitpoint):Angle())
+		if util.IsInWorld( exitpoint ) then
+			ply:SetPos(exitpoint)
+			ply:SetEyeAngles((pos - exitpoint):Angle())
+		end
 	else
 		local pos = ent:GetPos()
 		local targetpos = (pos + ent:GetRight() * 80)
@@ -106,8 +109,10 @@ local function ExitUsingMyTraces( ent, ply, b_ent )
 		local HitWall = tr.Hit or traceto.hit
 		local exitpoint = (HitWall == true or util.IsInWorld( check4 ) == false) and b_ent:LocalToWorld( Vector(0,0,0) ) or check4
 		
-		ply:SetPos(exitpoint)
-		ply:SetEyeAngles((pos - exitpoint):Angle())
+		if util.IsInWorld( exitpoint ) then
+			ply:SetPos(exitpoint)
+			ply:SetEyeAngles((pos - exitpoint):Angle())
+		end
 	end
 end
 
