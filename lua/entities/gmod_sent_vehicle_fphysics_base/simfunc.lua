@@ -132,7 +132,7 @@ function ENT:SimulateTransmission(k_throttle,k_brake,k_fullthrottle,k_clutch,k_h
 		
 		local AutoThrottle = self:EngineActive() and ((self.EngineRPM < IdleRPM) and (IdleRPM - self.EngineRPM) / IdleRPM or 0) or 0
 		local Throttle = cruisecontrol and cruiseThrottle or ( math.max( (0.5 + 0.5 * k_fullthrottle) * k_throttle, self.PressedKeys["joystick_throttle"] ) + AutoThrottle)
-		self:SetThrottle( Throttle )
+		self:SetThrottle( self:GetEngineSoundPreset() == 0 and (self.ThrottleDelay <= curtime and Throttle or 0) or Throttle  )
 		
 		if k_gearup ~= self.GearUpPressed then
 			self.GearUpPressed = k_gearup
