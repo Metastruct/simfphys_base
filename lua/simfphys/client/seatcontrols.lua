@@ -1,6 +1,8 @@
 local pressedkeys = {}
 local chatopen = false
 local spawnmenuopen = false
+local contextmenuopen = false
+
 local requests = {
 	[KEY_1] = 0,
 	[KEY_2] = 1,
@@ -14,39 +16,59 @@ local requests = {
 	[KEY_0] = 9,
 }
 
+local function lockControls( bLock )
+	net.Start("simfphys_blockcontrols")
+		net.WriteBool( bLock )
+	net.SendToServer()
+end
+
+hook.Add( "OnContextMenuOpen", "simfphys_seatswitching_cmenuopen", function()
+	contextmenuopen = true
+	lockControls( true )
+end)
+
+hook.Add( "OnContextMenuClose", "simfphys_seatswitching_cmenuclose", function()
+	contextmenuopen = false
+	lockControls( false )
+end)
+
 hook.Add( "OnSpawnMenuOpen", "simfphys_seatswitching_menuopen", function()
 	spawnmenuopen = true
+	lockControls( true )
 end)
 
 hook.Add( "OnSpawnMenuClose", "simfphys_seatswitching_menuclose", function()
 	spawnmenuopen = false
+	lockControls( false )
 end)
 
 hook.Add( "FinishChat", "simfphys_seatswitching_chatend", function()
 	chatopen = false
+	lockControls( false )
 end)
 
 hook.Add( "StartChat", "simfphys_seatswitching_chatstart", function()
 	chatopen = true
+	lockControls( true )
 end)
 
 hook.Add( "Think", "simfphys_seatswitching", function()
-	if chatopen or spawnmenuopen then return end
+	if chatopen or spawnmenuopen or contextmenuopen then return end
 	
 	local ply = LocalPlayer()
 	local vehicle = ply:GetVehicle()
-	if (!IsValid(vehicle)) then return end
+	if not IsValid( vehicle ) then return end
 	
 	local vehiclebase = vehicle.vehiclebase
 	
-	if (!IsValid(vehiclebase)) then return end
+	if not IsValid( vehiclebase ) then return end
 
 	for key, request in pairs( requests ) do
 		local keydown = input.IsKeyDown( key )
 		
-		if (pressedkeys[key] != keydown) then
+		if pressedkeys[key] ~= keydown then
 			pressedkeys[key] = keydown
-			if (keydown) then
+			if keydown then
 				net.Start("simfphys_request_seatswitch")
 					net.WriteEntity( vehiclebase ) 
 					net.WriteEntity( ply ) 

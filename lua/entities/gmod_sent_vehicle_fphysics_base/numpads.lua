@@ -1,5 +1,6 @@
 numpad.Register( "k_forward", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["W"] = keydown
@@ -12,6 +13,7 @@ end )
 
 numpad.Register( "k_reverse", function( pl, ent, keydown ) 
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["S"] = keydown
@@ -24,6 +26,7 @@ end )
 
 numpad.Register( "k_left", function( pl, ent, keydown ) 
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["A"] = keydown
@@ -32,6 +35,7 @@ end )
 
 numpad.Register( "k_right", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["D"] = keydown
@@ -40,6 +44,7 @@ end )
 
 numpad.Register( "k_a_forward", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["aW"] = keydown
@@ -48,6 +53,7 @@ end )
 
 numpad.Register( "k_a_reverse", function( pl, ent, keydown ) 
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["aS"] = keydown
@@ -56,6 +62,7 @@ end )
 
 numpad.Register( "k_a_left", function( pl, ent, keydown ) 
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if (ent.PressedKeys) then
 		ent.PressedKeys["aA"] = keydown
@@ -64,6 +71,7 @@ end )
 
 numpad.Register( "k_a_right", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["aD"] = keydown
@@ -72,6 +80,7 @@ end )
 
 numpad.Register( "k_gup", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["M1"] = keydown
@@ -84,6 +93,7 @@ end )
 
 numpad.Register( "k_gdn", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["M2"] = keydown
@@ -96,6 +106,7 @@ end )
 
 numpad.Register( "k_wot", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["Shift"] = keydown
@@ -104,6 +115,7 @@ end )
 
 numpad.Register( "k_clutch", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["Alt"] = keydown
@@ -111,6 +123,7 @@ numpad.Register( "k_clutch", function( pl, ent, keydown )
 end )
 numpad.Register( "k_hbrk", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["Space"] = keydown
@@ -123,6 +136,7 @@ end )
 
 numpad.Register( "k_ccon", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if keydown then
 		if ent:GetIsCruiseModeOn() then
@@ -136,6 +150,7 @@ end )
 
 numpad.Register( "k_hrn", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	local v_list = list.Get( "simfphys_lights" )[ent.LightsTable] or false
 	
@@ -212,6 +227,7 @@ end)
 
 numpad.Register( "k_eng", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if keydown then
 		if ent:EngineActive() then
@@ -224,6 +240,8 @@ end)
 
 numpad.Register( "k_lock", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
+	
 	if keydown then
 		if ent.IsLocked then
 			ent.IsLocked = false
@@ -237,6 +255,8 @@ end )
 
 numpad.Register( "k_flgts", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) or not ent.LightsTable then return false end
+	if pl.blockcontrols then keydown = false end
+	
 	if keydown then
 		ent:EmitSound( "buttons/lightswitch2.wav" )
 		
@@ -250,6 +270,8 @@ end)
 
 numpad.Register( "k_lgts", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) or not ent.LightsTable then return false end
+	if pl.blockcontrols then keydown = false end
+	
 	local Time = CurTime()
 	
 	if keydown then
