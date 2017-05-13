@@ -31,7 +31,7 @@ end
 if (CLIENT) then
 	SWEP.PrintName		= "Remote Controler"
 	SWEP.Purpose			= "remote controls simfphys vehicles"
-	SWEP.Instructions		= "Left Click on a simfphys car to link. Use to start remote controlling."
+	SWEP.Instructions		= "Left-Click on a simfphys car to link. Press the Use-Key to start remote controlling."
 	SWEP.Author			= "Blu"
 	SWEP.Slot				= 1
 	SWEP.SlotPos			= 10
@@ -81,7 +81,7 @@ if (CLIENT) then
 end
 
 function SWEP:Initialize()
-	self:SetWeaponHoldType( self.HoldType )
+	self.Weapon:SetHoldType( self.HoldType )
 end
 
 function SWEP:OwnerChanged()

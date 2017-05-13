@@ -74,7 +74,6 @@ function ENT:Think()
 		self:SetColors()
 		self:SimulateVehicle( Time )
 		self:ControlLighting( Time )
-		self:ControlExFx()
 		
 		if istable( WireLib ) then
 			self:UpdateWireOutputs()
@@ -502,47 +501,6 @@ function ENT:SimulateVehicle( curtime )
 	end
 end
 
-function ENT:ControlExFx()
-	if not self.ExhaustPositions then return end
-	
-	local IsOn = self:GetActive()
-	
-	self.EnableExFx = (math.abs(self.ForwardSpeed) <= 420) and (self.EngineIsOn == 1) and IsOn
-	self.CheckExFx = self.CheckExFx or false
-	
-	if self.CheckExFx ~= self.EnableExFx then
-		self.CheckExFx = self.EnableExFx
-		
-		if self.EnableExFx then
-			
-			for i = 1, table.Count( self.ExhaustPositions ) do
-				
-				local Fx = self.exfx[i]
-				
-				if (IsValid(Fx)) then
-					if (self.ExhaustPositions[i].OnBodyGroups) then
-						if (self:BodyGroupIsValid( self.ExhaustPositions[i].OnBodyGroups )) then
-							Fx:Fire( "Start" )
-						end
-					else
-						Fx:Fire( "Start" )
-					end
-				end
-			end
-			
-		else
-			for i = 1, table.Count( self.ExhaustPositions ) do
-				
-				local Fx = self.exfx[i]
-				
-				if IsValid(Fx) then
-					Fx:Fire( "Stop" )
-				end
-			end
-		end
-	end
-end
-
 function ENT:BodyGroupIsValid( bodygroups )
 	
 	for index, groups in pairs( bodygroups ) do
@@ -572,6 +530,7 @@ function ENT:SetupControls( ply )
 			TurnSpeed = ply:GetInfoNum( "cl_simfphys_steerspeed", 8 ),
 			fadespeed = ply:GetInfoNum( "cl_simfphys_fadespeed", 535 ),
 			fastspeedangle = ply:GetInfoNum( "cl_simfphys_steerangfast", 10 ),
+			smoothsteer = (ply:GetInfoNum( "cl_simfphys_smoothsteer", 0 ) >= 1),
 		}
 		
 		local W = ply:GetInfoNum( "cl_simfphys_keyforward", 0 )
@@ -813,7 +772,7 @@ function ENT:StallAndRestart( nTimer, bIgnoreSettings )
 end
 
 function ENT:PlayerSteerVehicle( ply, left, right )
-	if IsValid(ply) then
+	if IsValid( ply ) then
 		local CounterSteeringEnabled = (ply:GetInfoNum( "cl_simfphys_ctenable", 0 ) or 1) == 1
 		local CounterSteeringMul =  math.Clamp(ply:GetInfoNum( "cl_simfphys_ctmul", 0 ) or 0.7,0.1,2)
 		local MaxHelpAngle = math.Clamp(ply:GetInfoNum( "cl_simfphys_ctang", 0 ) or 15,1,90)
@@ -823,11 +782,13 @@ function ENT:PlayerSteerVehicle( ply, left, right )
 		local TurnSpeed
 		local fadespeed
 		local fastspeedangle
+		local extrasmooth = false
 		
 		if istable(self.cl_SteerSettings) and self.cl_SteerSettings.Overwrite then
 			TurnSpeed = self.cl_SteerSettings.TurnSpeed
 			fadespeed = self.cl_SteerSettings.fadespeed
 			fastspeedangle = self.cl_SteerSettings.fastspeedangle
+			extrasmooth =  self.cl_SteerSettings.smoothsteer
 		else
 			TurnSpeed = self:GetSteerSpeed()
 			fadespeed = self:GetFastSteerConeFadeSpeed()
@@ -848,7 +809,9 @@ function ENT:PlayerSteerVehicle( ply, left, right )
 		
 		local CounterSteer = CounterSteeringEnabled and (math.Clamp(LocalDrift * CounterSteeringMul * (((left + right) == 0) and 1 or 0),-MaxHelpAngle,MaxHelpAngle) * ((self.ForwardSpeed > 50) and 1 or 0)) or 0
 		
-		self.SmoothAng = self.SmoothAng + math.Clamp((Steer - CounterSteer) - self.SmoothAng,-TurnSpeed,TurnSpeed)
+		local Rate = extrasmooth and math.max( (math.abs(self.SmoothAng) / self.VehicleData["steerangle"]) ^ 1.5 * TurnSpeed, math.max(1 - self.ForwardSpeed / 2000,0.05) ) or TurnSpeed
+		
+		self.SmoothAng = self.SmoothAng + math.Clamp((Steer - CounterSteer) - self.SmoothAng,-Rate,Rate)
 		
 		self:SteerVehicle( self.SmoothAng )
 	end
@@ -1239,132 +1202,45 @@ function ENT:PlayPP( On )
 	self.poseon = On and self.LightsPP.max or self.LightsPP.min
 end
 
-function ENT:GetEnginePos()
-	local Attachment = self:GetAttachment( self:LookupAttachment( "vehicle_engine" ) )
-	local pos = self:GetPos()
-	if Attachment then
-		pos = Attachment.Pos
-	end
-	if isvector(self.EnginePos) then
-		pos = self:LocalToWorld( self.EnginePos )
-	end
-	
-	return pos
-end
-
 function ENT:DamageLoop()
-	if not self.IamOnFire then return end
+	if not self:OnFire() then return end
 	
-	local CurHealth = self:GetNWFloat( "Health", 0 )
+	local CurHealth = self:GetCurHealth()
 	
 	if CurHealth <= 0 then return end
 	
 	self:TakeDamage(1, Entity(0), Entity(0) )
 	
 	timer.Simple( 0.15, function()
-		if IsValid(self) then
+		if IsValid( self ) then
 			self:DamageLoop()
 		end
 	end)
 end
 
 function ENT:SetOnFire( bOn )
-	if bOn == self.IamOnFire then return end
-	self.IamOnFire = bOn
+	if bOn == self:OnFire() then return end
+	self:SetNWBool( "OnFire", bOn )
 	
 	if bOn then
-		if not IsValid(self.EngineFire) then
-			local pos = self:GetEnginePos()
-			local ang = isvector(self.Forward) and self.Forward:Angle() or Angle(0,0,0)
-		
-			self.EngineFire = ents.Create( "info_particle_system" )
-			self.EngineFire:SetKeyValue( "effect_name" , "burning_engine_01")
-			self.EngineFire:SetKeyValue( "start_active" , 1)
-			self.EngineFire:SetOwner( self )
-			self.EngineFire:SetPos( pos )
-			self.EngineFire:SetAngles( ang )
-			self.EngineFire:Spawn()
-			self.EngineFire:Activate()
-			self.EngineFire:SetParent( self )
-			self.EngineFire.DoNotDuplicate = true
-			self.EngineFire:EmitSound( "ambient/fire/mtov_flame2.wav" )
-			
-			self:s_MakeOwner( self.EngineFire )
-			
-			self.EngineFire.snd = CreateSound(self, "ambient/fire/fire_small1.wav")
-			self.EngineFire.snd:Play()
-			
-			self.EngineFire:CallOnRemove( "stopdemfiresounds", function( vehicle )
-				if IsValid(self.EngineFire) then
-					if self.EngineFire.snd then
-						self.EngineFire.snd:Stop()
-					end
-				end
-			end)
-			
-			self:DamagedStall()
-			self:DamageLoop()
-		end
-	else
-		if IsValid(self.EngineFire) then
-			if self.EngineFire.snd then
-				self.EngineFire.snd:Stop()
-			end
-			self.EngineFire:Remove()
-			self.EngineFire = nil
-		end
+		self:DamagedStall()
+		self:DamageLoop()
 	end
 end
 
 function ENT:SetOnSmoke( bOn )
-	if bOn == self.IamOnSmoke then return end
-	self.IamOnSmoke = bOn
+	if bOn == self:OnSmoke() then return end
+	self:SetNWBool( "OnSmoke", bOn )
 	
 	if bOn then
-		if not IsValid(self.EngineSmoke) then
-			local pos = self:GetEnginePos()
-			local ang = isvector(self.Forward) and self.Forward:Angle() or Angle(0,0,0)
-			
-			self.EngineSmoke = ents.Create( "info_particle_system" )
-			self.EngineSmoke:SetKeyValue( "effect_name" , "smoke_gib_01")
-			self.EngineSmoke:SetKeyValue( "start_active" , 1)
-			self.EngineSmoke:SetOwner( self )
-			self.EngineSmoke:SetPos( pos )
-			self.EngineSmoke:SetAngles( ang )
-			self.EngineSmoke:Spawn()
-			self.EngineSmoke:Activate()
-			self.EngineSmoke:SetParent( self )
-			self.EngineSmoke.DoNotDuplicate = true
-			self:s_MakeOwner( self.EngineSmoke )
-			
-			self.EngineSmoke.snd = CreateSound(self, "ambient/gas/steam2.wav")
-			self.EngineSmoke.snd:PlayEx(0.2,90)
-			
-			self.EngineSmoke:CallOnRemove( "stopdemsmokesounds", function( vehicle )
-				if IsValid(self.EngineSmoke) then
-					if self.EngineSmoke.snd then
-						self.EngineSmoke.snd:Stop()
-					end
-				end
-			end)
-			
-			self:DamagedStall()
-		end
-	else
-		if IsValid(self.EngineSmoke) then
-			if self.EngineSmoke.snd then
-				self.EngineSmoke.snd:Stop()
-			end
-			self.EngineSmoke:Remove()
-			self.EngineSmoke = nil
-		end
+		self:DamagedStall()
 	end
 end
 
-function ENT:s_MakeOwner( entity )
-	if CPPI then
-		if (IsValid( self.EntityOwner )) then
-			entity:CPPISetOwner( self.EntityOwner )
-		end
-	end
+function ENT:SetMaxHealth( nHealth )
+	self:SetNWFloat( "MaxHealth", nHealth )
+end
+
+function ENT:SetCurHealth( nHealth )
+	self:SetNWFloat( "Health", nHealth )
 end

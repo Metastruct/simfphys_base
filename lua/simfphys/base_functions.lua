@@ -4,6 +4,11 @@ CreateConVar( "sv_simfphys_gib_lifetime", "30", {FCVAR_REPLICATED , FCVAR_ARCHIV
 CreateConVar( "sv_simfphys_playerdamage", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"should players take damage from collisions in vehicles?" )
 CreateConVar( "sv_simfphys_damagemultiplicator", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"vehicle damage multiplicator" )
 
+simfphys = {}
+simfphys.DamageEnabled = false
+simfphys.DamageMul = 1
+simfphys.pDamageEnabled = false
+
 game.AddParticles("particles/vehicle.pcf")
 game.AddParticles("particles/fire_01.pcf")
 
@@ -11,11 +16,6 @@ PrecacheParticleSystem("fire_large_01")
 PrecacheParticleSystem("WheelDust")
 PrecacheParticleSystem("smoke_gib_01")
 PrecacheParticleSystem("burning_engine_01")
-
-simfphys = {}
-simfphys.DamageEnabled = false
-simfphys.DamageMul = 1
-simfphys.pDamageEnabled = false
 
 cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue, newValue ) simfphys.DamageEnabled = ( tonumber( newValue )~=0 ) end)
 cvars.AddChangeCallback( "sv_simfphys_damagemultiplicator", function( convar, oldValue, newValue ) simfphys.DamageMul = tonumber( newValue ) end)
@@ -171,6 +171,16 @@ if SERVER then
 		end
 		
 		return Ent
+	end
+	
+	function simfphys.SetOwner( ply, entity )
+		if not IsValid( entity ) or not IsValid( ply ) then return end
+		
+		if CPPI then
+			if IsValid( ply ) then
+				entity:CPPISetOwner( ply )
+			end
+		end
 	end
 end
 

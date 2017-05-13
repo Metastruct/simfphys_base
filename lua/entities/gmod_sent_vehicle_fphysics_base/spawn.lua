@@ -146,7 +146,7 @@ function ENT:InitializeVehicle()
 	self.DriverSeat:SetNotSolid( true )
 	self.DriverSeat:SetNoDraw( true )
 	self.DriverSeat:DrawShadow( false )
-	self:s_MakeOwner( self.DriverSeat )
+	simfphys.SetOwner( self.EntityOwner, self.DriverSeat )
 	
 	if self.PassengerSeats then
 		for i = 1, table.Count( self.PassengerSeats ) do
@@ -164,7 +164,7 @@ function ENT:InitializeVehicle()
 			self.pSeat[i].fphysSeat = true
 			self.pSeat[i].base = self
 			self.pSeat[i].DoNotDuplicate = true
-			self:s_MakeOwner( self.pSeat[i] )
+			simfphys.SetOwner( self.EntityOwner, self.pSeat[i] )
 			
 			self.pSeat[i]:DrawShadow( false )
 			self.pSeat[i]:GetPhysicsObject():EnableMotion( false )
@@ -184,22 +184,6 @@ function ENT:InitializeVehicle()
 		WireLib.TriggerOutput(self, "DriverSeat", self.DriverSeat )
 	end
 	
-	if self.ExhaustPositions then
-		for i = 1, table.Count( self.ExhaustPositions ) do
-			self.exfx[i] = ents.Create( "info_particle_system" )
-			self.exfx[i]:SetKeyValue( "effect_name" , "Exhaust")
-			self.exfx[i]:SetKeyValue( "start_active" , 0)
-			self.exfx[i]:SetOwner( self )
-			self.exfx[i]:SetPos( self:LocalToWorld( self.ExhaustPositions[i].pos ) )
-			self.exfx[i]:SetAngles( self:LocalToWorldAngles( self.ExhaustPositions[i].ang ) )
-			self.exfx[i]:Spawn()
-			self.exfx[i]:Activate()
-			self.exfx[i]:SetParent( self )
-			self.exfx[i].DoNotDuplicate = true
-			self:s_MakeOwner( self.exfx[i] )
-		end
-	end
-	
 	if self.Attachments then
 		for i = 1, table.Count( self.Attachments ) do
 			local prop = ents.Create( ((self.Attachments[i].IsGlass == true) and "gmod_sent_vehicle_fphysics_attachment_translucent" or "gmod_sent_vehicle_fphysics_attachment") )
@@ -215,7 +199,7 @@ function ENT:InitializeVehicle()
 			prop:SetNotSolid( true )
 			prop:SetParent( self )
 			prop.DoNotDuplicate = true
-			self:s_MakeOwner( prop )
+			simfphys.SetOwner( self.EntityOwner, prop )
 			
 			if self.Attachments[i].useVehicleColor == true then
 				self.ColorableProps[i] = prop
@@ -407,7 +391,7 @@ function ENT:SetupVehicle()
 	self.MassOffset:SetNotSolid( true )
 	self.MassOffset:SetNoDraw( true )
 	self.MassOffset.DoNotDuplicate = true
-	self:s_MakeOwner( self.MassOffset )
+	simfphys.SetOwner( self.EntityOwner, self.MassOffset )
 	
 	local constraint = constraint.Weld(self.MassOffset,self, 0, 0, 0,true, true) 
 	constraint.DoNotDuplicate = true
@@ -446,7 +430,7 @@ function ENT:SetupVehicle()
 				self.SteerMaster:SetNoDraw( true )
 				self.SteerMaster.DoNotDuplicate = true
 				self:DeleteOnRemove( self.SteerMaster )
-				self:s_MakeOwner( self.SteerMaster )
+				simfphys.SetOwner( self.EntityOwner, self.SteerMaster )
 			end
 			
 			if self.SteerRear then
@@ -473,7 +457,7 @@ function ENT:SetupVehicle()
 				self.SteerMaster2:SetNoDraw( true )
 				self.SteerMaster2.DoNotDuplicate = true
 				self:DeleteOnRemove( self.SteerMaster2 )
-				self:s_MakeOwner( self.SteerMaster2 )
+				simfphys.SetOwner( self.EntityOwner, self.SteerMaster2 )
 			end
 			
 			local radius = IsValid(self.SteerMaster) and (self.SteerMaster:OBBMaxs() - self.SteerMaster:OBBMins()) or (self.SteerMaster2:OBBMaxs() - self.SteerMaster2:OBBMins())
@@ -559,7 +543,7 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	self.name:GetPhysicsObject():EnableMotion(false)
 	self.name:GetPhysicsObject():SetMass( WheelMass ) 
 	self.name:SetBaseEnt( self )
-	self:s_MakeOwner( self.name )
+	simfphys.SetOwner( self.EntityOwner, self.name )
 	self.name.EntityOwner = self.EntityOwner
 	self.name.Index = index
 	self.name.Radius = radius
@@ -586,7 +570,7 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 		self.GhostWheels[index].DoNotDuplicate = true
 		self.GhostWheels[index]:SetParent( self.name )
 		self:DeleteOnRemove( self.GhostWheels[index] )
-		self:s_MakeOwner( self.GhostWheels[index] )
+		simfphys.SetOwner( self.EntityOwner, self.GhostWheels[index] )
 		
 		self.GhostWheels[index]:SetRenderMode( RENDERMODE_TRANSALPHA )
 		

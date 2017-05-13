@@ -64,7 +64,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "String",2, "Lights_List")
 	self:NetworkVar( "String",3, "Soundoverride")
 
-	if ( SERVER ) then
+	if SERVER then
 		self:NetworkVarNotify( "FrontSuspensionHeight", self.OnFrontSuspensionHeightChanged )
 		self:NetworkVarNotify( "RearSuspensionHeight", self.OnRearSuspensionHeightChanged )
 		self:NetworkVarNotify( "TurboCharged", self.OnTurboCharged )
@@ -80,7 +80,6 @@ end
 
 local VehicleMeta = FindMetaTable("Entity")
 local OldIsVehicle = VehicleMeta.IsVehicle
-
 function VehicleMeta:IsVehicle()
 	return self.IsSimfphyscar and self:IsSimfphyscar() or OldIsVehicle(self)
 end
@@ -93,14 +92,10 @@ function ENT:GetMaxHealth()
 	return self:GetNWFloat( "MaxHealth", 0 )
 end
 
-if SERVER then
+function ENT:OnSmoke()
+	return self:GetNWBool( "OnSmoke", false )
+end
 
-	function ENT:SetMaxHealth( nHealth )
-		self:SetNWFloat( "MaxHealth", nHealth )
-	end
-
-	function ENT:SetCurHealth( nHealth )
-		self:SetNWFloat( "Health", nHealth )
-	end
-
+function ENT:OnFire()
+	return self:GetNWBool( "OnFire", false )
 end
