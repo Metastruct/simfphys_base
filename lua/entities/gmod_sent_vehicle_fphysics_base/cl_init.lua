@@ -153,12 +153,23 @@ function ENT:ManageEffects( Active, fThrottle, LimitRPM )
 	local Scale = fThrottle * (0.2 + math.min(self:GetRPM() / LimitRPM,1) * 0.8) ^ 2
 	
 	for i = 1, table.Count( self.ExhaustPositions ) do
-		local effectdata = EffectData()
-			effectdata:SetOrigin( self.ExhaustPositions[i].pos )
-			effectdata:SetAngles( self.ExhaustPositions[i].ang )
-			effectdata:SetMagnitude( Scale ) 
-			effectdata:SetEntity( self )
-		util.Effect( "simfphys_exhaust", effectdata )
+		if self.ExhaustPositions[i].OnBodyGroups then
+			if self:BodyGroupIsValid( self.ExhaustPositions[i].OnBodyGroups ) then
+				local effectdata = EffectData()
+					effectdata:SetOrigin( self.ExhaustPositions[i].pos )
+					effectdata:SetAngles( self.ExhaustPositions[i].ang )
+					effectdata:SetMagnitude( Scale ) 
+					effectdata:SetEntity( self )
+				util.Effect( "simfphys_exhaust", effectdata )
+			end
+		else
+			local effectdata = EffectData()
+				effectdata:SetOrigin( self.ExhaustPositions[i].pos )
+				effectdata:SetAngles( self.ExhaustPositions[i].ang )
+				effectdata:SetMagnitude( Scale ) 
+				effectdata:SetEntity( self )
+			util.Effect( "simfphys_exhaust", effectdata )
+		end
 	end
 end
 
@@ -618,14 +629,4 @@ function ENT:OnRemove()
 	if self.firesnd then
 		self.firesnd:Stop()
 	end
-end
-
-function ENT:BodyGroupIsValid( bodygroups )
-	for index, groups in pairs( bodygroups ) do
-		local mygroup = self:GetBodygroup( index )
-		for g_index = 1, table.Count( groups ) do
-			if (mygroup == groups[g_index]) then return true end
-		end
-	end
-	return false
 end
