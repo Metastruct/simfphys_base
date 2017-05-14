@@ -72,9 +72,22 @@ if SERVER then
 		simfphys.UpdateFrictionData()
 	end)
 	
-	function simfphys.SpawnVehicle( Player, Pos, Ang, Model, Class, VName, VTable )
+	function simfphys.SpawnVehicleSimple( spawnname, pos, ang )
 		
-		if not gamemode.Call( "PlayerSpawnVehicle", Player, Model, VName, VTable ) then return end
+		local vehicle = list.Get( "simfphys_vehicles" )[ spawnname ]
+		
+		if not vehicle then return NULL end
+		
+		local Ent = simfphys.SpawnVehicle( nil, pos, ang, vehicle.Model, vehicle.Class, spawnname, vehicle, true )
+		
+		return Ent
+	end
+	
+	function simfphys.SpawnVehicle( Player, Pos, Ang, Model, Class, VName, VTable, bNoOwner )
+		
+		if not bNoOwner then
+			if not gamemode.Call( "PlayerSpawnVehicle", Player, Model, VName, VTable ) then return end
+		end
 
 		if not file.Exists( Model, "GAME" ) then 
 			Player:PrintMessage( HUD_PRINTTALK, "ERROR: \""..Model.."\" does not exist! (Class: "..VName..")")
