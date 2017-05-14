@@ -51,7 +51,9 @@ local function handleseatswitching( length, ply )
 			end
 		else
 			if not vehicle.pSeat then return end
+			
 			local seat = vehicle.pSeat[req_seat]
+			
 			if IsValid(seat) and not IsValid( seat:GetDriver() ) then
 				ply:ExitVehicle()
 				

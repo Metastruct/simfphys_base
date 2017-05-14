@@ -557,7 +557,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 
 	-- Add this list into the tormoil
 	local Vehicles = list.Get( "simfphys_vehicles" )
-	if ( Vehicles ) then
+	if Vehicles then
 		for k, v in pairs( Vehicles ) do
 
 			v.Category = v.Category or "Other"
@@ -580,7 +580,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 		node.DoPopulate = function( self )
 			
 			-- If we've already populated it - forget it.
-			if ( self.PropPanel ) then return end
+			if self.PropPanel then return end
 			
 			-- Create the container panel
 			self.PropPanel = vgui.Create( "ContentContainer", pnlContent )
@@ -613,7 +613,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 	-- KEYBOARD
 	local node = tree:AddNode( "Controls", "icon16/keyboard.png" )
 	node.DoPopulate = function( self )
-		if ( self.PropPanel ) then return end
+		if self.PropPanel then return end
 		
 		self.PropPanel = vgui.Create( "ContentContainer", pnlContent )
 		self.PropPanel:SetVisible( false )
@@ -629,7 +629,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 	-- MOUSE STEERING
 	local node = tree:AddNode( "Mouse Steering", "icon16/mouse.png" )
 	node.DoPopulate = function( self )
-		if ( self.PropPanel ) then return end
+		if self.PropPanel then return end
 		
 		self.PropPanel = vgui.Create( "ContentContainer", pnlContent )
 		self.PropPanel:SetVisible( false )
@@ -643,7 +643,8 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 	end
 	
 	-- JOYSTICK
-	if istable(jcon) and file.Exists("lua/bin/gmcl_joystick_win32.dll", "GAME") then
+	if istable( jcon ) and file.Exists("lua/bin/gmcl_joystick_win32.dll", "GAME") then
+		
 		local node = tree:AddNode( "Joystick Configuration", "icon16/joystick.png" )
 		node.DoClick = function( self )
 			RunConsoleCommand("joyconfig") 
@@ -653,7 +654,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 	-- CLIENT SETTINGS
 	local node = tree:AddNode( "Client Settings", "icon16/wrench.png" )
 	node.DoPopulate = function( self )
-		if ( self.PropPanel ) then return end
+		if self.PropPanel then return end
 		
 		self.PropPanel = vgui.Create( "ContentContainer", pnlContent )
 		self.PropPanel:SetVisible( false )
@@ -683,7 +684,7 @@ hook.Add( "SimfphysPopulateVehicles", "AddEntityContent", function( pnlContent, 
 	
 	-- Select the first node
 	local FirstNode = tree:Root():GetChildNode( 0 )
-	if ( IsValid( FirstNode ) ) then
+	if IsValid( FirstNode ) then
 		FirstNode:InternalDoClick()
 	end
 
@@ -699,9 +700,9 @@ end, "icon16/car.png", 50 )
 
 
 spawnmenu.AddContentType( "simfphys_vehicles", function( container, obj )
-	if ( !obj.material ) then return end
-	if ( !obj.nicename ) then return end
-	if ( !obj.spawnname ) then return end
+	if not obj.material then return end
+	if not obj.nicename then return end
+	if not obj.spawnname then return end
 
 	local icon = vgui.Create( "ContentIcon", container )
 	icon:SetContentType( "simfphys_vehicles" )
@@ -724,7 +725,7 @@ spawnmenu.AddContentType( "simfphys_vehicles", function( container, obj )
 
 	end
 	
-	if ( IsValid( container ) ) then
+	if IsValid( container ) then
 		container:Add( icon )
 	end
 

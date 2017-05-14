@@ -73,7 +73,7 @@ if SERVER then
 	end
 
 	function ENT:Think()	
-		if (self.GhostEnt) then
+		if self.GhostEnt then
 			local Color = self:GetColor()
 			local dot = Color.r * Color.g * Color.b * Color.a
 			if dot ~= self.OldColor then
@@ -91,7 +91,7 @@ if SERVER then
 			self:WheelFx()
 		end
 		
-		self:NextThink(CurTime() + 0.15)
+		self:NextThink( CurTime() + 0.15 )
 		return true
 	end
 
@@ -410,7 +410,7 @@ if SERVER then
 			
 			self.RollSound_Broken = CreateSound(self, "simulated_vehicles/sfx/tire_damaged.wav")
 		else
-			if IsValid(self.GhostEnt) then
+			if IsValid( self.GhostEnt ) then
 				self.GhostEnt:SetParent( nil )
 				self.GhostEnt:GetPhysicsObject():EnableMotion( false )
 				self.GhostEnt:SetPos( self:LocalToWorld( Vector(0,0,0) ) )
@@ -423,7 +423,7 @@ if SERVER then
 		end
 		
 		local BaseEnt = self:GetBaseEnt()
-		if IsValid(BaseEnt) then
+		if IsValid( BaseEnt ) then
 			BaseEnt:SetSuspension( self.Index , new )
 		end
 	end
@@ -508,13 +508,14 @@ if CLIENT then
 
 	function ENT:MakeSparks( Scale, Dir, Pos, WheelSize )
 		self.NextSpark = self.NextSpark or 0
+		
 		if self.NextSpark < CurTime() then
 		
 			self.NextSpark = CurTime() + 0.03
 			local effectdata = EffectData()
 				effectdata:SetOrigin( Pos - Vector(0,0,WheelSize * 0.5) )
 				effectdata:SetNormal( (Dir + Vector(0,0,0.5)) * Scale * 0.5)
-				util.Effect( "manhacksparks", effectdata, true, true )
+			util.Effect( "manhacksparks", effectdata, true, true )
 		end
 	end
 

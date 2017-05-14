@@ -1,10 +1,10 @@
 
 function SpawnSimfphysVehicle( Player, vname, tr )
-	if ( !vname ) then return end
+	if not vname then return end
 
 	local Tickrate = 1 / engine.TickInterval()
 	
-	if (Tickrate <= 25) and !Player.IsInformedAboutTheServersLowTickrate then  -- lets warn these fools when they spawn a car because these stupid bug reports are getting annoying
+	if ( Tickrate <= 25 ) and not Player.IsInformedAboutTheServersLowTickrate then
 		Player:PrintMessage( HUD_PRINTTALK, "(SIMFPHYS) WARNING! Server tickrate is "..Tickrate.." we recommend 33 or greater for this addon to work properly!")
 		Player:PrintMessage( HUD_PRINTTALK, "Known problems caused by a too low tickrate:")
 		Player:PrintMessage( HUD_PRINTTALK, "- Wobbly suspension")
@@ -18,9 +18,9 @@ function SpawnSimfphysVehicle( Player, vname, tr )
 	local VehicleList = list.Get( "simfphys_vehicles" )
 	local vehicle = VehicleList[ vname ]
 
-	if ( !vehicle ) then return end
+	if not vehicle then return end
 	
-	if ( !tr ) then
+	if not tr then
 		tr = Player:GetEyeTraceNoCursor()
 	end
 
@@ -32,6 +32,7 @@ function SpawnSimfphysVehicle( Player, vname, tr )
 	local pos = tr.HitPos + Vector(0,0,25) + (vehicle.SpawnOffset or Vector(0,0,0))
 
 	local Ent = simfphys.SpawnVehicle( Player, pos, Angles, vehicle.Model, vehicle.Class, vname, vehicle )
+	
 	if not IsValid( Ent ) then return end
 	
 	undo.Create( "Vehicle" )

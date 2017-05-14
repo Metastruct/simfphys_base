@@ -86,23 +86,26 @@ hook.Add("JoystickInitialize", "simfphys_joystick", function()
 	}
 	
 	hook.Add("Think","simfphys_joystickhandler",function()
+		
 		for i,ply in pairs( player.GetAll() ) do
+			
 			if ply:IsConnected() then
 				local vehicle = ply:GetVehicle()
-				if IsValid( vehicle ) then
-					if vehicle.fphysSeat then
-						if vehicle.base:GetDriverSeat() == vehicle then
-							for k,v in pairs( simfphys.jcon ) do
-								if istable(v) and v.IsJoystickReg then
-									local val = joystick.Get( ply, v.uid )
-									
-									if v.type == "analog" then
-										vehicle.base.PressedKeys[v.uid] = val and val / 255 or 0
-									else
-										vehicle.base.PressedKeys[v.uid] = val and 1 or 0
-									end
-								end
-							end
+				
+				if not IsValid( vehicle ) then return end
+				
+				if not vehicle.fphysSeat then return end
+				
+				if vehicle.base:GetDriverSeat() ~= vehicle then return end
+				
+				for k,v in pairs( simfphys.jcon ) do
+					if istable(v) and v.IsJoystickReg then
+						local val = joystick.Get( ply, v.uid )
+						
+						if v.type == "analog" then
+							vehicle.base.PressedKeys[v.uid] = val and val / 255 or 0
+						else
+							vehicle.base.PressedKeys[v.uid] = val and 1 or 0
 						end
 					end
 				end
