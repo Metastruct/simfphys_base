@@ -37,7 +37,7 @@ local function DestroyVehicle( ent )
 	bprop:GetPhysicsObject():SetMass( ent.Mass * 0.75 )
 	bprop.DoNotDuplicate = true
 	bprop.MakeSound = true
-	SetEntOwner( ply , bprop )
+	simfphys.SetOwner( ply , bprop )
 	
 	if IsValid( ply ) then
 		undo.Create( "Gib" )
