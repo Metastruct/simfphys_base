@@ -74,9 +74,13 @@ if SERVER then
 	
 	function simfphys.SpawnVehicleSimple( spawnname, pos, ang )
 		
+		if not isstring( spawnname ) then print("invalid spawnname") return NULL end
+		if not isvector( pos ) then print("invalid spawn position") return NULL end
+		if not isangle( ang ) then print("invalid spawn angle") return NULL end
+		
 		local vehicle = list.Get( "simfphys_vehicles" )[ spawnname ]
 		
-		if not vehicle then return NULL end
+		if not vehicle then print("vehicle \""..spawnname.."\" does not exist!") return NULL end
 		
 		local Ent = simfphys.SpawnVehicle( nil, pos, ang, vehicle.Model, vehicle.Class, spawnname, vehicle, true )
 		
@@ -100,8 +104,6 @@ if SERVER then
 		Ent:SetModel( Model )
 		Ent:SetAngles( Ang )
 		Ent:SetPos( Pos )
-
-		DoPropSpawnedEffect( Ent )
 
 		Ent:Spawn()
 		Ent:Activate()
