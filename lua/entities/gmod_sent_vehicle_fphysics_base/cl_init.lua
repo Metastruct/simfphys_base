@@ -80,7 +80,11 @@ function ENT:GetEnginePos()
 	if not self.EnginePos then
 		local vehiclelist = list.Get( "simfphys_vehicles" )[ self:GetSpawn_List() ]
 		
-		self.EnginePos = vehiclelist.Members.EnginePos or false
+		if vehiclelist then
+			self.EnginePos = vehiclelist.Members.EnginePos or false
+		else
+			self.EnginePos = false
+		end
 		
 	elseif isvector( self.EnginePos ) then
 		pos = self:LocalToWorld( self.EnginePos )
