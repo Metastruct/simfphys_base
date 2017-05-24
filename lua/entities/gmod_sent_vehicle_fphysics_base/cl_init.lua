@@ -63,7 +63,7 @@ function ENT:SetPoseParameters( curtime )
 					self:SetPoseParameter( self.pp_data[i].name, Pose ) 
 				end
 			end
-		end
+		end	
 	end
 	
 	self:InvalidateBoneCache()
@@ -79,8 +79,8 @@ function ENT:GetEnginePos()
 	
 	if not self.EnginePos then
 		local vehiclelist = list.Get( "simfphys_vehicles" )[ self:GetSpawn_List() ]
-		
-		self.EnginePos = vehiclelist.Members.EnginePos or false
+		if not vehiclelist then self.EnginePos=false return end
+		self.EnginePos = vehiclelist.Members.EnginePos
 		
 	elseif isvector( self.EnginePos ) then
 		pos = self:LocalToWorld( self.EnginePos )

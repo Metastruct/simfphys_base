@@ -79,31 +79,30 @@ hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
 	
 	local vehicle = ply:GetVehicle()
 	if not IsValid(vehicle) then return end
-	
-	if isMouseSteer then
-		local freelook = input.IsButtonDown( ms_key_freelook )
-		ply.Freelook = freelook
-		if not freelook then 
-			local frametime = FrameTime()
-			
-			local ms_delta_x = cmd:GetMouseX()
-			local ms_return = ms_fade * frametime
-			
-			local Moving = math.abs(ms_delta_x) > 0
-			
-			ms_pos_x = Moving and math.Clamp(ms_pos_x + ms_delta_x * frametime * 0.05 * ms_sensitivity,-1,1) or (ms_pos_x + math.Clamp(-ms_pos_x,-ms_return,ms_return))
-			
-			SteerVehicle = ((math.max( math.abs(ms_pos_x) - ms_deadzone / 16, 0) ^ ms_exponent) / (1 - ms_deadzone / 16))  * ((ms_pos_x > 0) and 1 or -1)
-			
-		end
-	else
-		SteerVehicle = 0
+	if not isMouseSteer then return end
+
+	local freelook = input.IsButtonDown( ms_key_freelook )
+	ply.Freelook = freelook
+	if not freelook then 
+		local frametime = FrameTime()
+		
+		local ms_delta_x = cmd:GetMouseX()
+		local ms_return = ms_fade * frametime
+		
+		local Moving = math.abs(ms_delta_x) > 0
+		
+		ms_pos_x = Moving and math.Clamp(ms_pos_x + ms_delta_x * frametime * 0.05 * ms_sensitivity,-1,1) or (ms_pos_x + math.Clamp(-ms_pos_x,-ms_return,ms_return))
+		
+		SteerVehicle = ((math.max( math.abs(ms_pos_x) - ms_deadzone / 16, 0) ^ ms_exponent) / (1 - ms_deadzone / 16))  * ((ms_pos_x > 0) and 1 or -1)
 	end
+	
 	
 	net.Start( "simfphys_mousesteer" )
 		net.WriteEntity( vehicle )
 		net.WriteFloat( SteerVehicle )
 	net.SendToServer()
+		
+	end	
 end)
 
 local function drawsimfphysHUD(vehicle)
