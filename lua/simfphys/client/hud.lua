@@ -101,8 +101,6 @@ hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
 		net.WriteEntity( vehicle )
 		net.WriteFloat( SteerVehicle )
 	net.SendToServer()
-		
-	end	
 end)
 
 local function drawsimfphysHUD(vehicle)
