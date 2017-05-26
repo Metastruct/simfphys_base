@@ -74,7 +74,7 @@ if SERVER then
 	end
 
 	function ENT:Think()	
-		if (self.GhostEnt) then
+		if self.GhostEnt then
 			local Color = self:GetColor()
 			local dot = Color.r * Color.g * Color.b * Color.a
 			if dot ~= self.OldColor then
@@ -509,6 +509,7 @@ if CLIENT then
 
 	function ENT:MakeSparks( Scale, Dir, Pos, WheelSize )
 		self.NextSpark = self.NextSpark or 0
+		
 		if self.NextSpark < CurTime() then
 		
 			self.NextSpark = CurTime() + 0.03

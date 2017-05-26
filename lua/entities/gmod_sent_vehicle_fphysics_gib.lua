@@ -55,6 +55,7 @@ if SERVER then
 				
 				timer.Simple( 0.7, function()
 					if not IsValid( self ) then return end
+					
 					self.particleeffect = ents.Create( "info_particle_system" )
 					self.particleeffect:SetKeyValue( "effect_name" , "fire_large_01")
 					self.particleeffect:SetKeyValue( "start_active" , 1)
@@ -70,13 +71,16 @@ if SERVER then
 				end)
 				
 				timer.Simple( 120, function()
-					if not IsValid(self) then return end
-					if IsValid(Light) then
+					if not IsValid( self ) then return end
+					
+					if IsValid( Light ) then
 						Light:Remove()
 					end
-					if IsValid(self.particleeffect) then
+					
+					if IsValid( self.particleeffect ) then
 						self.particleeffect:Remove()
 					end
+					
 					if self.FireSound then
 						self.FireSound:Stop()
 					end

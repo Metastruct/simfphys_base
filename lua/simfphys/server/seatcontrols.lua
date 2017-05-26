@@ -1,5 +1,6 @@
 util.AddNetworkString( "simfphys_request_seatswitch" )
 util.AddNetworkString( "simfphys_mousesteer" )
+util.AddNetworkString( "simfphys_blockcontrols" )
 	
 net.Receive( "simfphys_mousesteer", function( length, ply )
 	local vehicle = net.ReadEntity()
@@ -8,6 +9,12 @@ net.Receive( "simfphys_mousesteer", function( length, ply )
 	if not IsValid(vehicle) then return end
 	
 	vehicle.ms_Steer = Steer
+end)
+
+net.Receive( "simfphys_blockcontrols", function( length, ply )
+	if not IsValid( ply ) then return end
+	
+	ply.blockcontrols = net.ReadBool()
 end)
 
 local function handleseatswitching( length, ply )
@@ -44,7 +51,9 @@ local function handleseatswitching( length, ply )
 			end
 		else
 			if not vehicle.pSeat then return end
+			
 			local seat = vehicle.pSeat[req_seat]
+			
 			if IsValid(seat) and not IsValid( seat:GetDriver() ) then
 				ply:ExitVehicle()
 				

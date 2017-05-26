@@ -59,7 +59,11 @@ local function GetViewOverride( vehicle )
 	if not vehicle.customview then
 		local vehiclelist = list.Get( "simfphys_vehicles" )[ vehicle.vehiclebase:GetSpawn_List() ]
 		
-		vehicle.customview = vehiclelist.Members.FirstPersonViewPos or Vector(0,-9,5)
+		if vehiclelist then
+			vehicle.customview = vehiclelist.Members.FirstPersonViewPos or Vector(0,-9,5)
+		else
+			vehicle.customview = Vector(0,-9,5)
+		end
 	end
 	
 	return vehicle.customview

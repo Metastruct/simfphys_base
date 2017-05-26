@@ -3,7 +3,10 @@ local NextCheck = CurTime() + checkinterval
 
 local mat = Material( "sprites/light_ignorez" )
 local mat2 = Material( "sprites/light_glow02_add_noz" )
-if (file.Exists( "materials/sprites/glow_headlight_ignorez.vmt", "GAME" )) then mat2 = Material( "sprites/glow_headlight_ignorez" ) end
+
+if file.Exists( "materials/sprites/glow_headlight_ignorez.vmt", "GAME" ) then 
+	mat2 = Material( "sprites/glow_headlight_ignorez" )
+end
 
 local SpritesDisabled = false
 local AllowVisualDamage = true
@@ -11,22 +14,30 @@ local FrontProjectedLights = true
 local RearProjectedLights = true
 local Shadows = false
 
+
 cvars.AddChangeCallback( "cl_simfphys_hidesprites", function( convar, oldValue, newValue ) SpritesDisabled = ( tonumber( newValue )~=0 ) end)
-SpritesDisabled = GetConVar( "cl_simfphys_hidesprites" ):GetBool()
 
 cvars.AddChangeCallback( "cl_simfphys_spritedamage", function( convar, oldValue, newValue ) AllowVisualDamage = ( tonumber( newValue )~=0 ) end)
-AllowVisualDamage = GetConVar( "cl_simfphys_spritedamage" ):GetBool()
 
 cvars.AddChangeCallback( "cl_simfphys_frontlamps", function( convar, oldValue, newValue ) FrontProjectedLights = ( tonumber( newValue )~=0 ) end)
-FrontProjectedLights = GetConVar( "cl_simfphys_frontlamps" ):GetBool()
 
 cvars.AddChangeCallback( "cl_simfphys_rearlamps", function( convar, oldValue, newValue ) RearProjectedLights = ( tonumber( newValue )~=0 ) end)
-RearProjectedLights = GetConVar( "cl_simfphys_rearlamps" ):GetBool()
 
 cvars.AddChangeCallback( "cl_simfphys_shadows", function( convar, oldValue, newValue ) Shadows = ( tonumber( newValue )~=0 ) end)
+
+
+SpritesDisabled = GetConVar( "cl_simfphys_hidesprites" ):GetBool()
+
+AllowVisualDamage = GetConVar( "cl_simfphys_spritedamage" ):GetBool()
+
+FrontProjectedLights = GetConVar( "cl_simfphys_frontlamps" ):GetBool()
+
+RearProjectedLights = GetConVar( "cl_simfphys_rearlamps" ):GetBool()
+
 Shadows = GetConVar( "cl_simfphys_shadows" ):GetBool()
 
-if !vtable then
+
+if not istable( vtable ) then
 	vtable = {}
 end
 
@@ -165,12 +176,12 @@ local function ManageProjTextures()
 					local trigger = ent.triggers[proj.trigger]
 					local enable = ent.triggers[1] or trigger
 					
-					if proj.Damaged or (proj.trigger == 2 and !FrontProjectedLights) or (proj.trigger == 4 and !RearProjectedLights) then 
+					if proj.Damaged or (proj.trigger == 2 and not FrontProjectedLights) or (proj.trigger == 4 and not RearProjectedLights) then 
 						trigger = false
 						enable = false
 					end
 					
-					if proj.Active != enable then
+					if proj.Active ~= enable then
 						proj.Active = enable
 						
 						if enable then
@@ -199,7 +210,7 @@ local function ManageProjTextures()
 						local pos = ent:LocalToWorld( proj.pos )
 						local ang = ent:LocalToWorldAngles( proj.ang )
 						
-						if proj.istriggered != trigger then
+						if proj.istriggered ~= trigger then
 							proj.istriggered = trigger
 							
 							if proj.ontrigger.brightness then
@@ -349,7 +360,7 @@ local function SetUpLights( vname , ent )
 			s.PixVis = util.GetPixelVisibleHandle()
 			s.trigger = 1
 			
-			if !isvector(data) then
+			if not isvector(data) then
 				s.color = data.color and data.color or Color( hl_col[1], hl_col[2], hl_col[3],  255)
 				s.material = data.material and Material( data.material ) or mat2
 				s.size = data.size and data.size or 16
@@ -381,7 +392,7 @@ local function SetUpLights( vname , ent )
 			s.PixVis = util.GetPixelVisibleHandle()
 			s.trigger = 1
 			
-			if !isvector(data) then
+			if not isvector(data) then
 				s.color = data.color and data.color or Color( 255, 0, 0,  125)
 				s.material = data.material and Material( data.material ) or mat2
 				s.size = data.size and data.size or 16
@@ -413,7 +424,7 @@ local function SetUpLights( vname , ent )
 			s.PixVis = util.GetPixelVisibleHandle()
 			s.trigger = 4
 			
-			if !isvector(data) then
+			if not isvector(data) then
 				s.color = data.color and data.color or Color( 255, 0, 0,  125)
 				s.material = data.material and Material( data.material ) or mat2
 				s.size = data.size and data.size or 16
@@ -445,7 +456,7 @@ local function SetUpLights( vname , ent )
 			s.PixVis = util.GetPixelVisibleHandle()
 			s.trigger = 5
 			
-			if !isvector(data) then
+			if not isvector(data) then
 				s.color = data.color and data.color or Color( 255, 255, 255,  255)
 				s.material = data.material and Material( data.material ) or mat2
 				s.size = data.size and data.size or 16
@@ -509,7 +520,7 @@ local function SetUpLights( vname , ent )
 			s.PixVis = util.GetPixelVisibleHandle()
 			s.trigger = 2
 			
-			if !isvector(data) then
+			if not isvector(data) then
 				s.color = data.color and data.color or Color( hl_col[1], hl_col[2], hl_col[3],  255)
 				s.material = data.material and Material( data.material ) or mat2
 				s.size = data.size and data.size or 16
@@ -541,7 +552,7 @@ local function SetUpLights( vname , ent )
 			s.PixVis = util.GetPixelVisibleHandle()
 			s.trigger = 3
 			
-			if !isvector(data) then
+			if not isvector(data) then
 				s.color = data.color and data.color or Color( hl_col[1], hl_col[2], hl_col[3],  255)
 				s.material = data.material and Material( data.material ) or mat2
 				s.size = data.size and data.size or 32
@@ -564,9 +575,12 @@ end
 
 local function DrawEMSLights( ent )
 	local Time = CurTime()
-	if (ent.LightsEMS) then
+	
+	if ent.LightsEMS then
+		
 		for i = 1, table.Count( ent.LightsEMS ) do
-			if !ent.LightsEMS[i].Damaged then
+			if not ent.LightsEMS[i].Damaged then
+				
 				local size = ent.LightsEMS[i].size
 				local LightPos = ent:LocalToWorld( ent.LightsEMS[i].pos )
 				local Visible = util.PixelVisible( LightPos, 4, ent.PixVisEMS[i] )
@@ -575,22 +589,27 @@ local function DrawEMSLights( ent )
 				
 				ent.LightsEMS[i].Timer = ent.LightsEMS[i].Timer or 0
 				ent.LightsEMS[i].Index = ent.LightsEMS[i].Index or 0
-				if (numcolors > 1) then
-					if (ent.LightsEMS[i].Timer < Time) then
+				
+				if numcolors > 1 then
+					
+					if ent.LightsEMS[i].Timer < Time then
+						
 						ent.LightsEMS[i].Timer = Time + ent.LightsEMS[i].Speed
 						ent.LightsEMS[i].Index = ent.LightsEMS[i].Index + 1
-						if (ent.LightsEMS[i].Index > numcolors) then
+						
+						if ent.LightsEMS[i].Index > numcolors then
 							ent.LightsEMS[i].Index = 1
 						end
 					end
 				end
+				
 				local col = ent.LightsEMS[i].Colors[ent.LightsEMS[i].Index]
 				
-				if (ent.LightsEMS[i].OnBodyGroups) then
-					Visible = !ent:BodyGroupIsValid( ent.LightsEMS[i].OnBodyGroups ) and 0 or Visible
+				if ent.LightsEMS[i].OnBodyGroups then
+					Visible = ent:BodyGroupIsValid( ent.LightsEMS[i].OnBodyGroups ) and Visible or 0
 				end
 				
-				if Visible and Visible >= 0.6 and col != Color(0,0,0,0) then
+				if Visible and Visible >= 0.6 and col ~= Color(0,0,0,0) then
 					Visible = (Visible - 0.6) / 0.4
 					
 					render.SetMaterial( mat )
@@ -610,11 +629,11 @@ hook.Add( "Think", "simfphys_lights_managment", function()
 		NextCheck = curtime + checkinterval
 		
 		for i, ent in pairs( ents.FindByClass( "gmod_sent_vehicle_fphysics_base" ) ) do
-			if ent.EnableLights != true then
+			if ent.EnableLights ~= true then
 				local listname = ent:GetLights_List()
 				
-				if (listname) then
-					if (listname != "no_lights") then
+				if listname then
+					if listname ~= "no_lights" then
 						SetUpLights( listname, ent )
 					else
 						ent.EnableLights = true
@@ -634,10 +653,12 @@ hook.Add( "PostDrawTranslucentRenderables", "simfphys_draw_sprites", function()
 				end
 			
 				if SpritesDisabled then return end
-				if !istable( ent.triggers ) then return end
+				if not istable( ent.triggers ) then return end
 				
 				for _, sprite in pairs( ent.Sprites ) do
-					if !sprite.Damaged then
+					
+					if not sprite.Damaged then
+						
 						if ent.triggers[ sprite.trigger ] then
 							local LightPos = ent:LocalToWorld( sprite.pos )
 							local Visible = util.PixelVisible( LightPos, 4, sprite.PixVis )
@@ -646,7 +667,7 @@ hook.Add( "PostDrawTranslucentRenderables", "simfphys_draw_sprites", function()
 							local s_size = sprite.size
 							
 							if sprite.bodygroups then
-								Visible = !BodyGroupIsValid( sprite.bodygroups, ent ) and 0 or Visible
+								Visible = BodyGroupIsValid( sprite.bodygroups, ent ) and Visible or 0
 							end
 							
 							if Visible and Visible >= 0.6 then
@@ -664,10 +685,10 @@ end )
 
 local glassimpact = Sound( "Glass.BulletImpact" )
 local function spritedamage( length )
-	if !AllowVisualDamage then return end
+	if not AllowVisualDamage then return end
 	
 	local veh = net.ReadEntity()
-	if !IsValid(veh) then return end
+	if not IsValid( veh ) then return end
 	
 	local pos = veh:LocalToWorld( net.ReadVector() )
 	local Rad = net.ReadBool() and 26 or 8
@@ -675,17 +696,20 @@ local function spritedamage( length )
 	
 	veh.NextImpactsnd = veh.NextImpactsnd or 0
 	
-	if istable(veh.Sprites) then
+	if istable( veh.Sprites ) then
+		
 		for i, sprite in pairs( veh.Sprites ) do
-			if !sprite.Damaged then
+			
+			if not sprite.Damaged then
+				
 				local spritepos = veh:LocalToWorld( sprite.pos )
 				local Dist = (spritepos - pos):Length() 
 				
-				if (Dist < Rad) then
+				if Dist < Rad then
 					veh.Sprites[i].Damaged = true
 					
 					local effectdata = EffectData()
-					effectdata:SetOrigin( spritepos )
+						effectdata:SetOrigin( spritepos )
 					util.Effect( "GlassImpact", effectdata, true, true )
 					
 					if veh.NextImpactsnd < curtime then
@@ -697,13 +721,16 @@ local function spritedamage( length )
 		end
 	end
 	
-	if istable(veh.Projtexts) then
+	if istable( veh.Projtexts ) then
+		
 		for i, proj in pairs( veh.Projtexts ) do
-			if !proj.Damaged then 
+			
+			if not proj.Damaged then 
+				
 				local lamppos = veh:LocalToWorld( proj.pos )
 				local Dist = (lamppos - pos):Length() 
 				
-				if (Dist < Rad * 2) then
+				if Dist < Rad * 2 then
 					veh.Projtexts[i].Damaged = true
 				end
 			end
@@ -711,16 +738,19 @@ local function spritedamage( length )
 	end
 	
 	if istable(veh.LightsEMS) then
+		
 		for i = 1, table.Count( veh.LightsEMS ) do
-			if !veh.LightsEMS[i].Damaged then
+			
+			if not veh.LightsEMS[i].Damaged then
+				
 				local spritepos = veh:LocalToWorld( veh.LightsEMS[i].pos )
 				local Dist = (spritepos - pos):Length() 
 				
-				if (Dist < Rad) then
+				if Dist < Rad then
 					veh.LightsEMS[i].Damaged = true
 					
 					local effectdata = EffectData()
-					effectdata:SetOrigin( spritepos )
+						effectdata:SetOrigin( spritepos )
 					util.Effect( "GlassImpact", effectdata, true, true )
 					
 					if veh.NextImpactsnd < curtime then
@@ -736,21 +766,22 @@ net.Receive("simfphys_spritedamage", spritedamage)
 
 local function spriterepair( length )
 	local veh = net.ReadEntity()
-	if !IsValid(veh) then return end
 	
-	if istable(veh.Sprites) then
+	if not IsValid( veh ) then return end
+	
+	if istable( veh.Sprites ) then
 		for i, sprite in pairs( veh.Sprites ) do
 			veh.Sprites[i].Damaged = false
 		end
 	end
 	
-	if istable(veh.Projtexts) then
+	if istable( veh.Projtexts ) then
 		for i, proj in pairs( veh.Projtexts ) do
 			veh.Projtexts[i].Damaged = false
 		end
 	end
 	
-	if istable(veh.LightsEMS) then
+	if istable( veh.LightsEMS ) then
 		for i = 1, table.Count( veh.LightsEMS ) do
 			veh.LightsEMS[i].Damaged = false
 		end

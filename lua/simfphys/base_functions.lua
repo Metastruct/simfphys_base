@@ -4,7 +4,7 @@ CreateConVar( "sv_simfphys_gib_lifetime", "30", {FCVAR_REPLICATED , FCVAR_ARCHIV
 CreateConVar( "sv_simfphys_playerdamage", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"should players take damage from collisions in vehicles?" )
 CreateConVar( "sv_simfphys_damagemultiplicator", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"vehicle damage multiplicator" )
 
-simfphys = {}
+simfphys = istable( simfphys ) and simfphys or {}
 simfphys.DamageEnabled = false
 simfphys.DamageMul = 1
 simfphys.pDamageEnabled = false
@@ -72,9 +72,26 @@ if SERVER then
 		simfphys.UpdateFrictionData()
 	end)
 	
-	function simfphys.SpawnVehicle( Player, Pos, Ang, Model, Class, VName, VTable )
+	function simfphys.SpawnVehicleSimple( spawnname, pos, ang )
 		
-		if not gamemode.Call( "PlayerSpawnVehicle", Player, Model, VName, VTable ) then return end
+		if not isstring( spawnname ) then print("invalid spawnname") return NULL end
+		if not isvector( pos ) then print("invalid spawn position") return NULL end
+		if not isangle( ang ) then print("invalid spawn angle") return NULL end
+		
+		local vehicle = list.Get( "simfphys_vehicles" )[ spawnname ]
+		
+		if not vehicle then print("vehicle \""..spawnname.."\" does not exist!") return NULL end
+		
+		local Ent = simfphys.SpawnVehicle( nil, pos, ang, vehicle.Model, vehicle.Class, spawnname, vehicle, true )
+		
+		return Ent
+	end
+	
+	function simfphys.SpawnVehicle( Player, Pos, Ang, Model, Class, VName, VTable, bNoOwner )
+		
+		if not bNoOwner then
+			if not gamemode.Call( "PlayerSpawnVehicle", Player, Model, VName, VTable ) then return end
+		end
 
 		if not file.Exists( Model, "GAME" ) then 
 			Player:PrintMessage( HUD_PRINTTALK, "ERROR: \""..Model.."\" does not exist! (Class: "..VName..")")
@@ -87,8 +104,6 @@ if SERVER then
 		Ent:SetModel( Model )
 		Ent:SetAngles( Ang )
 		Ent:SetPos( Pos )
-
-		DoPropSpawnedEffect( Ent )
 
 		Ent:Spawn()
 		Ent:Activate()
@@ -139,6 +154,7 @@ if SERVER then
 			
 			Ent:SetEngineSoundPreset( Ent.EngineSoundPreset )
 			Ent:SetMaxTorque( Ent.PeakTorque )
+
 			Ent:SetDifferentialGear( Ent.DifferentialGear )
 			
 			Ent:SetSteerSpeed( Ent.TurnSpeed )
@@ -166,7 +182,7 @@ if SERVER then
 			Ent:SetLights_List( Ent.LightsTable or "no_lights" )
 			
 			Ent:SetBulletProofTires( Ent.BulletProofTires or false )
-		
+			
 			duplicator.StoreEntityModifier( Ent, "VehicleMemDupe", VTable.Members )
 		end
 		

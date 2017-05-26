@@ -22,7 +22,7 @@ local hbrake_off = Material( "simfphys/hud/handbrake_off" )
 local HUD_1 = Material( "simfphys/hud/hud" )
 local HUD_2 = Material( "simfphys/hud/hud_center" )
 local HUD_3 = Material( "simfphys/hud/hud_center_red" )
-local ForceSimpleHud = !file.Exists( "materials/simfphys/hud/hud.vmt", "GAME" ) -- lets check if the background material exists, if not we will force the old hud to prevent fps drop
+local ForceSimpleHud = not file.Exists( "materials/simfphys/hud/hud.vmt", "GAME" ) -- lets check if the background material exists, if not we will force the old hud to prevent fps drop
 
 local ShowHud = false
 local ShowHud_ms = false
@@ -75,7 +75,7 @@ local ms_pos_x = 0
 local sm_throttle = 0
 
 hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
-	if ply != LocalPlayer() then return end
+	if ply ~= LocalPlayer() then return end
 	
 	local vehicle = ply:GetVehicle()
 	if not IsValid(vehicle) then return end
@@ -286,17 +286,17 @@ end
 local function simfphysHUD()
 	local ply = LocalPlayer()
 	
-	if !ply or !ply:Alive() then return end
+	if not IsValid( ply ) or not ply:Alive() then return end
 
 	local vehicle = ply:GetVehicle()
-	if (!IsValid(vehicle)) then return end
+	if not IsValid( vehicle ) then return end
 	
 	local vehiclebase = vehicle.vehiclebase
 	
-	if (!IsValid(vehiclebase)) then return end
+	if not IsValid( vehiclebase ) then return end
 	
 	local IsDriverSeat = vehicle == vehiclebase:GetDriverSeat()
-	if (!IsDriverSeat) then return end
+	if not IsDriverSeat then return end
 	
 	drawsimfphysHUD(vehiclebase)
 end

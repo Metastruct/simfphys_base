@@ -488,23 +488,24 @@ function ENT:SetupVehicle()
 	end
 	
 	timer.Simple( 0.01, function()		
-		if not istable(self.Wheels) then return end
+		if not istable( self.Wheels ) then return end
 		
 		for i = 1, table.Count( self.Wheels ) do
 			local Ent = self.Wheels[ i ]
 			local PhysObj = Ent:GetPhysicsObject()
 			
-			if IsValid(PhysObj) then
-				PhysObj:EnableMotion(true)
+			if IsValid( PhysObj ) then
+				PhysObj:EnableMotion( true )
 			end
 		end
 		
 		timer.Simple( 0.1, function()
-			if not IsValid(self) then return end
+			if not IsValid( self ) then return end
+			
 			self:GetPhysicsObject():EnableMotion(true)
 			
 			local PhysObj = self.MassOffset:GetPhysicsObject()
-			if IsValid(PhysObj) then
+			if IsValid( PhysObj ) then
 				PhysObj:EnableMotion(true)
 			end
 		end )
@@ -626,4 +627,23 @@ function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , po
 	Ballsocket.DoNotDuplicate = true
 	Rope1.DoNotDuplicate = true
 	Rope2.DoNotDuplicate = true
+	
+	if index == 2 then
+		if IsValid( self.Wheels[ 1 ] ) and IsValid( self.Wheels[ 2 ] ) then
+			local nocollide = constraint.NoCollide( self.Wheels[ 1 ], self.Wheels[ 2 ], 0, 0 )
+			nocollide.DoNotDuplicate = true
+		end
+		
+	elseif index == 4 then
+		if IsValid( self.Wheels[ 3 ] ) and IsValid( self.Wheels[ 4 ] ) then
+			local nocollide = constraint.NoCollide( self.Wheels[ 3 ], self.Wheels[ 4 ], 0, 0 )
+			nocollide.DoNotDuplicate = true
+		end
+		
+	elseif index == 6 then
+		if IsValid( self.Wheels[ 5 ] ) and IsValid( self.Wheels[ 6 ] ) then
+			local nocollide = constraint.NoCollide( self.Wheels[ 5 ], self.Wheels[ 6 ], 0, 0 )
+			nocollide.DoNotDuplicate = true
+		end
+	end
 end

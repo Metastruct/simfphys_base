@@ -72,6 +72,7 @@ end )
 
 numpad.Register( "k_gup", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["M1"] = keydown
@@ -84,6 +85,7 @@ end )
 
 numpad.Register( "k_gdn", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	if pl.blockcontrols then keydown = false end
 	
 	if ent.PressedKeys then
 		ent.PressedKeys["M2"] = keydown
@@ -224,6 +226,7 @@ end)
 
 numpad.Register( "k_lock", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
+	
 	if keydown then
 		if ent.IsLocked then
 			ent.IsLocked = false
@@ -237,6 +240,7 @@ end )
 
 numpad.Register( "k_flgts", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) or not ent.LightsTable then return false end
+	
 	if keydown then
 		ent:EmitSound( "buttons/lightswitch2.wav" )
 		
@@ -250,6 +254,7 @@ end)
 
 numpad.Register( "k_lgts", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) or not ent.LightsTable then return false end
+	
 	local Time = CurTime()
 	
 	if keydown then

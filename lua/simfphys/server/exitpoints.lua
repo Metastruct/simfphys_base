@@ -1,18 +1,18 @@
---special thanks to SligWolf for helping me with this one
-
 local function ExitUsingMyTraces( ent, ply, b_ent )
+	
 	local Center = b_ent:LocalToWorld( b_ent:OBBCenter() )
 	local vel = b_ent:GetVelocity()
 	local radius = b_ent:BoundingRadius()
 	local HullSize = Vector(18,18,0)
 	local Filter1 = {ent,ply}
 	local Filter2 = {ent,ply,b_ent}
+	
 	for i = 1, table.Count( b_ent.Wheels ) do
 		table.insert(Filter1, b_ent.Wheels[i])
 		table.insert(Filter2, b_ent.Wheels[i])
 	end
 	
-	if (vel:Length() > 250) then
+	if vel:Length() > 250 then
 		local pos = b_ent:GetPos()
 		local dir = vel:GetNormalized()
 		local targetpos = pos - dir *  (radius + 40)
@@ -24,10 +24,13 @@ local function ExitUsingMyTraces( ent, ply, b_ent )
 			mins = -HullSize,
 			filter = Filter1
 		} )
+		
 		local exitpoint = tr.HitPos + Vector(0,0,10)
 		
-		ply:SetPos(exitpoint)
-		ply:SetEyeAngles((pos - exitpoint):Angle())
+		if util.IsInWorld( exitpoint ) then
+			ply:SetPos(exitpoint)
+			ply:SetEyeAngles((pos - exitpoint):Angle())
+		end
 	else
 		local pos = ent:GetPos()
 		local targetpos = (pos + ent:GetRight() * 80)
@@ -106,8 +109,10 @@ local function ExitUsingMyTraces( ent, ply, b_ent )
 		local HitWall = tr.Hit or traceto.hit
 		local exitpoint = (HitWall == true or util.IsInWorld( check4 ) == false) and b_ent:LocalToWorld( Vector(0,0,0) ) or check4
 		
-		ply:SetPos(exitpoint)
-		ply:SetEyeAngles((pos - exitpoint):Angle())
+		if util.IsInWorld( exitpoint ) then
+			ply:SetPos(exitpoint)
+			ply:SetEyeAngles((pos - exitpoint):Angle())
+		end
 	end
 end
 
@@ -140,9 +145,9 @@ local function ExitUsingAttachments( ent, ply, b_ent )
 					} )
 					local Hit = tr.Hit
 					local InWorld = util.IsInWorld( targetpos )
-					local IsBlocked = Hit or !InWorld
+					local IsBlocked = Hit or not InWorld
 					
-					if !IsBlocked then
+					if not IsBlocked then
 						ply:SetPos( targetpos )
 						ply:SetEyeAngles( targetang )
 						b_ent:PlayAnimation( seq_att )
@@ -168,9 +173,9 @@ local function ExitUsingAttachments( ent, ply, b_ent )
 					} )
 					local Hit = tr.Hit
 					local InWorld = util.IsInWorld( targetpos )
-					local IsBlocked = Hit or !InWorld
+					local IsBlocked = Hit or not InWorld
 					
-					if !IsBlocked then
+					if not IsBlocked then
 						ply:SetPos( targetpos )
 						ply:SetEyeAngles( targetang )
 						b_ent:PlayAnimation( seq_att )
@@ -188,9 +193,9 @@ end
 
 local function Exit_vehicle_simple( ent, ply, b_ent )
 
-	if !IsValid(ent) then return end
-	if !IsValid(ply) then return end
-	if !IsValid(b_ent) then return end
+	if not IsValid( ent ) then return end
+	if not IsValid( ply ) then return end
+	if not IsValid( b_ent ) then return end
 	
 	if istable( b_ent.Exitpoints ) and b_ent:GetVelocity():Length() < 250 then
 		ExitUsingAttachments( ent, ply, b_ent )
@@ -200,11 +205,11 @@ local function Exit_vehicle_simple( ent, ply, b_ent )
 end
 
  local function HandleVehicleExit( ply, vehicle )
-	if !IsValid( ply ) then return end
+	if not IsValid( ply ) then return end
 	
 	local vehicle = ply:GetVehicle()
 	
-	if !IsValid( vehicle ) then return end
+	if not IsValid( vehicle ) then return end
 
 	if vehicle.fphysSeat then
 		local base = vehicle.base
