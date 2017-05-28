@@ -6,7 +6,7 @@ local function sendppdata( length, ply )
 	
 	if not IsValid( ent ) then return end
 	
-	if (ent.IsInitialized and not ent:IsInitialized()) then return end
+	if (not ent.IsInitialized or ent.IsInitialized and not ent:IsInitialized()) then return end
 	
 	net.Start( "simfphys_send_ppdata" )
 		net.WriteEntity( ent )
