@@ -95,7 +95,11 @@ function ENT:SetupEnteringAnims()
 end
 
 function ENT:InitializeVehicle()
-	if not IsValid(self) then return end
+	if not IsValid( self ) then return end
+	
+	local physObj = self:GetPhysicsObject()
+	
+	if not IsValid( physObj ) then return end
 	
 	if self.LightsTable then
 		local vehiclelist = list.Get( "simfphys_lights" )[self.LightsTable] or false
@@ -110,8 +114,12 @@ function ENT:InitializeVehicle()
 		end
 	end
 	
-	self:GetPhysicsObject():SetDragCoefficient( self.AirFriction or -250 )
-	self:GetPhysicsObject():SetMass( self.Mass * 0.75 )
+	physObj:SetDragCoefficient( self.AirFriction or -250 )
+	physObj:SetMass( self.Mass * 0.75 )
+	
+	if self.Inertia then
+		physObj:SetInertia( self.Inertia ) 
+	end
 	
 	local View = self:SetupView()
 	
@@ -201,11 +209,21 @@ function ENT:InitializeVehicle()
 			prop.DoNotDuplicate = true
 			simfphys.SetOwner( self.EntityOwner, prop )
 			
+			if self.Attachments[i].skin then
+				prop:SetSkin( self.Attachments[i].skin )
+			end
+			
+			if self.Attachments[i].bodygroups then
+				for b = 1, table.Count( self.Attachments[i].bodygroups ) do
+					prop:SetBodygroup(b, self.Attachments[i].bodygroups[b] )
+				end
+			end
+			
 			if self.Attachments[i].useVehicleColor == true then
 				self.ColorableProps[i] = prop
 				prop:SetColor( self:GetColor() )
 			else
-				prop:SetColor( self.Attachments[i].color )
+				prop:SetColor( self.Attachments[i].color or Color(255,255,255,255) )
 			end
 			
 			self:DeleteOnRemove( prop )
@@ -343,9 +361,14 @@ function ENT:WriteVehicleDataTable()
 		local pRR = self.posepositions.Pose0_Pos_RR
 		local pAngL = self:WorldToLocalAngles( ((pFL + pFR) / 2 - (pRL + pRR) / 2):Angle() )
 		pAngL.r = 0
+		pAngL.p = 0
 		
 		self.VehicleData["LocalAngForward"] = pAngL
-		self.VehicleData["LocalAngRight"] = self.VehicleData.LocalAngForward - Angle(0,90,0)
+		
+		local yAngL = self.VehicleData.LocalAngForward - Angle(0,90,0)
+		yAngL:Normalize() 
+		
+		self.VehicleData["LocalAngRight"] = yAngL
 		self.VehicleData[ "pp_spin_1" ] = "vehicle_wheel_fl_spin"
 		self.VehicleData[ "pp_spin_2" ] = "vehicle_wheel_fr_spin"
 		self.VehicleData[ "pp_spin_3" ] = "vehicle_wheel_rl_spin"

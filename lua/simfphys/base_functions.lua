@@ -183,6 +183,8 @@ if SERVER then
 			
 			Ent:SetBulletProofTires( Ent.BulletProofTires or false )
 			
+			Ent:SetBackfireSound( Ent.snd_backfire or "" )
+			
 			duplicator.StoreEntityModifier( Ent, "VehicleMemDupe", VTable.Members )
 		end
 		
