@@ -1,3 +1,9 @@
+local LockedPitch = 5
+if CLIENT then
+	cvars.AddChangeCallback( "cl_simfphys_ms_lockedpitch", function( convar, oldValue, newValue ) LockedPitch = tonumber( newValue ) end)
+	LockedPitch = GetConVar( "cl_simfphys_ms_lockedpitch" ):GetFloat()
+end
+
 
 local function simfphyslerpView( ply, view )
 	
@@ -160,7 +166,7 @@ hook.Add("StartCommand", "simfphys_lockview", function(ply, ucmd)
 	end
 	
 	vehicle.lockedyaw = vehicle.lockedyaw + dir * 0.05
-	vehicle.lockedpitch = vehicle.lockedpitch + (5 - vehicle.lockedpitch) * 0.05
+	vehicle.lockedpitch = vehicle.lockedpitch + (LockedPitch - vehicle.lockedpitch) * 0.05
 	
 	if ply:GetInfoNum( "cl_simfphys_ms_lockpitch", 0 ) == 1 then
 		ang.p = vehicle.lockedpitch

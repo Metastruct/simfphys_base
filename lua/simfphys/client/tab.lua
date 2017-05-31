@@ -20,6 +20,7 @@ local msexponent = CreateClientConVar( "cl_simfphys_ms_exponent", "1.5", true, t
 local mslockpitch = CreateClientConVar( "cl_simfphys_ms_lockpitch", "0", true, true )
 local mshud = CreateClientConVar( "cl_simfphys_ms_hud", "1", true, false )
 local k_msfreelook = CreateClientConVar( "cl_simfphys_ms_keyfreelook", KEY_Y, true, true )
+local mslockedpitch = CreateClientConVar( "cl_simfphys_ms_lockedpitch", "5", true, true )
 
 local overwrite = CreateClientConVar( "cl_simfphys_overwrite", 0, true, true )
 local smoothsteer = CreateClientConVar( "cl_simfphys_smoothsteer", 0, true, true )
@@ -316,6 +317,9 @@ local function buildmsmenu( self )
 	local msitem_2 = createcheckbox(25,55,"Lock Pitch View","cl_simfphys_ms_lockpitch",self.PropPanel,mslockpitch:GetInt())
 	local msitem_8 = createcheckbox(25,85,"Show Hud","cl_simfphys_ms_hud",self.PropPanel,mshud:GetInt())
 	
+	
+	local msitem_9 = createslider(60,50,315,40,"","cl_simfphys_ms_lockedpitch",self.PropPanel,-90,90,mslockedpitch:GetFloat())
+	
 	local msitem_4 = createslider(30,110,345,40,"Deadzone","cl_simfphys_ms_deadzone",self.PropPanel,0,16,msdeadzone:GetFloat())
 	local msitem_5 = createslider(30,140,345,40,"Exponent","cl_simfphys_ms_exponent",self.PropPanel,1,4,msexponent:GetFloat())
 	local msitem_6 = createslider(30,170,345,40,"Sensitivity","cl_simfphys_ms_sensitivity",self.PropPanel,0.01,10,mssensitivity:GetFloat())
@@ -337,6 +341,7 @@ local function buildmsmenu( self )
 		msitem_6:SetValue( 1 )
 		msitem_7:SetValue( 1 )
 		msitem_8:SetValue( 1 )
+		msitem_9:SetValue( 5 )
 		
 		mshud:SetInt( 1 )
 		mousesteer:SetInt( 0 )
@@ -346,6 +351,7 @@ local function buildmsmenu( self )
 		msexponent:SetFloat( 1.5 )
 		mslockpitch:SetInt( 0 )
 		k_msfreelook:SetInt( KEY_Y )
+		mslockedpitch:SetFloat( 5 )
 	end
 end
 
@@ -355,10 +361,6 @@ local function buildserversettingsmenu( self )
 	Background:SetPos( 20, 20 )
 	Background:SetColor( Color( 0, 0, 0, 200 ) )
 	local y = 0
-	
-	--local MaxVel = physenv.GetPerformanceSettings().MaxVelocity
-	--local mph = MaxVel * 0.0568182
-	--local kmh = MaxVel * 0.09144
 	
 	if LocalPlayer():IsSuperAdmin() then
 		y = y + 25
@@ -418,15 +420,6 @@ local function buildserversettingsmenu( self )
 			end
 			y = y + 25
 		end
-		
-		--[[
-		local Label = vgui.Create( "DLabel", self.PropPanel )
-		Label:SetPos( 30, y + 35 )
-		Label:SetText( "Max possibe speed is: \n(playersize) "..math.Round(mph,0).." mph or "..math.Round(kmh,0).." km/h\n(worldsize) "..math.Round(mph * 0.75,0).." mph or "..math.Round(kmh * 0.75,0).." km/h" )
-		Label:SizeToContents()
-		
-		y = y + 80
-		]]--
 		
 		y = y + 30
 		local DermaButton = vgui.Create( "DButton" )
@@ -537,14 +530,6 @@ local function buildserversettingsmenu( self )
 			y = y + 25
 		end
 		y = y - 25
-		
-		--[[
-		local Label = vgui.Create( "DLabel", self.PropPanel )
-		Label:SetPos( 30, y + 35 )
-		Label:SetText( "Max possibe speed is: \n(playersize) "..math.Round(mph,0).." mph or "..math.Round(kmh,0).." km/h\n(worldsize) "..math.Round(mph * 0.75,0).." mph or "..math.Round(kmh * 0.75,0).." km/h" )
-		Label:SizeToContents()
-		y = y + 65
-		]]--
 	end
 	
 	Background:SetSize( 350, y )
