@@ -117,3 +117,11 @@ function ENT:BodyGroupIsValid( bodygroups )
 	end
 	return false
 end
+
+function ENT:CanProperty( ply, property )
+	local owner = self.CPPIGetOwner and self:CPPIGetOwner() or NULL
+	if (not IsValid(owner) or ply.AreFriends and not ply:AreFriends(owner)) and property == "editentity" then
+		return false
+	end
+end
+		
