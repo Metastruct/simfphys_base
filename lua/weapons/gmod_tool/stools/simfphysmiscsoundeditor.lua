@@ -8,6 +8,7 @@ TOOL.ClientConVar[ "TurboSpin" ] = "simulated_vehicles/turbo_spin.wav"
 TOOL.ClientConVar[ "SuperChargerOn" ] = "simulated_vehicles/blower_gearwhine.wav"
 TOOL.ClientConVar[ "SuperChargerOff" ] = "simulated_vehicles/blower_spin.wav"
 TOOL.ClientConVar[ "HornSound" ] = "simulated_vehicles/horn_1.wav"
+TOOL.ClientConVar[ "BackfireSound" ] = ""
 
 if CLIENT then
 	language.Add( "tool.simfphysmiscsoundeditor.name", "Misc Sound Editor" )
@@ -35,6 +36,7 @@ function TOOL:LeftClick( trace )
 	ent.snd_bloweroff = self:GetClientInfo( "SuperChargerOff" )
 	ent.snd_bloweron = self:GetClientInfo( "SuperChargerOn" )
 	ent.snd_horn = self:GetClientInfo( "HornSound" )
+	ent:SetBackfireSound( self:GetClientInfo( "BackfireSound" ) )
 	
 	return true
 end
@@ -58,6 +60,13 @@ function TOOL:RightClick( trace )
 		ply:ConCommand( "simfphysmiscsoundeditor_SuperChargerOn "..Sounds.SuperCharger2 )
 		ply:ConCommand( "simfphysmiscsoundeditor_SuperChargerOff "..Sounds.SuperCharger1 )
 		ply:ConCommand( "simfphysmiscsoundeditor_HornSound "..Sounds.HornSound )
+		
+		local backfiresound = ent:GetBackfireSound()
+		if backfiresound == "" then
+			ply:ConCommand( "simfphysmiscsoundeditor_BackfireSound simulated_vehicles/sfx/ex_backfire_1.ogg" )
+		else
+			ply:ConCommand( "simfphysmiscsoundeditor_BackfireSound "..backfiresound )
+		end
 	end
 	
 	return true
@@ -76,6 +85,7 @@ function TOOL:Reload( trace )
 		ent.snd_bloweroff = vehiclelist.Members.snd_bloweroff or "simulated_vehicles/blower_spin.wav"
 		ent.snd_bloweron = vehiclelist.Members.snd_bloweron or "simulated_vehicles/blower_gearwhine.wav"
 		ent.snd_horn = vehiclelist.Members.snd_horn or "simulated_vehicles/horn_1.wav"
+		ent:SetBackfireSound( vehiclelist.Members.snd_backfire or "" )
 	end
 	
 	return true
@@ -121,4 +131,12 @@ function TOOL.BuildCPanel( panel )
 		Label 	= "Horn",
 		Command = "simfphysmiscsoundeditor_HornSound"
 	})	
+	
+	panel:AddControl( "Label",  { Text = "" } )
+	panel:AddControl( "Textbox", 
+	{
+		Label 	= "Backfire",
+		Command = "simfphysmiscsoundeditor_BackfireSound"
+	})	
+
 end

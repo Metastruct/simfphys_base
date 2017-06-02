@@ -100,6 +100,14 @@ function ENT:OnFire()
 	return self:GetNWBool( "OnFire", false )
 end
 
+function ENT:GetBackfireSound()
+	return self:GetNWString( "backfiresound" )
+end
+
+function ENT:SetBackfireSound( the_sound )
+	self:SetNWString( "backfiresound", the_sound ) 
+end
+
 function ENT:BodyGroupIsValid( bodygroups )
 	for index, groups in pairs( bodygroups ) do
 		local mygroup = self:GetBodygroup( index )

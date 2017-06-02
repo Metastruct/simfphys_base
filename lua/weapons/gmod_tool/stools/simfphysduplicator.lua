@@ -34,7 +34,7 @@ if CLIENT then
 		for k,v in pairs(saved_vehicles) do
 			local printname = v
 			
-			if !selecteditem then
+			if not selecteditem then
 				selecteditem = printname
 			end
 			
@@ -59,7 +59,7 @@ if CLIENT then
 			end
 			
 			index = index + 1
-			highlight = !highlight
+			highlight = not highlight
 		end
 	end
 	
@@ -107,7 +107,7 @@ if CLIENT then
 				
 				TextEntry.OnEnter = function()
 					local Name = TextEntry:GetValue()
-					if Name != "" then						
+					if Name ~= "" then						
 						local DataString = ""
 						
 						for k,v in pairs(TOOLMemory) do
@@ -206,7 +206,7 @@ end
 local function ValidateModel( model )
 	local v_list = list.Get( "simfphys_vehicles" )
 	for listname, _ in pairs( v_list ) do
-		if (v_list[listname].Members.CustomWheels) then
+		if v_list[listname].Members.CustomWheels then
 			local FrontWheel = v_list[listname].Members.CustomWheelModel
 			local RearWheel = v_list[listname].Members.CustomWheelModel_R
 			
@@ -314,6 +314,16 @@ function TOOL:GetVehicleData( ent, ply )
 	ply.TOOLMemory.Gears = Gears
 	ply.TOOLMemory.FinalGear = ent:GetDifferentialGear()
 	
+	if ent.WheelTool_Foffset then
+		ply.TOOLMemory.WheelTool_Foffset = ent.WheelTool_Foffset
+	end
+	
+	if ent.WheelTool_Roffset then
+		ply.TOOLMemory.WheelTool_Roffset = ent.WheelTool_Roffset
+	end
+	
+	ply.TOOLMemory.backfiresound = ent:GetBackfireSound()
+	
 	if not IsValid( ply ) then return end
 	
 	net.Start("sphys_dupe")
@@ -321,20 +331,61 @@ function TOOL:GetVehicleData( ent, ply )
 	net.Send( ply )
 end
 
+local function GetRight( ent, index, WheelPos )
+	local Steer = ent:GetTransformedDirection()
+	
+	local Right = ent.Right
+	
+	if WheelPos.IsFrontWheel then
+		Right = (IsValid( ent.SteerMaster ) and Steer.Right or ent.Right) * (WheelPos.IsRightWheel and 1 or -1)
+	else
+		Right = (IsValid( ent.SteerMaster ) and Steer.Right2 or ent.Right) * (WheelPos.IsRightWheel and 1 or -1)
+	end
+	
+	return Right
+end
+
+local function SetWheelOffset( ent, offset_front, offset_rear )
+	if not IsValid( ent ) then return end
+	
+	ent.WheelTool_Foffset = offset_front
+	ent.WheelTool_Roffset = offset_rear
+	
+	if not istable( ent.Wheels ) or not istable( ent.GhostWheels ) then return end
+	
+	for i = 1, table.Count( ent.GhostWheels ) do
+		local Wheel = ent.Wheels[ i ]
+		local WheelModel = ent.GhostWheels[i]
+		local WheelPos = ent:LogicWheelPos( i )
+		
+		if IsValid( Wheel ) and IsValid( WheelModel ) then
+			local Pos = Wheel:GetPos()
+			local Right = GetRight( ent, i, WheelPos )
+			local offset = WheelPos.IsFrontWheel and offset_front or offset_rear
+			
+			WheelModel:SetParent( nil )
+			
+			local physObj = WheelModel:GetPhysicsObject()
+			if IsValid( physObj ) then
+				physObj:EnableMotion( false )
+			end
+			
+			WheelModel:SetPos( Pos + Right * offset )
+			WheelModel:SetParent( Wheel )
+		end
+	end
+end
+
 local function ApplyWheel(ent, data)
-	--print("applywheel does run")
 	ent.CustomWheelAngleOffset = data[2]
 	ent.CustomWheelAngleOffset_R = data[4]
 	
 	timer.Simple( 0.05, function()
-		if !IsValid(ent) then return end
-		--print("the entity is valid")
+		if not IsValid( ent ) then return end
 		for i = 1, table.Count( ent.GhostWheels ) do
-			--print("loop "..i)
 			local Wheel = ent.GhostWheels[i]
 			
-			if (IsValid(Wheel)) then
-				--print("wheel is valid")
+			if IsValid( Wheel ) then
 				local isfrontwheel = (i == 1 or i == 2)
 				local swap_y = (i == 2 or i == 4 or i == 6)
 				
@@ -364,13 +415,12 @@ local function ApplyWheel(ent, data)
 				Wheel:SetAngles( ghostAng )
 				
 				timer.Simple( 0.05, function()
-					if (!IsValid(Wheel) or !IsValid(ent)) then return end -- print("something is wrong") return end
+					if not IsValid(Wheel) or not IsValid( ent ) then return end
 					local wheelsize = Wheel:OBBMaxs() - Wheel:OBBMins()
 					local radius = isfrontwheel and ent.FrontWheelRadius or ent.RearWheelRadius
 					local size = (radius * 2) / math.max(wheelsize.x,wheelsize.y,wheelsize.z)
 					
 					Wheel:SetModelScale( size )
-					--print("model is set")
 				end)
 			end
 		end
@@ -378,25 +428,25 @@ local function ApplyWheel(ent, data)
 end
 
 local function GetAngleFromSpawnlist( model )
-	if (!model) then print("invalid model") return Angle(0,0,0) end
+	if not model then print("invalid model") return Angle(0,0,0) end
 	
 	model = string.lower( model )
 	
 	local v_list = list.Get( "simfphys_vehicles" )
 	for listname, _ in pairs( v_list ) do
-		if (v_list[listname].Members.CustomWheels) then
+		if v_list[listname].Members.CustomWheels then
 			local FrontWheel = v_list[listname].Members.CustomWheelModel
 			local RearWheel = v_list[listname].Members.CustomWheelModel_R
 			
-			if (FrontWheel) then 
+			if FrontWheel then 
 				FrontWheel = string.lower( FrontWheel )
 			end
 			
-			if (RearWheel) then 
+			if RearWheel then 
 				RearWheel = string.lower( RearWheel )
 			end
 			
-			if (model == FrontWheel or model == RearWheel) then
+			if model == FrontWheel or model == RearWheel then
 				local Angleoffset = v_list[listname].Members.CustomWheelAngleOffset
 				if (Angleoffset) then
 					return Angleoffset
@@ -485,6 +535,8 @@ function TOOL:LeftClick( trace )
 	
 	Ent.snd_horn = ply.TOOLMemory.HornSound
 	
+	Ent:SetBackfireSound( ply.TOOLMemory.backfiresound or "" )
+	
 	local Gears = {}
 	local Data = string.Explode( ",", ply.TOOLMemory.Gears  )
 	for i = 1, table.Count( Data ) do Gears[i] = tonumber( Data[i] ) end
@@ -492,7 +544,7 @@ function TOOL:LeftClick( trace )
 	
 	
 	timer.Simple( 0.5, function()
-		if !IsValid(Ent) then return end
+		if not IsValid(Ent) then return end
 
 		if ply.TOOLMemory.FrontDampingOverride and ply.TOOLMemory.FrontConstantOverride and ply.TOOLMemory.RearDampingOverride and ply.TOOLMemory.RearConstantOverride then
 			Ent.FrontDampingOverride = tonumber( ply.TOOLMemory.FrontDampingOverride )
@@ -511,18 +563,18 @@ function TOOL:LeftClick( trace )
 			if elastics then
 				for i = 1, table.Count( elastics ) do
 					local elastic = elastics[i]
-					if (Ent.StrengthenSuspension == true) then
-						if (IsValid(elastic)) then
+					if Ent.StrengthenSuspension == true then
+						if IsValid( elastic ) then
 							elastic:Fire( "SetSpringConstant", data[i][1] * 0.5, 0 )
 							elastic:Fire( "SetSpringDamping", data[i][2] * 0.5, 0 )
 						end
 						local elastic2 = elastics[i * 10]
-						if (IsValid(elastic2)) then
+						if IsValid( elastic2 ) then
 							elastic2:Fire( "SetSpringConstant", data[i][1] * 0.5, 0 )
 							elastic2:Fire( "SetSpringDamping", data[i][2] * 0.5, 0 )
 						end
 					else
-						if (IsValid(elastic)) then
+						if IsValid( elastic ) then
 							elastic:Fire( "SetSpringConstant", data[i][1], 0 )
 							elastic:Fire( "SetSpringDamping", data[i][2], 0 )
 						end
@@ -554,13 +606,14 @@ function TOOL:LeftClick( trace )
 			RenderFX = 0
 		}
 		duplicator.StoreEntityModifier( Ent, "colour", data )
-	
-		--print("entity is valid")
+		
 		if Ent.CustomWheels then
-			--print("has custom wheels")
 			if Ent.GhostWheels then
-				--print("and ghostwheels")
-				if !ply.TOOLMemory.FrontWheelOverride and !ply.TOOLMemory.RearWheelOverride then return end --print("but there is no wheel model") return end
+				if ply.TOOLMemory.WheelTool_Foffset and ply.TOOLMemory.WheelTool_Roffset then
+					SetWheelOffset( Ent, ply.TOOLMemory.WheelTool_Foffset, ply.TOOLMemory.WheelTool_Roffset )
+				end
+				
+				if not ply.TOOLMemory.FrontWheelOverride and not ply.TOOLMemory.RearWheelOverride then return end
 				
 				local front_model = ply.TOOLMemory.FrontWheelOverride or vehicle.Members.CustomWheelModel
 				local front_angle = GetAngleFromSpawnlist(front_model)
@@ -569,7 +622,7 @@ function TOOL:LeftClick( trace )
 				local rear_model = ply.TOOLMemory.RearWheelOverride or (vehicle.Members.CustomWheelModel_R and vehicle.Members.CustomWheelModel_R or front_model)
 				local rear_angle = GetAngleFromSpawnlist(rear_model)
 				
-				if (!front_model or !rear_model or !front_angle or !rear_angle) then return end
+				if not front_model or not rear_model or not front_angle or not rear_angle then return end
 				
 				if ValidateModel( front_model ) and ValidateModel( rear_model ) then 
 					Ent.Camber = camber

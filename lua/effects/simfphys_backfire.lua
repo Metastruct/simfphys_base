@@ -32,10 +32,13 @@ function EFFECT:Init( data )
 			local Ang = Entity:LocalToWorldAngles( lAng )
 			
 			local snd1 = "simulated_vehicles/sfx/ex_backfire_damaged_"..math.Round(math.random(1,3),1)..".ogg"
-			local snd2 = "simulated_vehicles/sfx/ex_backfire_"..math.Round(math.random(1,4),1)..".ogg"
+			local snd2 = Entity:GetBackfireSound()
+			if snd2 == "" then
+				snd2 =  "simulated_vehicles/sfx/ex_backfire_"..math.Round(math.random(1,4),1)..".ogg"
+			end
 			
 			local snd = bdamaged and snd1 or snd2
-			sound.Play( snd, Pos, 100, 100 )
+			sound.Play( snd, Pos, 90, 100 )
 			
 			local dlight = DynamicLight( Entity:EntIndex() * math.random(1,4) )
 			if dlight then
