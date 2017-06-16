@@ -890,6 +890,12 @@ function ENT:GetMouseSteer()
 end
 
 function ENT:Use( ply )
+	self:SetPassenger( ply )
+end
+
+function ENT:SetPassenger( ply )
+	if not IsValid( ply ) then return end
+	
 	if self.IsLocked then 
 		self:EmitSound( "doors/default_locked.wav" )
 		return
