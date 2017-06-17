@@ -186,44 +186,105 @@ function TOOL:LeftClick( trace )
 	if not simfphys.IsCar( ent ) then return false end
 	
 	if SERVER then
-		local front_model = self:GetClientInfo("frontwheelmodel")
-		local front_angle = GetAngleFromSpawnlist(front_model)
+		local PhysObj = ent:GetPhysicsObject()
+		if not IsValid( PhysObj ) then return end
 		
-		local sameasfront = self:GetClientInfo("sameasfront") == "1"
-		local camber = self:GetClientInfo("camber")
+		local freezeWhenDone = PhysObj:IsMotionEnabled()
+		local freezeWheels = {}
+		PhysObj:EnableMotion( false )
+		ent:SetNotSolid( true )
 		
-		local rear_model = sameasfront and front_model or self:GetClientInfo("rearwheelmodel")
-		local rear_angle = GetAngleFromSpawnlist(rear_model)
+		local ResetPos = ent:GetPos()
+		local ResetAng = ent:GetAngles()
 		
-		local front_offset = self:GetClientInfo("offsetfront")
-		local rear_offset = self:GetClientInfo("offsetrear")
+		ent:SetPos( ResetPos + Vector(0,0,30) )
+		ent:SetAngles( Angle(0,ResetAng.y,0) )
 		
-		if not front_model or not rear_model or not front_angle or not rear_angle then print("wtf bro how did you do this") return false end
-		
-		if not ValidateModel( front_model ) or not ValidateModel( rear_model ) then 
-			local ply = self:GetOwner()
-			ply:PrintMessage( HUD_PRINTTALK, "selected wheel does not exist on the server")
-			return false
-		end
-		
-		if ent.CustomWheels then
-			if ent.GhostWheels then
-				ent:SteerVehicle( 0 )
+		for i = 1, table.Count( ent.Wheels ) do
+			local Wheel = ent.Wheels[ i ]
+			if IsValid( Wheel ) then
+				local wPObj = Wheel:GetPhysicsObject()
 				
-				for i = 1, table.Count( ent.Wheels ) do
-					local Wheel = ent.Wheels[ i ]
-					if IsValid( Wheel ) then
-						local physobj = Wheel:GetPhysicsObject()
-						physobj:EnableMotion( true ) 
-						physobj:Wake() 
-					end
+				if IsValid( wPObj ) then
+					freezeWheels[ i ] = {}
+					freezeWheels[ i ].dofreeze = wPObj:IsMotionEnabled()
+					freezeWheels[ i ].pos = Wheel:GetPos()
+					freezeWheels[ i ].ang = Wheel:GetAngles()
+					Wheel:SetNotSolid( true )
+					wPObj:EnableMotion( true ) 
+					wPObj:Wake() 
 				end
-				
-				ent.Camber = camber
-				ApplyWheel(self:GetOwner(), ent, {front_model,front_angle,rear_model,rear_angle,camber})
-				SetWheelOffset( ent, front_offset, rear_offset )
 			end
 		end
+		
+		timer.Simple( 0.25, function()
+			if not IsValid( ent ) then return end
+			
+			local front_model = self:GetClientInfo("frontwheelmodel")
+			local front_angle = GetAngleFromSpawnlist(front_model)
+			
+			local sameasfront = self:GetClientInfo("sameasfront") == "1"
+			local camber = self:GetClientInfo("camber")
+			
+			local rear_model = sameasfront and front_model or self:GetClientInfo("rearwheelmodel")
+			local rear_angle = GetAngleFromSpawnlist(rear_model)
+			
+			local front_offset = self:GetClientInfo("offsetfront")
+			local rear_offset = self:GetClientInfo("offsetrear")
+			
+			if not front_model or not rear_model or not front_angle or not rear_angle then print("wtf bro how did you do this") return false end
+			
+			if not ValidateModel( front_model ) or not ValidateModel( rear_model ) then 
+				local ply = self:GetOwner()
+				ply:PrintMessage( HUD_PRINTTALK, "selected wheel does not exist on the server")
+				return false
+			end
+			
+			if ent.CustomWheels then
+				if ent.GhostWheels then
+					ent:SteerVehicle( 0 )
+					
+					for i = 1, table.Count( ent.Wheels ) do
+						local Wheel = ent.Wheels[ i ]
+						if IsValid( Wheel ) then
+							local physobj = Wheel:GetPhysicsObject()
+							physobj:EnableMotion( true ) 
+							physobj:Wake() 
+						end
+					end
+					
+					ent.Camber = camber
+					ApplyWheel(self:GetOwner(), ent, {front_model,front_angle,rear_model,rear_angle,camber})
+					SetWheelOffset( ent, front_offset, rear_offset )
+				end
+			end
+			
+			timer.Simple( 0.25, function()
+				if not IsValid( ent ) then return end
+				if not IsValid( PhysObj ) then return end
+				
+				PhysObj:EnableMotion( freezeWhenDone )
+				ent:SetNotSolid( false )
+				ent:SetPos( ResetPos )
+				ent:SetAngles( ResetAng )
+		
+				for i = 1, table.Count( freezeWheels ) do
+					local Wheel = ent.Wheels[ i ]
+					if IsValid( Wheel ) then
+						local wPObj = Wheel:GetPhysicsObject()
+						
+						Wheel:SetNotSolid( false )
+						
+						if IsValid( wPObj ) then
+							wPObj:EnableMotion( freezeWheels[i].dofreeze ) 
+						end
+						
+						Wheel:SetPos( freezeWheels[ i ].pos )
+						Wheel:SetAngles( freezeWheels[ i ].ang )
+					end
+				end
+			end)
+		end)
 	end
 	return true
 end
@@ -238,31 +299,92 @@ function TOOL:Reload( trace )
 	if not simfphys.IsCar( ent ) then return false end
 	
 	if SERVER then
-		local vname = ent:GetSpawn_List()
-		local VehicleList = list.Get( "simfphys_vehicles" )[vname]
-
-		if ent.CustomWheels then
-			if ent.GhostWheels then
-				ent:SteerVehicle( 0 )
+		local PhysObj = ent:GetPhysicsObject()
+		if not IsValid( PhysObj ) then return end
+		
+		local freezeWhenDone = PhysObj:IsMotionEnabled()
+		local freezeWheels = {}
+		PhysObj:EnableMotion( false )
+		ent:SetNotSolid( true )
+		
+		local ResetPos = ent:GetPos()
+		local ResetAng = ent:GetAngles()
+		
+		ent:SetPos( ResetPos + Vector(0,0,30) )
+		ent:SetAngles( Angle(0,ResetAng.y,0) )
+		
+		for i = 1, table.Count( ent.Wheels ) do
+			local Wheel = ent.Wheels[ i ]
+			if IsValid( Wheel ) then
+				local wPObj = Wheel:GetPhysicsObject()
 				
-				for i = 1, table.Count( ent.Wheels ) do
-					local Wheel = ent.Wheels[ i ]
-					if IsValid( Wheel ) then
-						local physobj = Wheel:GetPhysicsObject()
-						physobj:EnableMotion( true ) 
-						physobj:Wake() 
-					end
+				if IsValid( wPObj ) then
+					freezeWheels[ i ] = {}
+					freezeWheels[ i ].dofreeze = wPObj:IsMotionEnabled()
+					freezeWheels[ i ].pos = Wheel:GetPos()
+					freezeWheels[ i ].ang = Wheel:GetAngles()
+					Wheel:SetNotSolid( true )
+					wPObj:EnableMotion( true ) 
+					wPObj:Wake() 
 				end
-				
-				local front_model = VehicleList.Members.CustomWheelModel
-				local front_angle = VehicleList.Members.CustomWheelAngleOffset
-				local rear_model = VehicleList.Members.CustomWheelModel_R and VehicleList.Members.CustomWheelModel_R or front_model
-				local rear_angle = VehicleList.Members.CustomWheelAngleOffset
-				
-				ApplyWheel(self:GetOwner(), ent, {front_model,front_angle,rear_model,rear_angle})
-				SetWheelOffset( ent, 0, 0 )
 			end
 		end
+		
+		timer.Simple( 0.25, function()
+			if not IsValid( ent ) then return end
+			
+			local vname = ent:GetSpawn_List()
+			local VehicleList = list.Get( "simfphys_vehicles" )[vname]
+
+			if ent.CustomWheels then
+				if ent.GhostWheels then
+					ent:SteerVehicle( 0 )
+					
+					for i = 1, table.Count( ent.Wheels ) do
+						local Wheel = ent.Wheels[ i ]
+						if IsValid( Wheel ) then
+							local physobj = Wheel:GetPhysicsObject()
+							physobj:EnableMotion( true ) 
+							physobj:Wake() 
+						end
+					end
+					
+					local front_model = VehicleList.Members.CustomWheelModel
+					local front_angle = VehicleList.Members.CustomWheelAngleOffset
+					local rear_model = VehicleList.Members.CustomWheelModel_R and VehicleList.Members.CustomWheelModel_R or front_model
+					local rear_angle = VehicleList.Members.CustomWheelAngleOffset
+					
+					ApplyWheel(self:GetOwner(), ent, {front_model,front_angle,rear_model,rear_angle})
+					SetWheelOffset( ent, 0, 0 )
+				end
+			end
+			
+			timer.Simple( 0.25, function()
+				if not IsValid( ent ) then return end
+				if not IsValid( PhysObj ) then return end
+				
+				PhysObj:EnableMotion( freezeWhenDone )
+				ent:SetNotSolid( false )
+				ent:SetPos( ResetPos )
+				ent:SetAngles( ResetAng )
+		
+				for i = 1, table.Count( freezeWheels ) do
+					local Wheel = ent.Wheels[ i ]
+					if IsValid( Wheel ) then
+						local wPObj = Wheel:GetPhysicsObject()
+						
+						Wheel:SetNotSolid( false )
+						
+						if IsValid( wPObj ) then
+							wPObj:EnableMotion( freezeWheels[i].dofreeze ) 
+						end
+						
+						Wheel:SetPos( freezeWheels[ i ].pos )
+						Wheel:SetAngles( freezeWheels[ i ].ang )
+					end
+				end
+			end)
+		end)
 	end
 	
 	return true
