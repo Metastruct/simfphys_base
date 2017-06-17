@@ -534,6 +534,9 @@ function ENT:SetupVehicle()
 		end )
 	end )
 	
+	self.VehicleData["filter"] = table.Copy( self.Wheels )
+	table.insert( self.VehicleData["filter"], self )
+	
 	self.EnableSuspension = 1
 end
 

@@ -22,8 +22,9 @@ function ENT:WheelOnGround()
 				endpos = startpos + dir * len,
 				maxs = HullSize,
 				mins = -HullSize,
-				filter = {Wheel,self}
+				filter = self.VehicleData["filter"]
 			} )
+			
 			if tr.Hit then
 				self.VehicleData[ "onGround_" .. i ] = 1
 				Wheel:SetSpeed( Wheel.FX )
