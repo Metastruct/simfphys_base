@@ -226,7 +226,7 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 	self.FadeThrottle = self.FadeThrottle + math.Clamp(Throttle - self.FadeThrottle,-0.2,0.2)
 	self.PitchOffset = self.PitchOffset + ((CurDist - self.OldDist) * 0.23 - self.PitchOffset) * 0.5
 	self.OldDist = CurDist
-	self.SmoothRPM = self.SmoothRPM + math.Clamp(FlyWheelRPM - self.SmoothRPM,-350,350)
+	self.SmoothRPM = self.SmoothRPM + math.Clamp(FlyWheelRPM - self.SmoothRPM,-350,600)
 	
 	self.OldThrottle2 = self.OldThrottle2 or 0
 	if Throttle ~= self.OldThrottle2 then
