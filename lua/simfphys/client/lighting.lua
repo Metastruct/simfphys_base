@@ -662,9 +662,9 @@ local function SetUpLights( vname , ent )
 					table.insert(ent.Sprites, s)
 				else
 					s.pos = data
-					s.color = Color( 255, 0, 0,  90 )
+					s.color = Color( 255, 60, 0,  90 )
 					s.material = mat
-					s.size = 32
+					s.size = 40
 					table.insert(ent.Sprites, s)
 					
 					local s2 = {}
@@ -673,7 +673,7 @@ local function SetUpLights( vname , ent )
 					s2.pos = data
 					s2.color = Color( 255, 120, 0,  125 ) 
 					s2.material = mat2
-					s2.size = 12
+					s2.size = 16
 					table.insert(ent.Sprites, s2)
 				end
 			end
@@ -695,9 +695,9 @@ local function SetUpLights( vname , ent )
 					table.insert(ent.Sprites, s)
 				else
 					s.pos = data
-					s.color = Color( 255, 0, 0,  90 )
+					s.color = Color( 255, 60, 0,  90 )
 					s.material = mat
-					s.size = 32
+					s.size = 40
 					table.insert(ent.Sprites, s)
 					
 					local s2 = {}
@@ -706,7 +706,7 @@ local function SetUpLights( vname , ent )
 					s2.pos = data
 					s2.color = Color( 255, 120, 0,  125 ) 
 					s2.material = mat2
-					s2.size = 12
+					s2.size = 16
 					table.insert(ent.Sprites, s2)
 				end
 			end
@@ -809,11 +809,6 @@ hook.Add( "PostDrawTranslucentRenderables", "simfphys_draw_sprites", function()
 						if regTrigger or typeSpecial then
 							local LightPos = ent:LocalToWorld( sprite.pos )
 							local Visible = util.PixelVisible( LightPos, 4, sprite.PixVis )
-							
-							if sprite.trigger == 6 or sprite.trigger == 7 or typeSpecial then
-								Visible = Visible * ent:GetFlasher()
-							end
-							
 							local s_col = sprite.color
 							local s_mat = sprite.material
 							local s_size = sprite.size
@@ -825,7 +820,13 @@ hook.Add( "PostDrawTranslucentRenderables", "simfphys_draw_sprites", function()
 							if Visible and Visible >= 0.6 then
 								Visible = (Visible - 0.6) / 0.4
 								render.SetMaterial( s_mat )
-								render.DrawSprite( LightPos, s_size, s_size,  Color( s_col["r"], s_col["g"], s_col["b"],  s_col["a"] * Visible) )
+								
+								local c_Alpha = s_col["a"] * Visible
+								if sprite.trigger == 6 or sprite.trigger == 7 or typeSpecial then
+									c_Alpha = c_Alpha * (ent:GetFlasher() ^ 7)
+								end
+								
+								render.DrawSprite( LightPos, s_size, s_size,  Color( s_col["r"], s_col["g"], s_col["b"],  c_Alpha) )
 							end
 						end
 					end
@@ -860,7 +861,7 @@ local function spritedamage( length )
 				if Dist < Rad then
 					veh.Sprites[i].Damaged = true
 					
-					if sprite.trigger == 6 or sprite.trigger == 7 then
+					if sprite.trigger >= 6 then
 						veh.turnsignals_damaged = true
 					end
 					
