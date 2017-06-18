@@ -423,9 +423,9 @@ local function simfphysHUD()
 			net.SendToServer()
 			
 			if turnmode == 1 or turnmode == 2 or turnmode == 3 then
-				vehiclebase:EmitSound( "simulated_vehicles/sfx/indicator_start1.wav" )
+				vehiclebase:EmitSound( "simulated_vehicles/sfx/turnsignal_start.ogg" )
 			else
-				vehiclebase:EmitSound( "simulated_vehicles/sfx/indicator_end1.wav" )
+				vehiclebase:EmitSound( "simulated_vehicles/sfx/turnsignal_end.ogg" )
 			end
 		end
 	end

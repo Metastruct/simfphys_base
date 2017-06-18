@@ -56,9 +56,9 @@ function ENT:GetFlasher()
 		if fl_snd ~= self.fl_snd then
 			self.fl_snd = fl_snd
 			if fl_snd then
-				self:EmitSound( "simulated_vehicles/sfx/indicator_click2.wav" )
+				self:EmitSound( "simulated_vehicles/sfx/flasher_on.ogg" )
 			else
-				self:EmitSound( "simulated_vehicles/sfx/indicator_click1.wav" )
+				self:EmitSound( "simulated_vehicles/sfx/flasher_off.ogg" )
 			end
 		end
 	end
