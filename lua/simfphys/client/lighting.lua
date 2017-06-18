@@ -475,7 +475,7 @@ local function SetUpLights( vname , ent )
 				table.insert(ent.Sprites, s)
 			else
 				s.pos = data
-				s.color = Color( 255, 255, 255,  255)
+				s.color = Color( 255, 255, 255,  150)
 				s.material = mat
 				s.size = 12
 				table.insert(ent.Sprites, s)
@@ -484,9 +484,9 @@ local function SetUpLights( vname , ent )
 				s2.PixVis = util.GetPixelVisibleHandle()
 				s2.trigger = s.trigger
 				s2.pos = data
-				s2.color =  Color( 255, 255, 255,  150 )
+				s2.color =  Color( 255, 255, 255,  80 )
 				s2.material = mat2
-				s2.size = 16
+				s2.size = 25
 				table.insert(ent.Sprites, s2)
 			end
 		end
