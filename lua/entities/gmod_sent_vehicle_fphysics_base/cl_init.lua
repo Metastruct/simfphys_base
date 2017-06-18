@@ -26,14 +26,7 @@ function ENT:Think()
 		
 		self:ManageSounds( Active, Throttle, LimitRPM )
 		self:ManageEffects( Active, Throttle, LimitRPM )
-		
-		local flashspeed = self.turnsignals_damaged and 0.08 or 0.035
-		
-		self.Flasher = self.Flasher and self.Flasher + flashspeed or 0
-		
-		if self.Flasher >= 1 then
-			self.Flasher = self.Flasher - 1
-		end
+		self:CalcFlasher()
 		
 		self.RunNext = curtime + 0.06
 	end
@@ -45,13 +38,22 @@ function ENT:Think()
 	return true
 end
 
-function ENT:GetFlasher()
+function ENT:CalcFlasher()
 	self.Flasher = self.Flasher or 0
 	
-	local flasher = math.min( math.abs( math.cos( math.rad( self.Flasher * 360 ) ) ^ 2 * 1.5 ) , 1)
+	local flashspeed = self.turnsignals_damaged and 0.08 or 0.035
+	
+	self.Flasher = self.Flasher and self.Flasher + flashspeed or 0
+	if self.Flasher >= 1 then
+		self.Flasher = self.Flasher - 1
+	end
+	
+	self.flashnum = math.min( math.abs( math.cos( math.rad( self.Flasher * 360 ) ) ^ 2 * 1.5 ) , 1)
+	
+	if not self.signal_left and not self.signal_right then return end
 	
 	if LocalPlayer() == self:GetDriver() then
-		local fl_snd = flasher > 0.9
+		local fl_snd = self.flashnum > 0.9
 		
 		if fl_snd ~= self.fl_snd then
 			self.fl_snd = fl_snd
@@ -62,8 +64,11 @@ function ENT:GetFlasher()
 			end
 		end
 	end
-	
-	return flasher
+end
+
+function ENT:GetFlasher()
+	self.flashnum = self.flashnum or 0
+	return self.flashnum
 end
 
 function ENT:SetPoseParameters( curtime )
