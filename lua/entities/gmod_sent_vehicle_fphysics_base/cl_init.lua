@@ -51,7 +51,7 @@ function ENT:GetFlasher()
 	local flasher = math.min( math.abs( math.cos( math.rad( self.Flasher * 360 ) ) ^ 2 * 1.5 ) , 1)
 	
 	if LocalPlayer() == self:GetDriver() then
-		local fl_snd = flasher > 0.5
+		local fl_snd = flasher > 0.9
 		
 		if fl_snd ~= self.fl_snd then
 			self.fl_snd = fl_snd
