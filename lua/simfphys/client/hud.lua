@@ -34,6 +34,9 @@ local isMouseSteer = false
 local hasCounterSteerEnabled = false
 local slushbox = false
 
+local hudoffset_x = 0
+local hudoffset_y = 0
+
 local turnmenu = KEY_COMMA
 
 local ms_sensitivity = 1
@@ -43,6 +46,8 @@ local ms_exponent = 2
 local ms_key_freelook = KEY_Y
 
 cvars.AddChangeCallback( "cl_simfphys_hud", function( convar, oldValue, newValue ) ShowHud = tonumber( newValue )~=0 end)
+cvars.AddChangeCallback( "cl_simfphys_hud_offset_x", function( convar, oldValue, newValue ) hudoffset_x = newValue end)
+cvars.AddChangeCallback( "cl_simfphys_hud_offset_y", function( convar, oldValue, newValue ) hudoffset_y = newValue end)
 cvars.AddChangeCallback( "cl_simfphys_ms_hud", function( convar, oldValue, newValue ) ShowHud_ms = tonumber( newValue )~=0 end)
 cvars.AddChangeCallback( "cl_simfphys_althud", function( convar, oldValue, newValue ) AltHud = tonumber( newValue )~=0 end)
 cvars.AddChangeCallback( "cl_simfphys_althud_arcs", function( convar, oldValue, newValue ) AltHudarcs = tonumber( newValue )~=0 end)
@@ -60,6 +65,8 @@ cvars.AddChangeCallback( "cl_simfphys_ms_keyfreelook", function( convar, oldValu
 cvars.AddChangeCallback( "cl_simfphys_key_turnmenu", function( convar, oldValue, newValue ) turnmenu = tonumber( newValue ) end)
 
 ShowHud = GetConVar( "cl_simfphys_hud" ):GetBool()
+hudoffset_x = GetConVar( "cl_simfphys_hud_offset_x" ):GetFloat()
+hudoffset_y = GetConVar( "cl_simfphys_hud_offset_y" ):GetFloat()
 ShowHud_ms = GetConVar( "cl_simfphys_ms_hud" ):GetBool()
 AltHud = GetConVar( "cl_simfphys_althud" ):GetBool()
 AltHudarcs = GetConVar( "cl_simfphys_althud_arcs" ):GetBool()
@@ -157,6 +164,9 @@ local function drawsimfphysHUD(vehicle)
 	local gear = vehicle:GetGear()
 	local DrawGear = not slushbox and (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)) or (gear == 1 and "R" or gear == 2 and "N" or "(".. (gear - 2)..")")
 	
+	local o_x = hudoffset_x * screenw
+	local o_y = hudoffset_y * screenh
+	
 	if AltHud and not ForceSimpleHud then
 		local LightsOn = vehicle:GetLightsEnabled()
 		local LampsOn = vehicle:GetLampsEnabled()
@@ -177,25 +187,25 @@ local function drawsimfphysHUD(vehicle)
 		
 		local mat = LightsOn and (LampsOn and lights_on2 or lights_on) or lights_off
 		surface.SetMaterial( mat )
-		surface.DrawTexturedRect( x * 1.119, y * 0.98, sizex * 0.014, sizex * 0.014 )
+		surface.DrawTexturedRect( x * 1.119 + o_x, y * 0.98 + o_y, sizex * 0.014, sizex * 0.014 )
 		
 		local mat = FogLightsOn and fog_on or fog_off
 		surface.SetMaterial( mat )
-		surface.DrawTexturedRect( x * 1.116, y * 0.92, sizex * 0.018, sizex * 0.018 )
+		surface.DrawTexturedRect( x * 1.116 + o_x, y * 0.92 + o_y, sizex * 0.018, sizex * 0.018 )
 		
 		local mat = cruisecontrol and cruise_on or cruise_off
 		surface.SetMaterial( mat )
-		surface.DrawTexturedRect( x * 1.116, y * 0.861, sizex * 0.02, sizex * 0.02 )
+		surface.DrawTexturedRect( x * 1.116 + o_x, y * 0.861 + o_y, sizex * 0.02, sizex * 0.02 )
 		
 		local mat = HandBrakeOn and hbrake_on or hbrake_off
 		surface.SetMaterial( mat )
-		surface.DrawTexturedRect( x * 1.1175, y * 0.815, sizex * 0.018, sizex * 0.018 )
+		surface.DrawTexturedRect( x * 1.1175 + o_x, y * 0.815 + o_y, sizex * 0.018, sizex * 0.018 )
 		
 		surface.SetMaterial( HUD_1 )
-		surface.DrawTexturedRect( x - radius, y - radius + 1, radius * 2, radius * 2)
+		surface.DrawTexturedRect( x - radius + o_x, y - radius + 1 + o_y, radius * 2, radius * 2)
 		
 		surface.SetMaterial( in_red and HUD_2 or HUD_3 )
-		surface.DrawTexturedRect( x - radius, y - radius + 1, radius * 2, radius * 2)
+		surface.DrawTexturedRect( x - radius + o_x, y - radius + 1 + o_y, radius * 2, radius * 2)
 		
 		draw.NoTexture()
 		
@@ -222,41 +232,33 @@ local function drawsimfphysHUD(vehicle)
 			
 			if step > 4 then
 				step = 1
-				surface.DrawLine( x + cos_a * radius / 1.3, y + sin_a * radius / 1.3, x + cos_a * radius, y + sin_a * radius)
+				surface.DrawLine( x + cos_a * radius / 1.3 + o_x, y + sin_a * radius / 1.3 + o_y, x + cos_a * radius + o_x, y + sin_a * radius + o_y)
 				local printnumber = tostring(i / 1000)
-				draw.SimpleText(printnumber, "simfphysfont3", x + cos_a * radius / 1.5, y + sin_a * radius / 1.5,u_col, 1, 1 )
+				draw.SimpleText(printnumber, "simfphysfont3", x + cos_a * radius / 1.5 + o_x, y + sin_a * radius / 1.5 + o_y,u_col, 1, 1 )
 			else
-				surface.DrawLine( x + cos_a * radius / 1.05, y + sin_a * radius / 1.05, x + cos_a * radius, y + sin_a * radius)
+				surface.DrawLine( x + cos_a * radius / 1.05 + o_x, y + sin_a * radius / 1.05 + o_y, x + cos_a * radius + o_x, y + sin_a * radius + o_y)
 			end
 		end
 		
 		local center_ncol = in_red and Color(0,254,235,200) or Color( 255, 0, 0, 255 )
 		
 		surface.SetDrawColor( in_red and Color(255,255,255,255) or Color( 255, 0, 0, 255 ) )
-		surface.DrawLine( x + c_ang * radius / 3.5, y + s_ang * radius / 3.5, x + c_ang * radius, y + s_ang * radius)
+		surface.DrawLine( x + c_ang * radius / 3.5 + o_x, y + s_ang * radius / 3.5 + o_y, x + c_ang * radius + o_x, y + s_ang * radius + o_y)
 		surface.SetDrawColor( 255, 255, 255, 255 )
 		
 		if AltHudarcs then
-			
-			draw.Arc(x,y,radius,radius / 6.66,startang,math.min(endang,ang_pend),1,Color(255,255,255,150),true)
-			
-			-- middle
-			--draw.Arc(x,y,radius / 3.5,radius / 66,startang,360,15,Color(255,255,255,50),true)
-			
-			-- outer
-			--draw.Arc(x,y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
-			draw.Arc(x,y,radius,radius / 6.66,ang_pend,360,1,Color(120,0,0,230),true)
-			
-			draw.Arc(x,y,radius,radius / 6.66,math.Round(ang_pend - 1,0),startang + (s_smoothrpm / maxrpm) * 255,1,Color(255,0,0,140),true)
-			
-			--inner
-			--draw.Arc(x,y,radius / 5,radius / 70,0,360,15,center_ncol,true)
+			draw.Arc(x + o_x,y + o_y,radius,radius / 6.66,startang,math.min(endang,ang_pend),1,Color(255,255,255,150),true)
+			draw.Arc(x + o_x,y + o_y,radius,radius / 6.66,ang_pend,360,1,Color(120,0,0,230),true)
+			draw.Arc(x + o_x,y + o_y,radius,radius / 6.66,math.Round(ang_pend - 1,0),startang + (s_smoothrpm / maxrpm) * 255,1,Color(255,0,0,140),true)
+			--draw.Arc(x + o_x,y + o_y,radius / 3.5,radius / 66,startang,360,15,Color(255,255,255,50),true)
+			--draw.Arc(x + o_x,y + o_y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
+			--draw.Arc(x + o_x,y + o_y,radius / 5,radius / 70,0,360,15,center_ncol,true)
 		end
 		
-		draw.SimpleText( (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)), "simfphysfont2", x * 0.999, y * 0.996, center_ncol, 1, 1 )
+		draw.SimpleText( (gear == 1 and "R" or gear == 2 and "N" or (gear - 2)), "simfphysfont2", x * 0.999 + o_x, y * 0.996 + o_y, center_ncol, 1, 1 )
 		
 		local print_text = Hudmph and "MPH" or "KM/H"
-		draw.SimpleText( print_text, "simfphysfont3", x * 1.08, y * 1.03, Color(255,255,255,50), 1, 1 )
+		draw.SimpleText( print_text, "simfphysfont3", x * 1.08 + o_x, y * 1.03 + o_y, Color(255,255,255,50), 1, 1 )
 		
 		local printspeed = Hudmph and (Hudreal and mph or wiremph) or (Hudreal and kmh or wirekmh)
 		
@@ -270,34 +272,34 @@ local function drawsimfphysHUD(vehicle)
 		local col2 = (printspeed >= 10) and col_off or col_on
 		local col3 = (printspeed >= 100) and col_off or col_on
 		
-		draw.SimpleText( digit_1, "simfphysfont4", x * 1.08, y * 1.11, col1, 1, 1 )
-		draw.SimpleText( digit_2/ 10, "simfphysfont4", x * 1.045, y * 1.11, col2, 1, 1 )
-		draw.SimpleText( digit_3 / 100, "simfphysfont4", x * 1.01, y * 1.11, col3, 1, 1 )
+		draw.SimpleText( digit_1, "simfphysfont4", x * 1.08 + o_x, y * 1.11 + o_y, col1, 1, 1 )
+		draw.SimpleText( digit_2/ 10, "simfphysfont4", x * 1.045 + o_x, y * 1.11 + o_y, col2, 1, 1 )
+		draw.SimpleText( digit_3 / 100, "simfphysfont4", x * 1.01 + o_x, y * 1.11 +  o_y, col3, 1, 1 )
 		
 		sm_throttle = sm_throttle + (throttle - sm_throttle) * 0.1
 		local t_size = (sizey * 0.1)
-		draw.RoundedBox( 0, x * 1.12, y * 1.06, sizex * 0.007, sizey * 0.1, Color(150,150,150,50) )
-		draw.RoundedBox( 0, x * 1.12, y * 1.06 + t_size - t_size * math.min(sm_throttle / 100,1), sizex * 0.007, t_size * math.min(sm_throttle / 100,1), Color(255,255,255,150) )
+		draw.RoundedBox( 0, x * 1.12 + o_x, y * 1.06 + o_y, sizex * 0.007, sizey * 0.1, Color(150,150,150,50) )
+		draw.RoundedBox( 0, x * 1.12 + o_x, y * 1.06 + t_size - t_size * math.min(sm_throttle / 100,1) + o_y, sizex * 0.007, t_size * math.min(sm_throttle / 100,1), Color(255,255,255,150) )
 		
 		return
 	end
-
-	if (cruisecontrol) then
-		draw.SimpleText( "cruise", "simfphysfont", xpos + sizex * 0.115, ypos + sizey * 0.035, Color( 255, 127, 0, 255 ), 2, 1 )
+	
+	if cruisecontrol then
+		draw.SimpleText( "cruise", "simfphysfont", xpos + sizex * 0.115 + o_x, ypos + sizey * 0.035 + o_y, Color( 255, 127, 0, 255 ), 2, 1 )
 	end
 
-	draw.RoundedBox( 8, xpos, ypos, sizex * 0.118, sizey * 0.075, Color( 0, 0, 0, 80 ) )
+	draw.RoundedBox( 8, xpos + o_x, ypos + o_y, sizex * 0.118, sizey * 0.075, Color( 0, 0, 0, 80 ) )
 	
-	draw.SimpleText( "Throttle: "..throttle.." %", "simfphysfont", xpos + sizex * 0.005, ypos + sizey * 0.035, Color( 255, 235, 0, 255 ), 0, 1)
+	draw.SimpleText( "Throttle: "..throttle.." %", "simfphysfont", xpos + sizex * 0.005 + o_x, ypos + sizey * 0.035 + o_y, Color( 255, 235, 0, 255 ), 0, 1)
 	
-	draw.SimpleText( "RPM: "..math.Round(rpm,0)..Active, "simfphysfont", xpos + sizex * 0.005, ypos + sizey * 0.012, Color( 255, 235 * (1 - redline), 0, 255 ), 0, 1 )
+	draw.SimpleText( "RPM: "..math.Round(rpm,0)..Active, "simfphysfont", xpos + sizex * 0.005 + o_x, ypos + sizey * 0.012 + o_y, Color( 255, 235 * (1 - redline), 0, 255 ), 0, 1 )
 	
-	draw.SimpleText( "GEAR:", "simfphysfont", xpos + sizex * 0.062, ypos + sizey * 0.012, Color( 255, 235, 0, 255 ), 0, 1 )
-	draw.SimpleText( DrawGear, "simfphysfont", xpos + sizex * 0.11, ypos + sizey * 0.012, Color( 255, 235, 0, 255 ), 2, 1 )
+	draw.SimpleText( "GEAR:", "simfphysfont", xpos + sizex * 0.062 + o_x, ypos + sizey * 0.012 + o_y, Color( 255, 235, 0, 255 ), 0, 1 )
+	draw.SimpleText( DrawGear, "simfphysfont", xpos + sizex * 0.11 + o_x, ypos + sizey * 0.012 + o_y, Color( 255, 235, 0, 255 ), 2, 1 )
 	
-	draw.SimpleText( (Hudreal and mph or wiremph).." mph", "simfphysfont", xpos + sizex * 0.005, ypos + sizey * 0.062, Color( 255, 235, 0, 255 ), 0, 1 )
+	draw.SimpleText( (Hudreal and mph or wiremph).." mph", "simfphysfont", xpos + sizex * 0.005 + o_x, ypos + sizey * 0.062 + o_y, Color( 255, 235, 0, 255 ), 0, 1 )
 	
-	draw.SimpleText( (Hudreal and kmh or wirekmh).." kmh", "simfphysfont", xpos + sizex * 0.11, ypos + sizey * 0.062, Color( 255, 235, 0, 255 ), 2, 1 )
+	draw.SimpleText( (Hudreal and kmh or wirekmh).." kmh", "simfphysfont", xpos + sizex * 0.11 + o_x, ypos + sizey * 0.062 + o_y, Color( 255, 235, 0, 255 ), 2, 1 )
 end
 
 local turnmode = 0
