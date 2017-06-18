@@ -49,6 +49,19 @@ end
 
 if SERVER then
 	util.AddNetworkString( "simfphys_settings" )
+	util.AddNetworkString( "simfphys_turnsignal" )
+	
+	net.Receive( "simfphys_turnsignal", function( length, ply )
+		local ent = net.ReadEntity()
+		local mode = net.ReadInt( 32 ) 
+		
+		if not IsValid( ent ) then return end
+		
+		net.Start( "simfphys_turnsignal" )
+			net.WriteEntity( ent )
+			net.WriteInt( mode, 32 )
+		net.Broadcast()
+	end )
 	
 	net.Receive( "simfphys_settings", function( length, ply )
 		if not IsValid( ply ) or not ply:IsSuperAdmin() then return end

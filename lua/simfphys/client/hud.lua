@@ -34,6 +34,8 @@ local isMouseSteer = false
 local hasCounterSteerEnabled = false
 local slushbox = false
 
+local turnmenu = KEY_COMMA
+
 local ms_sensitivity = 1
 local ms_fade = 1
 local ms_deadzone = 1.5
@@ -55,6 +57,8 @@ cvars.AddChangeCallback( "cl_simfphys_ms_deadzone", function( convar, oldValue, 
 cvars.AddChangeCallback( "cl_simfphys_ms_exponent", function( convar, oldValue, newValue ) ms_exponent = tonumber( newValue ) end)
 cvars.AddChangeCallback( "cl_simfphys_ms_keyfreelook", function( convar, oldValue, newValue ) ms_key_freelook = tonumber( newValue ) end)
 
+cvars.AddChangeCallback( "cl_simfphys_key_turnmenu", function( convar, oldValue, newValue ) turnmenu = tonumber( newValue ) end)
+
 ShowHud = GetConVar( "cl_simfphys_hud" ):GetBool()
 ShowHud_ms = GetConVar( "cl_simfphys_ms_hud" ):GetBool()
 AltHud = GetConVar( "cl_simfphys_althud" ):GetBool()
@@ -65,6 +69,8 @@ isMouseSteer = GetConVar( "cl_simfphys_mousesteer" ):GetBool()
 hasCounterSteerEnabled = GetConVar( "cl_simfphys_ctenable" ):GetBool()
 slushbox = GetConVar( "cl_simfphys_auto" ):GetBool()
 
+turnmenu = GetConVar( "cl_simfphys_key_turnmenu" ):GetInt()
+
 ms_sensitivity = GetConVar( "cl_simfphys_ms_sensitivity" ):GetFloat()
 ms_fade = GetConVar( "cl_simfphys_ms_return" ):GetFloat()
 ms_deadzone = GetConVar( "cl_simfphys_ms_deadzone" ):GetFloat()
@@ -73,6 +79,14 @@ ms_key_freelook = GetConVar( "cl_simfphys_ms_keyfreelook" ):GetInt()
 
 local ms_pos_x = 0
 local sm_throttle = 0
+
+local function DrawCircle( X, Y, radius )
+	local segmentdist = 360 / ( 2 * math.pi * radius / 2 )
+	
+	for a = 0, 360 - segmentdist, segmentdist do
+		surface.DrawLine( X + math.cos( math.rad( a ) ) * radius, Y - math.sin( math.rad( a ) ) * radius, X + math.cos( math.rad( a + segmentdist ) ) * radius, Y - math.sin( math.rad( a + segmentdist ) ) * radius )
+	end
+end
 
 hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
 	if ply ~= LocalPlayer() then return end
@@ -286,22 +300,135 @@ local function drawsimfphysHUD(vehicle)
 	draw.SimpleText( (Hudreal and kmh or wirekmh).." kmh", "simfphysfont", xpos + sizex * 0.11, ypos + sizey * 0.062, Color( 255, 235, 0, 255 ), 2, 1 )
 end
 
+local turnmode = 0
+local turnmenu_wasopen = false
+
+local function drawTurnMenu( vehicle )
+	
+	if input.IsKeyDown( GetConVar( "cl_simfphys_keyforward" ):GetInt() ) or  input.IsKeyDown( GetConVar( "cl_simfphys_key_air_forward" ):GetInt() ) then
+		turnmode = 0
+	end
+	
+	if input.IsKeyDown( GetConVar( "cl_simfphys_keyleft" ):GetInt() ) or input.IsKeyDown( GetConVar( "cl_simfphys_key_air_left" ):GetInt() ) then
+		turnmode = 2
+	end
+	
+	if input.IsKeyDown( GetConVar( "cl_simfphys_keyright" ):GetInt() ) or input.IsKeyDown( GetConVar( "cl_simfphys_key_air_right" ):GetInt() ) then
+		turnmode = 3
+	end
+	
+	if input.IsKeyDown( GetConVar( "cl_simfphys_keyreverse" ):GetInt() ) or input.IsKeyDown( GetConVar( "cl_simfphys_key_air_reverse" ):GetInt() ) then
+		turnmode = 1
+	end
+	
+	local cX = ScrW() / 2
+	local cY = ScrH() / 2
+	
+	local sx = sizex * 0.065
+	local sy = sizex * 0.065
+	
+	local selectorX = (turnmode == 2 and (-sx - 1) or 0) + (turnmode == 3 and (sx + 1) or 0)
+	local selectorY = (turnmode == 0 and (-sy - 1) or 0)
+	
+	draw.RoundedBox( 8, cX - sx * 0.5 - 1 + selectorX, cY - sy * 0.5 - 1 + selectorY, sx + 2, sy + 2, Color( 240, 200, 0, 255 ) )
+	draw.RoundedBox( 8, cX - sx * 0.5 + selectorX, cY - sy * 0.5 + selectorY, sx, sy, Color( 50, 50, 50, 255 ) )
+	
+	draw.RoundedBox( 8, cX - sx * 0.5, cY - sy * 0.5, sx, sy, Color( 0, 0, 0, 100 ) )
+	draw.RoundedBox( 8, cX - sx * 0.5, cY - sy * 1.5 - 1, sx, sy, Color( 0, 0, 0, 100 ) )
+	draw.RoundedBox( 8, cX - sx * 1.5 - 1, cY - sy * 0.5, sx, sy, Color( 0, 0, 0, 100 ) )
+	draw.RoundedBox( 8, cX + sx * 0.5 + 1, cY - sy * 0.5, sx, sy, Color( 0, 0, 0, 100 ) )
+	
+	surface.SetDrawColor( 240, 200, 0, 100 ) 
+	--X
+	if turnmode == 0 then
+		surface.SetDrawColor( 240, 200, 0, 255 ) 
+	end
+	surface.DrawLine( cX - sx * 0.3, cY - sy - sy * 0.3, cX + sx * 0.3, cY - sy + sy * 0.3 )
+	surface.DrawLine( cX + sx * 0.3, cY - sy - sy * 0.3, cX - sx * 0.3, cY - sy + sy * 0.3 )
+	surface.SetDrawColor( 240, 200, 0, 100 ) 
+	
+	-- <=
+	if turnmode == 2 then
+		surface.SetDrawColor( 240, 200, 0, 255 ) 
+	end
+	surface.DrawLine( cX - sx + sx * 0.3, cY - sy * 0.15, cX - sx + sx * 0.3, cY + sy * 0.15 )
+	surface.DrawLine( cX - sx + sx * 0.3, cY + sy * 0.15, cX - sx, cY + sy * 0.15 )
+	surface.DrawLine( cX - sx + sx * 0.3, cY - sy * 0.15, cX - sx, cY - sy * 0.15 )
+	surface.DrawLine( cX - sx, cY - sy * 0.3, cX - sx, cY - sy * 0.15 )
+	surface.DrawLine( cX - sx, cY + sy * 0.3, cX - sx, cY + sy * 0.15 )
+	surface.DrawLine( cX - sx, cY + sy * 0.3, cX - sx - sx * 0.3, cY )
+	surface.DrawLine( cX - sx, cY - sy * 0.3, cX - sx - sx * 0.3, cY )
+	surface.SetDrawColor( 240, 200, 0, 100 ) 
+	
+	-- =>
+	if turnmode == 3 then
+		surface.SetDrawColor( 240, 200, 0, 255 ) 
+	end
+	surface.DrawLine( cX + sx - sx * 0.3, cY - sy * 0.15, cX + sx - sx * 0.3, cY + sy * 0.15 )
+	surface.DrawLine( cX + sx - sx * 0.3, cY + sy * 0.15, cX + sx, cY + sy * 0.15 )
+	surface.DrawLine( cX + sx - sx * 0.3, cY - sy * 0.15, cX + sx, cY - sy * 0.15 )
+	surface.DrawLine( cX + sx, cY - sy * 0.3, cX + sx, cY - sy * 0.15 )
+	surface.DrawLine( cX + sx, cY + sy * 0.3, cX + sx, cY + sy * 0.15 )
+	surface.DrawLine( cX + sx, cY + sy * 0.3, cX + sx + sx * 0.3, cY )
+	surface.DrawLine( cX + sx, cY - sy * 0.3, cX + sx + sx * 0.3, cY )
+	surface.SetDrawColor( 240, 200, 0, 100 ) 
+	
+	-- ^
+	if turnmode == 1 then
+		surface.SetDrawColor( 240, 200, 0, 255 ) 
+	end
+	surface.DrawLine( cX, cY - sy * 0.4, cX + sx * 0.4, cY + sy * 0.3 )
+	surface.DrawLine( cX, cY - sy * 0.4, cX - sx * 0.4, cY + sy * 0.3 )
+	surface.DrawLine( cX + sx * 0.4, cY + sy * 0.3, cX - sx * 0.4, cY + sy * 0.3 )
+	surface.DrawLine( cX, cY - sy * 0.26, cX + sx * 0.3, cY + sy * 0.24 )
+	surface.DrawLine( cX, cY - sy * 0.26, cX - sx * 0.3, cY + sy * 0.24 )
+	surface.DrawLine( cX + sx * 0.3, cY + sy * 0.24, cX - sx * 0.3, cY + sy * 0.24 )
+	
+	surface.SetDrawColor( 255, 255, 255, 255 ) 
+end
+
 local function simfphysHUD()
 	local ply = LocalPlayer()
+	local turnmenu_isopen = false
 	
-	if not IsValid( ply ) or not ply:Alive() then return end
+	if not IsValid( ply ) or not ply:Alive() then turnmenu_wasopen = false return end
 
 	local vehicle = ply:GetVehicle()
-	if not IsValid( vehicle ) then return end
+	if not IsValid( vehicle ) then turnmenu_wasopen = false return end
 	
 	local vehiclebase = vehicle.vehiclebase
 	
-	if not IsValid( vehiclebase ) then return end
+	if not IsValid( vehiclebase ) then turnmenu_wasopen = false return end
 	
 	local IsDriverSeat = vehicle == vehiclebase:GetDriverSeat()
-	if not IsDriverSeat then return end
+	if not IsDriverSeat then turnmenu_wasopen = false return end
 	
-	drawsimfphysHUD(vehiclebase)
+	drawsimfphysHUD( vehiclebase )
+	
+	if vehiclebase.HasTurnSignals and input.IsKeyDown( turnmenu ) then
+		turnmenu_isopen = true
+		
+		drawTurnMenu( vehiclebase )
+	end
+	
+	if turnmenu_isopen ~= turnmenu_wasopen then
+		turnmenu_wasopen = turnmenu_isopen
+		
+		if turnmenu_isopen then
+			turnmode = 0
+		else			
+			net.Start( "simfphys_turnsignal" )
+				net.WriteEntity( vehiclebase )
+				net.WriteInt( turnmode, 32 )
+			net.SendToServer()
+			
+			if turnmode == 1 or turnmode == 2 or turnmode == 3 then
+				vehiclebase:EmitSound( "simulated_vehicles/sfx/indicator_start1.wav" )
+			else
+				vehiclebase:EmitSound( "simulated_vehicles/sfx/indicator_end1.wav" )
+			end
+		end
+	end
 end
 hook.Add( "HUDPaint", "simfphys_HUD", simfphysHUD)
 

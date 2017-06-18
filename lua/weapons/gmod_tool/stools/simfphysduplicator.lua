@@ -556,7 +556,9 @@ function TOOL:LeftClick( trace )
 				[1] = {Ent.FrontConstantOverride,Ent.FrontDampingOverride},
 				[2] = {Ent.FrontConstantOverride,Ent.FrontDampingOverride},
 				[3] = {Ent.RearConstantOverride,Ent.RearDampingOverride},
-				[4] = {Ent.RearConstantOverride,Ent.RearDampingOverride}
+				[4] = {Ent.RearConstantOverride,Ent.RearDampingOverride},
+				[5] = {Ent.RearConstantOverride,Ent.RearDampingOverride},
+				[6] = {Ent.RearConstantOverride,Ent.RearDampingOverride}
 			}
 			
 			local elastics = Ent.Elastics

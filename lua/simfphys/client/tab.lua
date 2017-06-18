@@ -53,6 +53,7 @@ local k_abck = CreateClientConVar( "cl_simfphys_key_air_reverse", KEY_PAD_2, tru
 local k_aleft = CreateClientConVar( "cl_simfphys_key_air_left", k_left:GetInt(), true, true )
 local k_aright = CreateClientConVar( "cl_simfphys_key_air_right", k_right:GetInt(), true, true )
 local k_lock = CreateClientConVar( "cl_simfphys_key_lock", KEY_NONE, true, true )
+local k_turnmenu = CreateClientConVar( "cl_simfphys_key_turnmenu", KEY_COMMA, true, true )
 
 local k_list = {
 	{k_fwd,KEY_W,"Forward"},
@@ -74,6 +75,7 @@ local k_list = {
 	{k_aleft,KEY_A,"Tilt Left"},
 	{k_aright,KEY_D,"Tilt Right"},
 	{k_lock,KEY_NONE ,"Lock / Unlock"},
+	{k_turnmenu, KEY_COMMA, "Turnsignals"},
 }
 
 local function simplebinder( x, y, tbl, num, parent)

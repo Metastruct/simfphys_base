@@ -8,7 +8,6 @@ function ENT:Initialize()
 	self.OldGear = 0
 	self.OldThrottle = 0
 	self.FadeThrottle = 0
-	
 	self.SoundMode = 0
 	
 	self.DamageSnd = CreateSound(self, "simulated_vehicles/engine_damaged.wav")
@@ -28,7 +27,15 @@ function ENT:Think()
 		self:ManageSounds( Active, Throttle, LimitRPM )
 		self:ManageEffects( Active, Throttle, LimitRPM )
 		
-		self.RunNext = curtime + 0.03
+		local flashspeed = self.turnsignals_damaged and 0.08 or 0.035
+		
+		self.Flasher = self.Flasher and self.Flasher + flashspeed or 0
+		
+		if self.Flasher >= 1 then
+			self.Flasher = self.Flasher - 1
+		end
+		
+		self.RunNext = curtime + 0.06
 	end
 	
 	self:SetPoseParameters( curtime )
@@ -36,6 +43,27 @@ function ENT:Think()
 	self:NextThink( curtime )
 	
 	return true
+end
+
+function ENT:GetFlasher()
+	self.Flasher = self.Flasher or 0
+	
+	local flasher = math.min( math.abs( math.cos( math.rad( self.Flasher * 360 ) ) ^ 2 * 1.5 ) , 1)
+	
+	if LocalPlayer() == self:GetDriver() then
+		local fl_snd = flasher > 0.5
+		
+		if fl_snd ~= self.fl_snd then
+			self.fl_snd = fl_snd
+			if fl_snd then
+				self:EmitSound( "simulated_vehicles/sfx/indicator_click2.wav" )
+			else
+				self:EmitSound( "simulated_vehicles/sfx/indicator_click1.wav" )
+			end
+		end
+	end
+	
+	return flasher
 end
 
 function ENT:SetPoseParameters( curtime )
