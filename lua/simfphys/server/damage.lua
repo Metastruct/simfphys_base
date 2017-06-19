@@ -118,7 +118,9 @@ local function HurtPlayers( ent, damage )
 	local Driver = ent:GetDriver()
 	
 	if IsValid( Driver ) then
-		Driver:TakeDamage(damage, Entity(0), ent )
+		if ent.RemoteDriver ~= Driver then
+			Driver:TakeDamage(damage, Entity(0), ent )
+		end
 	end
 	
 	if ent.PassengerSeats then
