@@ -89,12 +89,11 @@ local function DestroyVehicle( ent )
 	ent:Remove()
 end
 
-local function DamageVehicle( ent , damage )
+local function DamageVehicle( ent , damage, type )
 	if not simfphys.DamageEnabled then return end
 	
 	local MaxHealth = ent:GetMaxHealth()
 	local CurHealth = ent:GetCurHealth()
-	if CurHealth <= 0 then return end
 	
 	local NewHealth = math.max( math.Round(CurHealth - damage,0) , 0 )
 	
@@ -107,7 +106,26 @@ local function DamageVehicle( ent , damage )
 		end
 	end
 	
-	if NewHealth <= 0 then DestroyVehicle( ent ) return end
+	if MaxHealth > 30 and NewHealth <= 31 then
+		if ent:EngineActive() then
+			ent:DamagedStall()
+		end
+	end
+	
+	if NewHealth <= 0 then
+		if type ~= DMG_GENERIC and type ~= DMG_CRUSH or damage > 400 then
+			
+			DestroyVehicle( ent )
+			
+			return
+		end
+		
+		if ent:EngineActive() then
+			ent:DamagedStall()
+		end
+		
+		return
+	end
 	
 	ent:SetCurHealth( NewHealth )
 end
@@ -189,7 +207,6 @@ local function OnDamage( ent, dmginfo )
 	local DamagePos = dmginfo:GetDamagePosition() 
 	local Type = dmginfo:GetDamageType()
 	local Driver = ent:GetDriver()
-	
 	bcDamage( ent , ent:WorldToLocal( DamagePos ) )
 	
 	local Mul = 1
@@ -201,7 +218,7 @@ local function OnDamage( ent, dmginfo )
 		Mul = 2
 	end
 	
-	DamageVehicle( ent , Damage * Mul )
+	DamageVehicle( ent , Damage * Mul, Type )
 	
 	if ent.IsArmored then return end
 	

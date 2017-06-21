@@ -723,7 +723,15 @@ function ENT:StopEngine()
 	end
 end
 
+function ENT:CanStart()
+	local canstart = self:GetCurHealth() > self:GetMaxHealth() * 0.1
+	
+	return canstart
+end
+
 function ENT:StartEngine( bIgnoreSettings )
+	if not self:CanStart() then return end
+	
 	if not self:EngineActive() then
 		if not bIgnoreSettings then
 			self.CurrentGear = 2
@@ -1201,7 +1209,13 @@ function ENT:DamageLoop()
 	
 	if CurHealth <= 0 then return end
 	
-	self:TakeDamage(1, Entity(0), Entity(0) )
+	if self:GetMaxHealth() > 30 then
+		if CurHealth > 30 then
+			self:TakeDamage(1, Entity(0), Entity(0) )
+		elseif CurHealth < 30 then
+			self:SetCurHealth( CurHealth + 1 )
+		end
+	end
 	
 	timer.Simple( 0.15, function()
 		if IsValid( self ) then
