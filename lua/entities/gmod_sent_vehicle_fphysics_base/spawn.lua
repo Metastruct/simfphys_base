@@ -5,7 +5,12 @@ function ENT:Initialize()
 	self:SetNotSolid( true )
 	self:SetUseType( SIMPLE_USE )
 	self:SetRenderMode( RENDERMODE_TRANSALPHA )
-	self:GetPhysicsObject():EnableMotion(false) 
+	
+	local PObj = self:GetPhysicsObject()
+	if not IsValid( PObj ) then print("[SIMFPHYS] ERROR COULDN'T INITIALIZE VEHICLE! '"..self:GetModel().."' has no physics model!") return end
+	
+	PObj:EnableMotion( false )
+	
 	self:SetValues()
 	
 	timer.Simple( 0.1, function()
@@ -422,7 +427,9 @@ function ENT:SetupVehicle()
 	if self.CustomWheels then
 		if self.CustomWheelModel then
 			if not file.Exists( self.CustomWheelModel, "GAME" ) then 
-				self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" does not exist! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+				if IsValid( self.EntityOwner ) then
+					self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" does not exist! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+				end
 				self:Remove()
 				return
 			end
@@ -440,7 +447,9 @@ function ENT:SetupVehicle()
 				if IsValid(pobj) then
 					pobj:EnableMotion(false)
 				else
-					self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" doesn't have an collision model! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+					if IsValid( self.EntityOwner ) then
+						self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" doesn't have an collision model! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+					end
 					self.SteerMaster:Remove()
 					self:Remove()
 					
@@ -468,7 +477,9 @@ function ENT:SetupVehicle()
 				if IsValid(pobj) then
 					pobj:EnableMotion(false)
 				else
-					self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" doesn't have an collision model! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+					if IsValid( self.EntityOwner ) then
+						self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" doesn't have an collision model! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+					end
 					self.SteerMaster2:Remove()
 					self:Remove()
 					return
@@ -500,7 +511,9 @@ function ENT:SetupVehicle()
 				self:CreateWheel(6, WheelMR, self:LocalToWorld( self.CustomWheelPosMR ), self.RearHeight, self.RearWheelRadius, true , self:LocalToWorld( self.CustomWheelPosMR + Vector(0,0,self.CustomSuspensionTravel * 0.5) ), self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
 			end
 		else
-			self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: no wheel model defined. Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+			if IsValid( self.EntityOwner ) then
+				self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: no wheel model defined. Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+			end
 			self:Remove()
 		end
 	else
