@@ -54,6 +54,31 @@ end
 local function UpdateSubMats(ent, Lowbeam, Highbeam, IsBraking, IsReversing )
 	if not istable( ent.SubMaterials ) then return end
 	
+	if ent.SubMaterials.turnsignals then
+		local IsTurningLeft = ent.signal_left
+		local IsTurningRight = ent.signal_right
+		local IsFlashing = ent:GetFlasher() == 1
+		
+		if ent.WasTurningLeft ~= IsTurningLeft or ent.WasTurningRight ~= IsTurningRight or ent.WasFlashing ~= IsFlashing then
+			if ent.SubMaterials.turnsignals.left then
+				for k,v in pairs( ent.SubMaterials.turnsignals.left ) do
+					local mat = (IsFlashing and IsTurningLeft) and v or ""
+					ent:SetSubMaterial( k, mat )
+				end
+			end
+			if ent.SubMaterials.turnsignals.right then
+				for k,v in pairs( ent.SubMaterials.turnsignals.right ) do
+					local mat = (IsFlashing and IsTurningRight) and v or ""
+					ent:SetSubMaterial( k, mat )
+				end
+			end
+			
+			ent.WasTurningLeft = IsTurningLeft
+			ent.WasTurningRight = IsTurningRight
+			ent.WasFlashing = IsFlashing 
+		end
+	end
+	
 	if ent.WasReversing == IsReversing and ent.WasBraking == IsBraking and ent.WasLowbeam == Lowbeam and ent.WasHighbeam == Highbeam then return end
 	
 	if Lowbeam then
