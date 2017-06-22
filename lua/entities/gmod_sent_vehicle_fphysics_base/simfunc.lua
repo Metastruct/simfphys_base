@@ -66,7 +66,7 @@ function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 	if self.Gears[self.CurrentGear] == 0 then
 		self.GearRatio = 1
 		self.Clutch = 1
-		self.HandBrake = self.HandBrakePower
+		self.HandBrake = self.HandBrake + (self.HandBrakePower - self.HandBrake) * 0.2
 	else
 		self.GearRatio = self.Gears[self.CurrentGear] * self:GetDiffGear()
 	end
