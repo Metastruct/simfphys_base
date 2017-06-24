@@ -281,6 +281,13 @@ local function drawsimfphysHUD(vehicle)
 		draw.RoundedBox( 0, x * 1.12 + o_x, y * 1.06 + o_y, sizex * 0.007, sizey * 0.1, Color(150,150,150,50) )
 		draw.RoundedBox( 0, x * 1.12 + o_x, y * 1.06 + t_size - t_size * math.min(sm_throttle / 100,1) + o_y, sizex * 0.007, t_size * math.min(sm_throttle / 100,1), Color(255,255,255,150) )
 		
+		local fuel = vehicle:GetFuel() / vehicle:GetMaxFuel()
+		draw.RoundedBox( 0, x * 1.135 + o_x, y * 1.06 + o_y, sizex * 0.007, sizey * 0.1, Color(150,150,150,50) )
+		draw.RoundedBox( 0, x * 1.135 + o_x, y * 1.06 + t_size - t_size * fuel + o_y, sizex * 0.007, t_size * fuel, Color(200,200,0,150) )
+		
+		draw.SimpleText( tostring( math.Round( vehicle:GetFuelUse(),2) ).." L/min", "simfphysfont3", x * 1.08 + o_x, y * 1.2 + o_y, Color(255,255,255,50), 1, 1 )
+		draw.SimpleText( tostring( math.Round( (100 / wirekmh) * vehicle:GetFuelUse() * 60,0) ).." L/100km", "simfphysfont3", x * 0.96 + o_x, y * 1.2 + o_y, Color(255,255,255,50), 1, 1 )
+		
 		return
 	end
 	

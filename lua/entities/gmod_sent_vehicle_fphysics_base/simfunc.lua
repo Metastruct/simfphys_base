@@ -57,6 +57,7 @@ end
 function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 	local PObj = self:GetPhysicsObject()
 	
+	local IsRunning = self:EngineActive()
 	local Throttle = self:GetThrottle()
 	
 	if not self:IsDriveWheelsOnGround() then
@@ -104,14 +105,32 @@ function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 	
 	local GearedPower = ((self.ThrottleDelay <= c_time and (self.Torque + TorqueDiff) * signThrottle * signGearRatio or 0) - EngineBrake) / math.abs(self.GearRatio) / 50
 	
-	self.EngineTorque = self.EngineIsOn == 1 and GearedPower * InvClutch or 0
+	self.EngineTorque = IsRunning and GearedPower * InvClutch or 0
 	
 	if not self:GetDoNotStall() then
-		if self:EngineActive() then
+		if IsRunning then
 			if self.EngineRPM <= IdleRPM * 0.2 then
 				self.CurrentGear = 2
 				self:StallAndRestart()
 			end
+		end
+	end
+	
+	if simfphys.Fuel then
+		local FuelUse = (Throttle * 0.3 + 0.7) * ((self.EngineRPM / LimitRPM) * MaxTorque + self.Torque) / 1500000
+		local Fuel = self:GetFuel()
+		self:SetFuel( Fuel - FuelUse * (1 / simfphys.FuelMul) )
+		
+		self.UsedFuel = self.UsedFuel and (self.UsedFuel + FuelUse) or 0
+		self.CheckUse = self.CheckUse or 0
+		if self.CheckUse < CurTime() then
+			self.CheckUse = CurTime() + 1
+			self:SetFuelUse( self.UsedFuel * 60 )
+			self.UsedFuel = 0
+		end
+		
+		if Fuel <= 0 and IsRunning then
+			self:StopEngine()
 		end
 	end
 	

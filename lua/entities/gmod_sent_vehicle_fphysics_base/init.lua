@@ -702,7 +702,7 @@ function ENT:DamagedStall()
 	local rtimer = 0.8
 	
 	timer.Simple( rtimer, function()
-		if not IsValid(self) then return end
+		if not IsValid( self ) then return end
 		net.Start( "simfphys_backfire" )
 			net.WriteEntity( self )
 		net.Broadcast()
@@ -724,7 +724,8 @@ function ENT:StopEngine()
 end
 
 function ENT:CanStart()
-	local canstart = self:GetCurHealth() > self:GetMaxHealth() * 0.1
+	local FuelSystemOK = simfphys.Fuel and self:GetFuel() > 0 or true
+	local canstart = self:GetCurHealth() > (self:GetMaxHealth() * 0.1) and FuelSystemOK
 	
 	return canstart
 end
@@ -1249,4 +1250,16 @@ end
 
 function ENT:SetCurHealth( nHealth )
 	self:SetNWFloat( "Health", nHealth )
+end
+
+function ENT:SetMaxFuel( nFuel )
+	self:SetNWFloat( "MaxFuel", nFuel )
+end
+
+function ENT:SetFuel( nFuel )
+	self:SetNWFloat( "Fuel", math.Clamp( nFuel,0,self:GetMaxFuel() ) )
+end
+
+function ENT:SetFuelUse( nFuel )
+	self:SetNWFloat( "FuelUse", nFuel )
 end

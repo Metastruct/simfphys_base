@@ -404,6 +404,23 @@ local function buildserversettingsmenu( self )
 		GibRemoveTimer:SetValue( GetConVar( "sv_simfphys_gib_lifetime" ):GetInt() )
 		
 		y = y + 45
+		local CheckBoxFuel = vgui.Create( "DCheckBoxLabel", self.PropPanel)
+		CheckBoxFuel:SetPos( 25, y )
+		CheckBoxFuel:SetText( "Enable Fuelsystem" )
+		CheckBoxFuel:SetValue( GetConVar( "sv_simfphys_fuel" ) :GetInt() )
+		CheckBoxFuel:SizeToContents()
+		
+		y = y + 18
+		local ScaleFuel = vgui.Create( "DNumSlider", self.PropPanel)
+		ScaleFuel:SetPos( 30, y )
+		ScaleFuel:SetSize( 345, 30 )
+		ScaleFuel:SetText( "Fuel tank size multiplier" )
+		ScaleFuel:SetMin( 0 )
+		ScaleFuel:SetMax( 1 )
+		ScaleFuel:SetDecimals( 2 )
+		ScaleFuel:SetValue( GetConVar( "sv_simfphys_fuelscale" ):GetFloat() )
+		
+		y = y + 45
 		local tractionLabel = vgui.Create( "DLabel", self.PropPanel )
 		tractionLabel:SetPos( 25, y )
 		tractionLabel:SetText( "Traction Multiplicator for:" )
@@ -439,6 +456,8 @@ local function buildserversettingsmenu( self )
 				net.WriteFloat( GibRemoveTimer:GetValue() )
 				net.WriteFloat( DamageMul:GetValue() )
 				net.WriteBool( CheckBoxpDamage:GetChecked() )
+				net.WriteBool( CheckBoxFuel:GetChecked() )
+				net.WriteFloat( ScaleFuel:GetValue() )
 				net.WriteTable( NewTractionData ) 
 			net.SendToServer()
 		end
@@ -473,12 +492,16 @@ local function buildserversettingsmenu( self )
 			GibRemoveTimer:SetValue( 120 )
 			DamageMul:SetValue( 1 )
 			CheckBoxpDamage:SetValue( 1 )
+			CheckBoxFuel:SetValue( 1 )
+			ScaleFuel:SetValue( 0.1 )
 			
 			net.Start("simfphys_settings")
 				net.WriteBool( true )
 				net.WriteFloat( 120 )
 				net.WriteFloat( 1 )
 				net.WriteBool( true )
+				net.WriteBool( true )
+				net.WriteFloat( 0.1 )
 				net.WriteTable( NewTractionData ) 
 			net.SendToServer()
 		end
@@ -509,8 +532,21 @@ local function buildserversettingsmenu( self )
 		Label:SetPos( 30, y )
 		Label:SetText( (lifetime > 0) and ("Gib Lifetime = "..lifetime.." seconds") or "Gibs never despawn" )
 		Label:SizeToContents()
+		
+		y = y + 25
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y )
+		Label:SetText( "Vehicles "..(GetConVar( "sv_simfphys_fuel" ):GetBool() and "are running on fuel" or "don't use fuel") )
+		Label:SizeToContents()
+		
+		y = y + 25
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		local fuelscale = math.Round( GetConVar( "sv_simfphys_fuelscale" ):GetFloat() , 3 )
+		Label:SetPos( 30, y )
+		Label:SetText( "Fuel tank size multiplier is: "..fuelscale )
+		Label:SizeToContents()
 
-		y = y + 45
+		y = y + 40
 		local Label = vgui.Create( "DLabel", self.PropPanel )
 		Label:SetPos( 30, y )
 		Label:SetText( "Traction multiplier for..." )

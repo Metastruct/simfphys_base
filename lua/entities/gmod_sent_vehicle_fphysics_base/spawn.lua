@@ -126,6 +126,9 @@ function ENT:InitializeVehicle()
 		physObj:SetInertia( self.Inertia ) 
 	end
 	
+	self:SetMaxFuel( 60 )
+	self:SetFuel( self:GetMaxFuel() )
+	
 	local View = self:SetupView()
 	
 	self.DriverSeat = ents.Create( "prop_vehicle_prisoner_pod" )
