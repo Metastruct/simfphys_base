@@ -26,6 +26,11 @@ local function DestroyVehicle( ent )
 	ent.destroyed = true
 	
 	local ply = ent.EntityOwner
+	local skin = ent:GetSkin()
+	local Col = ent:GetColor()
+	Col.r = Col.r * 0.8
+	Col.g = Col.g * 0.8
+	Col.b = Col.b * 0.8
 	
 	local bprop = ents.Create( "gmod_sent_vehicle_fphysics_gib" )
 	bprop:SetModel( ent:GetModel() )			
@@ -37,6 +42,9 @@ local function DestroyVehicle( ent )
 	bprop:GetPhysicsObject():SetMass( ent.Mass * 0.75 )
 	bprop.DoNotDuplicate = true
 	bprop.MakeSound = true
+	bprop:SetColor( Col )
+	bprop:SetSkin( skin )
+	
 	simfphys.SetOwner( ply , bprop )
 	
 	if IsValid( ply ) then
