@@ -11,7 +11,7 @@ ENT.Spawnable = true
 ENT.AdminOnly = false
 
 function ENT:SetupDataTables()
-	self:NetworkVar( "Entity",0, "TargetVehicle" )
+	self:NetworkVar( "Entity",0, "User" )
 	self:NetworkVar( "Bool",0, "Active" )
 	
 	if SERVER then
@@ -19,7 +19,22 @@ function ENT:SetupDataTables()
 	end
 end
 
+local function bezier(p0, p1, p2, p3, t)
+	local e = p0 + t * (p1 - p0)
+	local f = p1 + t * (p2 - p1)
+	local g = p2 + t * (p3 - p2)
+
+	local h = e + t * (f - e)
+	local i = f + t * (g - f)
+
+	local p = h + t * (i - h)
+
+	return p
+end
+
 if CLIENT then 
+	local cable = Material( "cable/cable2" )
+	
 	surface.CreateFont( "simfphys_gaspump", {
 		font = "Verdana",
 		extended = false,
@@ -38,47 +53,54 @@ if CLIENT then
 		outline = false,
 	} )
 	
-	--[[
-	local fueltype = vehicle:GetFuelType()
-	local fueltype_color = Color(0,127,255,150)
-	if fueltype == 1 then
-		fueltype_color = Color(240,200,0,150)
-	elseif fueltype == 2 then
-		fueltype_color = Color(255,60,0,150)
-	end
-	]]--
-	
-	local cable = Material( "cable/cable2" )
-	local background = Material( "lights/white" )
-	
 	function ENT:Draw()
 		self:DrawModel()
+		
 		local pos = self:LocalToWorld( Vector(10,0,45) )
 		local ang = self:LocalToWorldAngles( Angle(0,90,90) )
+		local ply = self:GetUser()
 		
+		local startPos = self:LocalToWorld( Vector(0.06,-17.77,55.48) )
+		local p2 = self:LocalToWorld( Vector(8,-17.77,30) )
+		local p3 = self:LocalToWorld( Vector(0,-20,30) )
+		local endPos = self:LocalToWorld( Vector(0.06,-20.3,37) )
 		
-		local TargetVehicle = self:GetTargetVehicle()
-		
-		if IsValid( TargetVehicle ) then
-			render.SetMaterial( cable )
-			render.DrawBeam( self:LocalToWorld( Vector(0.06,-17.77,55.48) ), TargetVehicle:GetPos(), 2, 1, 1, Color( 255, 255, 255, 255 ) ) 
+		if IsValid( ply ) then
+			local id = ply:LookupAttachment("anim_attachment_rh")
+			local attachment = ply:GetAttachment( id )
+			
+			if not attachment then return end
+			
+			endPos = (attachment.Pos + attachment.Ang:Forward() * -3 + attachment.Ang:Right() * 2 + attachment.Ang:Up() * -3.5)
+			p3 = endPos + attachment.Ang:Right() * 20 - attachment.Ang:Up() * 20
 		end
 		
-		cam.Start3D2D( pos, ang, 0.1 )
-			surface.SetMaterial( background ) 
+		for i = 1,15 do
+			local active = IsValid( ply )
+			
+			local de = active and 1 or 2
+			
+			if (not active and i > 1) or active then
+			
+				local sp = bezier(startPos, p2, p3, endPos, (i - de) / 15)
+				local ep = bezier(startPos, p2, p3, endPos, i / 15)
+				
+				render.SetMaterial( cable )
+				render.DrawBeam( sp, ep, 2, 1, 1, Color( 100, 100, 100, 255 ) ) 
+			end
+		end
+		
+		cam.Start3D2D( self:LocalToWorld( Vector(10,0,45) ), self:LocalToWorldAngles( Angle(0,90,90) ), 0.1 )
+			draw.NoTexture()
 			surface.SetDrawColor( 0, 0, 0, 255 )
 			surface.DrawTexturedRect( -150, -120, 300, 240 )
 			
 			draw.SimpleText( "***PETROL***", "simfphys_gaspump", 0, -75, Color(240,200,0,150), 1, 1 )
 			draw.SimpleText( "***DIESEL***", "simfphys_gaspump", 0, -50, Color(255,60,0,150), 1, 1 )
 			draw.SimpleText( "***ELECTRIC***", "simfphys_gaspump", 0, -25, Color(0,127,255,150), 1, 1 )
-			draw.SimpleText( "please turn off the engine", "simfphys_gaspump", 0, 50, Color( 255, 255, 255, 255 ), 1, 1 )
 			
-			draw.SimpleText( "Pump Status: "..(self:GetActive() and "On" or "Off"), "simfphys_gaspump", 0, 25, Color( 255, 255, 255, 255 ), 1, 1 )
-			
-			if IsValid( TargetVehicle ) then
-				draw.SimpleText( TargetVehicle:GetSpawn_List(), "simfphys_gaspump", 0, 50, Color( 255, 255, 255, 255 ), 1, 1 )
-			end
+			draw.SimpleText( "Pump Status:", "simfphys_gaspump", 0, 25, Color( 255, 255, 255, 255 ), 1, 1 )
+			draw.SimpleText( (self:GetActive() and ("in use by "..self:GetUser():GetName()) or "Off"), "simfphys_gaspump", 0, 50, Color( 255, 255, 255, 255 ), 1, 1 )
 		cam.End3D2D()
 	end
 	return
@@ -101,8 +123,15 @@ end
 function ENT:Use( ply )
 	if not self:GetActive() then
 		self:SetActive( true )
+		self:SetUser( ply )
+		ply:Give( "weapon_simfillerpistol" )
+		ply:SelectWeapon( "weapon_simfillerpistol" )
 	else
-		self:SetActive( false )
+		if ply == self:GetUser() then
+			ply:StripWeapon( "weapon_simfillerpistol" ) 
+			self:SetActive( false )
+			self:SetUser( NULL )
+		end
 	end
 end
 
@@ -118,7 +147,14 @@ function ENT:OnActiveChanged( name, old, new)
 		self.sound:PlayEx(0,0)
 		self.sound:ChangeVolume( 1,2 )
 		self.sound:ChangePitch( 255,3 )
+		if IsValid( self.PumpEnt ) then
+			self.PumpEnt:SetNoDraw( true )
+		end
 	else
+		if IsValid( self.PumpEnt ) then
+			self.PumpEnt:SetNoDraw( false )
+		end
+		
 		if self.sound then
 			self.sound:ChangeVolume( 0,2 )
 			self.sound:ChangePitch( 0,3 )
@@ -134,46 +170,62 @@ function ENT:Initialize()
 	self:SetRenderMode( RENDERMODE_TRANSALPHA )
 	self:SetUseType( SIMPLE_USE )
 	
-	local PObj = self:GetPhysicsObject()
+	self.PumpEnt = ents.Create( "prop_physics" )
+	self.PumpEnt:SetModel( "models/props_equipment/gas_pump_p13.mdl" )
+	self.PumpEnt:SetPos( self:LocalToWorld( Vector(-0.2,-14.6,45.7)  ) )
+	self.PumpEnt:SetAngles( self:LocalToWorldAngles( Angle(-0.3,92.3,-0.1) ) )
+	self.PumpEnt:SetMoveType( MOVETYPE_NONE )
+	self.PumpEnt:SetSolid( SOLID_NONE )
+	self.PumpEnt:Spawn()
+	self.PumpEnt:Activate()
+	self.PumpEnt:SetParent( self )
 	
-	if not IsValid( PObj ) then print("how the fuck did you break this man") return end
+	local PObj = self:GetPhysicsObject()
+	if not IsValid( PObj ) then return end
 	
 	PObj:EnableMotion( false )
 end
 
 function ENT:Think()	
-	self:NextThink( CurTime() + 1 )
+	self:NextThink( CurTime() + 0.5 )
 	
-	if not self:GetActive() then return end
-	
-	local ents = ents.FindInSphere( self:GetPos(), 150 ) 
-	
-	local TargetVehicle = self:GetTargetVehicle()
-	
-	if not IsValid( TargetVehicle ) or TargetVehicle:EngineActive() or TargetVehicle:GetFuel() == TargetVehicle:GetMaxFuel() then
-		self:SetTargetVehicle( NULL )
-	else
-		self:EmitSound( "vehicles/jetski/jetski_no_gas_start.wav" )
-		TargetVehicle:SetFuel( TargetVehicle:GetFuel() + 5 )
+	local ply = self:GetUser()
+	if IsValid( ply ) then
+		local Dist = (ply:GetPos() - self:GetPos()):Length()
 		
-		return true
-	end
-	
-	for k,v in pairs( ents ) do
-		if simfphys.IsCar( v ) then
-			if not v:EngineActive() then
-				local Fuel = v:GetFuel()
-				if Fuel < v:GetMaxFuel() then
-					self:SetTargetVehicle( v )
+		if ply:Alive() then
+			if ply:InVehicle() then
+				if ply:HasWeapon( "weapon_simfillerpistol" ) then
+					ply:StripWeapon( "weapon_simfillerpistol" ) 
+				end
+				self:Disable()
+			else
+				if ply:HasWeapon( "weapon_simfillerpistol" ) then
+					if ply:GetActiveWeapon():GetClass() ~= "weapon_simfillerpistol" or Dist >= 200 then
+						ply:StripWeapon( "weapon_simfillerpistol" ) 
+						self:Disable()
+					end
+				else
+					self:Disable()
 				end
 			end
+		else
+			self:Disable()
 		end
 	end
 	
 	return true
 end
 
+function ENT:Disable()
+	self:SetUser( NULL )
+	self:SetActive( false )
+end
+
 function ENT:OnRemove()
+	if self.sound then
+		self.sound:Stop()
+	end
 end
 
 function ENT:OnTakeDamage( dmginfo )

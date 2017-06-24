@@ -1,0 +1,8 @@
+VertexLitGeneric
+{
+	$baseTexture "models/props_equipment/gas_pump"
+	$envmap "env_cubemap"
+	$envmapmask "models/props_equipment/gas_pump_ref"
+	$envmapsaturation 0
+	$envmaptint "[ 0.25 0.25 0.25 ]"
+}
