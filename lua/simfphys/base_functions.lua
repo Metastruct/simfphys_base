@@ -13,6 +13,11 @@ simfphys.pDamageEnabled = false
 simfphys.Fuel = true
 simfphys.FuelMul = 0.1
 
+FUELTYPE_NONE = 0
+FUELTYPE_PETROL = 1
+FUELTYPE_DIESEL = 2
+FUELTYPE_ELECTRIC = 3
+
 game.AddParticles("particles/vehicle.pcf")
 game.AddParticles("particles/fire_01.pcf")
 

@@ -228,6 +228,8 @@ local V = {
 		Turbocharged = false,
 		Supercharged = false,
 		
+		FuelTankSize = 80,
+		
 		PowerBias = 1,
 		
 		EngineSoundPreset = -1,
@@ -336,6 +338,9 @@ local V = {
 		Turbocharged = false,
 		Supercharged = false,
 		DoNotStall = true,
+		
+		FuelType = FUELTYPE_ELECTRIC,
+		FuelTankSize = 80,
 		
 		PowerBias = 0,
 		
@@ -525,6 +530,9 @@ local V = {
 		PowerbandEnd = 4500,
 		Turbocharged = false,
 		Supercharged = false,
+		
+		FuelType = FUELTYPE_DIESEL,
+		FuelTankSize = 120,
 		
 		PowerBias = 0,
 		

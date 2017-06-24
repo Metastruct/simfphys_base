@@ -1263,3 +1263,7 @@ end
 function ENT:SetFuelUse( nFuel )
 	self:SetNWFloat( "FuelUse", nFuel )
 end
+
+function ENT:SetFuelType( fueltype )
+	self:SetNWInt( "FuelType", fueltype )
+end

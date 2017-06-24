@@ -104,6 +104,10 @@ function ENT:GetFuelUse()
 	return self:GetNWFloat( "FuelUse", 0 )
 end
 
+function ENT:GetFuelType()
+	return self:GetNWInt( "FuelType", 1 )
+end
+
 function ENT:OnSmoke()
 	return self:GetNWBool( "OnSmoke", false )
 end

@@ -126,8 +126,12 @@ function ENT:InitializeVehicle()
 		physObj:SetInertia( self.Inertia ) 
 	end
 	
-	self:SetMaxFuel( 60 )
+	local tanksize = self.FuelTankSize and self.FuelTankSize or 65
+	local fueltype = self.FuelType and self.FuelType or FUELTYPE_PETROL
+	
+	self:SetMaxFuel( tanksize )
 	self:SetFuel( self:GetMaxFuel() )
+	self:SetFuelType( fueltype )
 	
 	local View = self:SetupView()
 	

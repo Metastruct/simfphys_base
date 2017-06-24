@@ -172,6 +172,13 @@ local function drawsimfphysHUD(vehicle)
 	local o_y = hudoffset_y * screenh
 	
 	local fuel = vehicle:GetFuel() / vehicle:GetMaxFuel()
+	local fueltype = vehicle:GetFuelType()
+	local fueltype_color = Color(0,127,255,150)
+	if fueltype == 1 then
+		fueltype_color = Color(240,200,0,150)
+	elseif fueltype == 2 then
+		fueltype_color = Color(255,60,0,150)
+	end
 	
 	if AltHud and not ForceSimpleHud then
 		local LightsOn = vehicle:GetLightsEnabled()
@@ -297,8 +304,11 @@ local function drawsimfphysHUD(vehicle)
 		surface.SetDrawColor( Color(150,150,150,50) )
 		surface.DrawRect( x + o_x + r * fuel, y + o_y + r, r * (1 - fuel), r * 0.04 )
 		surface.DrawLine( x + o_x - r * 0.85, y + o_y + r * 1.04 - 2, x + o_x, y + o_y + r * 1.04 - 2)
-		surface.SetDrawColor( Color(240,200,0,150) )
+		
+		surface.SetDrawColor( fueltype_color )
 		surface.DrawRect( x + o_x, y + o_y + r, r * fuel, r * 0.04 )
+		
+		if fueltype ~= 1 and fueltype ~= 2 then return end
 		
 		local fueluse = vehicle:GetFuelUse()
 		local ecospeed = (Hudreal and kmh or wirekmh)
@@ -336,7 +346,7 @@ local function drawsimfphysHUD(vehicle)
 	local r = math.Round(sizey * 0.075,0)
 	surface.SetDrawColor( Color(0,0,0,80) )
 	surface.DrawRect( xpos + o_x - sizex * 0.007, ypos + o_y, sizex * 0.0025, r * (1 - fuel) )
-	surface.SetDrawColor( Color(240,200,0,100) )
+	surface.SetDrawColor( fueltype_color )
 	surface.DrawRect( xpos + o_x - sizex * 0.007, ypos + o_y + r * (1 - fuel), sizex * 0.0025, r * fuel )
 end
 
