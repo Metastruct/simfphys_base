@@ -1267,3 +1267,8 @@ end
 function ENT:SetFuelType( fueltype )
 	self:SetNWInt( "FuelType", fueltype )
 end
+
+function ENT:SetFuelPos( vPos )
+	self:SetFuelPortPosition( vPos )
+end
+

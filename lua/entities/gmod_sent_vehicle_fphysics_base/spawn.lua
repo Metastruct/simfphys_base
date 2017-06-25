@@ -132,6 +132,7 @@ function ENT:InitializeVehicle()
 	self:SetMaxFuel( tanksize )
 	self:SetFuel( self:GetMaxFuel() )
 	self:SetFuelType( fueltype )
+	self:SetFuelPos( self.FuelFillPos and self.FuelFillPos or Vector(0,0,0) )
 	
 	local View = self:SetupView()
 	

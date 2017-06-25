@@ -63,6 +63,8 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "String",1, "Spawn_List")
 	self:NetworkVar( "String",2, "Lights_List")
 	self:NetworkVar( "String",3, "Soundoverride")
+	
+	self:NetworkVar( "Vector",1, "FuelPortPosition" )
 
 	if SERVER then
 		self:NetworkVarNotify( "FrontSuspensionHeight", self.OnFrontSuspensionHeightChanged )
@@ -106,6 +108,10 @@ end
 
 function ENT:GetFuelType()
 	return self:GetNWInt( "FuelType", 1 )
+end
+
+function ENT:GetFuelPos()
+	return self:LocalToWorld( self:GetFuelPortPosition() )
 end
 
 function ENT:OnSmoke()

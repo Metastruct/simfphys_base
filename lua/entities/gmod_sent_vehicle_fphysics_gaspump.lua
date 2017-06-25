@@ -13,6 +13,7 @@ ENT.AdminOnly = false
 function ENT:SetupDataTables()
 	self:NetworkVar( "Entity",0, "User" )
 	self:NetworkVar( "Bool",0, "Active" )
+	self:NetworkVar( "Float",0, "FuelUsed" )
 	
 	if SERVER then
 		self:NetworkVarNotify( "Active", self.OnActiveChanged )
@@ -38,7 +39,7 @@ if CLIENT then
 	surface.CreateFont( "simfphys_gaspump", {
 		font = "Verdana",
 		extended = false,
-		size = 22,
+		size = 18,
 		weight = 500,
 		blursize = 0,
 		scanlines = 0,
@@ -52,6 +53,47 @@ if CLIENT then
 		additive = false,
 		outline = false,
 	} )
+	
+	surface.CreateFont( "simfphys_gaspump_note", {
+		font = "Verdana",
+		extended = false,
+		size = 9,
+		weight = 500,
+		blursize = 0,
+		scanlines = 0,
+		antialias = true,
+		underline = false,
+		italic = false,
+		strikeout = false,
+		symbol = false,
+		rotary = false,
+		shadow = false,
+		additive = false,
+		outline = false,
+	} )
+	
+	function GetDigit( value )
+		local fvalue = math.floor(value,0)
+		
+		local decimal = 1000 + (value - fvalue) * 1000
+		
+		local digit1 =  fvalue % 10
+		local digit2 =  (fvalue - digit1) % 100
+		local digit3 = (fvalue - digit1 - digit2) % 1000
+		
+		local digit4 =  decimal % 10
+		local digit5 =  (decimal - digit4) % 100
+		local digit6 = (decimal - digit4 - digit5) % 1000
+		
+		local digits = {
+			[1] = math.Round(digit1,0),
+			[2] = math.Round(digit2 / 10,0),
+			[3] = math.Round(digit3 / 100,0),
+			[4] = math.Round(digit5 / 10,0),
+			[5] = math.Round(digit6 / 100,0),
+		}
+		return digits
+	end
 	
 	function ENT:Draw()
 		self:DrawModel()
@@ -72,7 +114,7 @@ if CLIENT then
 			if not attachment then return end
 			
 			endPos = (attachment.Pos + attachment.Ang:Forward() * -3 + attachment.Ang:Right() * 2 + attachment.Ang:Up() * -3.5)
-			p3 = endPos + attachment.Ang:Right() * 20 - attachment.Ang:Up() * 20
+			p3 = endPos + attachment.Ang:Right() * 5 - attachment.Ang:Up() * 20
 		end
 		
 		for i = 1,15 do
@@ -93,14 +135,56 @@ if CLIENT then
 		cam.Start3D2D( self:LocalToWorld( Vector(10,0,45) ), self:LocalToWorldAngles( Angle(0,90,90) ), 0.1 )
 			draw.NoTexture()
 			surface.SetDrawColor( 0, 0, 0, 255 )
-			surface.DrawTexturedRect( -150, -120, 300, 240 )
+			surface.DrawRect( -150, -120, 300, 240 )
 			
-			draw.SimpleText( "***PETROL***", "simfphys_gaspump", 0, -75, Color(240,200,0,150), 1, 1 )
-			draw.SimpleText( "***DIESEL***", "simfphys_gaspump", 0, -50, Color(255,60,0,150), 1, 1 )
-			draw.SimpleText( "***ELECTRIC***", "simfphys_gaspump", 0, -25, Color(0,127,255,150), 1, 1 )
+			draw.RoundedBox( 5, -130, -110, 260, 200, Color( 200, 200, 200, 255 ) ) 
+			draw.RoundedBox( 5, -129, -109, 258, 198, Color( 50, 50, 50, 255 ) ) 
 			
-			draw.SimpleText( "Pump Status:", "simfphys_gaspump", 0, 25, Color( 255, 255, 255, 255 ), 1, 1 )
-			draw.SimpleText( (self:GetActive() and ("in use by "..self:GetUser():GetName()) or "Off"), "simfphys_gaspump", 0, 50, Color( 255, 255, 255, 255 ), 1, 1 )
+			draw.RoundedBox( 5, -91, -75, 182, 30, Color( 200, 200, 200, 255 ) ) 
+			draw.RoundedBox( 5, -90, -74, 180, 28, Color( 50, 50, 50, 255 ) ) 
+			draw.RoundedBox( 5, -88, -72, 19, 24, Color( 0, 0, 0, 255 ) )
+			draw.RoundedBox( 5, -68, -72, 19, 24, Color( 0, 0, 0, 255 ) ) 
+			draw.RoundedBox( 5, -48, -72, 19, 24, Color( 0, 0, 0, 255 ) ) 
+			draw.RoundedBox( 5, -28, -72, 19, 24, Color( 0, 0, 0, 255 ) ) 
+			draw.RoundedBox( 5, -8, -72, 19, 24, Color( 0, 0, 0, 255 ) ) 
+			draw.RoundedBox( 5, 12, -72, 76, 24, Color( 0, 0, 0, 255 ) ) 
+			
+			draw.RoundedBox( 5, -91, -25, 182, 30, Color( 200, 200, 200, 255 ) ) 
+			draw.RoundedBox( 5, -90, -24, 180, 28, Color( 50, 50, 50, 255 ) ) 
+			draw.RoundedBox( 5, -88, -22, 19, 24, Color( 0, 0, 0, 255 ) )
+			draw.RoundedBox( 5, -68, -22, 19, 24, Color( 0, 0, 0, 255 ) ) 
+			draw.RoundedBox( 5, -48, -22, 19, 24, Color( 0, 0, 0, 255 ) ) 
+			draw.RoundedBox( 5, -28, -22, 19, 24, Color( 0, 0, 0, 255 ) ) 
+			draw.RoundedBox( 5, -8, -22, 19, 24, Color( 0, 0, 0, 255 ) ) 
+			draw.RoundedBox( 5, 12, -22, 76, 24, Color( 0, 0, 0, 255 ) ) 
+			
+			draw.SimpleText( "LITER", "simfphys_gaspump", 50, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP )
+			draw.SimpleText( "GALLONS", "simfphys_gaspump", 50, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP )
+			
+			local liter = self:GetFuelUsed()
+			local gallon = liter * 0.264172
+			local l_digits = GetDigit( math.Round( liter, 2) )
+			local g_digits = GetDigit( math.Round( gallon, 2) )
+			
+			draw.SimpleText( l_digits[4], "simfphys_gaspump", 6, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			draw.SimpleText( l_digits[5], "simfphys_gaspump", -14, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			draw.SimpleText( ",", "simfphys_gaspump", -26, -65, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			draw.SimpleText( l_digits[1], "simfphys_gaspump", -34, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			draw.SimpleText( l_digits[2], "simfphys_gaspump", -54, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			draw.SimpleText( l_digits[3], "simfphys_gaspump", -74, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			
+			
+			draw.SimpleText( g_digits[4], "simfphys_gaspump", 6, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			draw.SimpleText( g_digits[5], "simfphys_gaspump", -14, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			draw.SimpleText( ",", "simfphys_gaspump", -26, -15, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			draw.SimpleText( g_digits[1], "simfphys_gaspump", -34, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			draw.SimpleText( g_digits[2], "simfphys_gaspump", -54, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			draw.SimpleText( g_digits[3], "simfphys_gaspump", -74, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			
+			draw.SimpleText( "Tropfmengen sind sofort aufzunehmen", "simfphys_gaspump_note", 85, 20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
+			
+			draw.SimpleText( "simfphys multifuel anlage", "simfphys_gaspump_note", 0, -100, Color( 200, 200, 200, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP )
+			
 		cam.End3D2D()
 	end
 	return
@@ -122,15 +206,20 @@ end
 	
 function ENT:Use( ply )
 	if not self:GetActive() then
-		self:SetActive( true )
-		self:SetUser( ply )
-		ply:Give( "weapon_simfillerpistol" )
-		ply:SelectWeapon( "weapon_simfillerpistol" )
+		if not ply.gas_InUse then
+			ply.usedFuel = 0
+			self:SetActive( true )
+			self:SetUser( ply )
+			ply:Give( "weapon_simfillerpistol" )
+			ply:SelectWeapon( "weapon_simfillerpistol" )
+			ply.gas_InUse = true
+		end
 	else
 		if ply == self:GetUser() then
 			ply:StripWeapon( "weapon_simfillerpistol" ) 
 			self:SetActive( false )
 			self:SetUser( NULL )
+			ply.gas_InUse = false
 		end
 	end
 end
@@ -145,7 +234,7 @@ function ENT:OnActiveChanged( name, old, new)
 		end
 		self.sound = CreateSound(self, "vehicles/crane/crane_idle_loop3.wav")
 		self.sound:PlayEx(0,0)
-		self.sound:ChangeVolume( 1,2 )
+		self.sound:ChangeVolume( 0.4,2 )
 		self.sound:ChangePitch( 255,3 )
 		if IsValid( self.PumpEnt ) then
 			self.PumpEnt:SetNoDraw( true )
@@ -175,9 +264,9 @@ function ENT:Initialize()
 	self.PumpEnt:SetPos( self:LocalToWorld( Vector(-0.2,-14.6,45.7)  ) )
 	self.PumpEnt:SetAngles( self:LocalToWorldAngles( Angle(-0.3,92.3,-0.1) ) )
 	self.PumpEnt:SetMoveType( MOVETYPE_NONE )
-	self.PumpEnt:SetSolid( SOLID_NONE )
 	self.PumpEnt:Spawn()
 	self.PumpEnt:Activate()
+	self.PumpEnt:SetNotSolid( true )
 	self.PumpEnt:SetParent( self )
 	
 	local PObj = self:GetPhysicsObject()
@@ -186,11 +275,15 @@ function ENT:Initialize()
 	PObj:EnableMotion( false )
 end
 
-function ENT:Think()	
+function ENT:Think()
+	if CLIENT then return end
+	
 	self:NextThink( CurTime() + 0.5 )
 	
 	local ply = self:GetUser()
 	if IsValid( ply ) then
+		self:SetFuelUsed( ply.usedFuel )
+		
 		local Dist = (ply:GetPos() - self:GetPos()):Length()
 		
 		if ply:Alive() then
@@ -198,18 +291,22 @@ function ENT:Think()
 				if ply:HasWeapon( "weapon_simfillerpistol" ) then
 					ply:StripWeapon( "weapon_simfillerpistol" ) 
 				end
+				ply.gas_InUse = false
 				self:Disable()
 			else
 				if ply:HasWeapon( "weapon_simfillerpistol" ) then
 					if ply:GetActiveWeapon():GetClass() ~= "weapon_simfillerpistol" or Dist >= 200 then
 						ply:StripWeapon( "weapon_simfillerpistol" ) 
+						ply.gas_InUse = false
 						self:Disable()
 					end
 				else
+					ply.gas_InUse = false
 					self:Disable()
 				end
 			end
 		else
+			ply.gas_InUse = false
 			self:Disable()
 		end
 	end
@@ -225,6 +322,17 @@ end
 function ENT:OnRemove()
 	if self.sound then
 		self.sound:Stop()
+	end
+	
+	local ply = self:GetUser()
+	
+	if IsValid( ply ) then
+		ply.gas_InUse = false
+		if ply:Alive() then
+			if ply:HasWeapon( "weapon_simfillerpistol" ) then
+				ply:StripWeapon( "weapon_simfillerpistol" ) 
+			end
+		end
 	end
 end
 
