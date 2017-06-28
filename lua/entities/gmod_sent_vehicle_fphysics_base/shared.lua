@@ -139,3 +139,4 @@ function ENT:BodyGroupIsValid( bodygroups )
 	end
 	return false
 end
+
