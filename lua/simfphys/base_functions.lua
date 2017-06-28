@@ -3,11 +3,20 @@ CreateConVar( "sv_simfphys_enabledamage", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE
 CreateConVar( "sv_simfphys_gib_lifetime", "30", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"How many seconds before removing the gibs (0 = never remove)" )
 CreateConVar( "sv_simfphys_playerdamage", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"should players take damage from collisions in vehicles?" )
 CreateConVar( "sv_simfphys_damagemultiplicator", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"vehicle damage multiplicator" )
+CreateConVar( "sv_simfphys_fuel", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"enable fuel? 1 = enabled, 0 = disabled" )
+CreateConVar( "sv_simfphys_fuelscale", "0.1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"fuel tank size multiplier. 1 = Realistic fuel tank size (about 2-3 hours of fullthrottle driving, Lol, have fun)" )
 
 simfphys = istable( simfphys ) and simfphys or {}
 simfphys.DamageEnabled = false
 simfphys.DamageMul = 1
 simfphys.pDamageEnabled = false
+simfphys.Fuel = true
+simfphys.FuelMul = 0.1
+
+FUELTYPE_NONE = 0
+FUELTYPE_PETROL = 1
+FUELTYPE_DIESEL = 2
+FUELTYPE_ELECTRIC = 3
 
 game.AddParticles("particles/vehicle.pcf")
 game.AddParticles("particles/fire_01.pcf")
@@ -20,10 +29,14 @@ PrecacheParticleSystem("burning_engine_01")
 cvars.AddChangeCallback( "sv_simfphys_enabledamage", function( convar, oldValue, newValue ) simfphys.DamageEnabled = ( tonumber( newValue )~=0 ) end)
 cvars.AddChangeCallback( "sv_simfphys_damagemultiplicator", function( convar, oldValue, newValue ) simfphys.DamageMul = tonumber( newValue ) end)
 cvars.AddChangeCallback( "sv_simfphys_playerdamage", function( convar, oldValue, newValue ) simfphys.pDamageEnabled = ( tonumber( newValue )~=0 ) end)
+cvars.AddChangeCallback( "sv_simfphys_fuel", function( convar, oldValue, newValue ) simfphys.Fuel = ( tonumber( newValue )~=0 ) end)
+cvars.AddChangeCallback( "sv_simfphys_fuelscale", function( convar, oldValue, newValue ) simfphys.FuelMul = tonumber( newValue ) end)
 
 simfphys.DamageEnabled = GetConVar( "sv_simfphys_enabledamage" ):GetBool()
 simfphys.DamageMul = GetConVar( "sv_simfphys_damagemultiplicator" ):GetFloat()
 simfphys.pDamageEnabled = GetConVar( "sv_simfphys_playerdamage" ):GetBool()
+simfphys.Fuel = GetConVar( "sv_simfphys_fuel" ):GetBool()
+simfphys.FuelMul = GetConVar( "sv_simfphys_fuelscale" ):GetFloat()
 
 simfphys.ice = CreateConVar( "sv_simfphys_traction_ice", "0.35", {FCVAR_REPLICATED , FCVAR_ARCHIVE})
 simfphys.gmod_ice = CreateConVar( "sv_simfphys_traction_gmod_ice", "0.1", {FCVAR_REPLICATED , FCVAR_ARCHIVE})
@@ -49,6 +62,19 @@ end
 
 if SERVER then
 	util.AddNetworkString( "simfphys_settings" )
+	util.AddNetworkString( "simfphys_turnsignal" )
+	
+	net.Receive( "simfphys_turnsignal", function( length, ply )
+		local ent = net.ReadEntity()
+		local mode = net.ReadInt( 32 ) 
+		
+		if not IsValid( ent ) then return end
+		
+		net.Start( "simfphys_turnsignal" )
+			net.WriteEntity( ent )
+			net.WriteInt( mode, 32 )
+		net.Broadcast()
+	end )
 	
 	net.Receive( "simfphys_settings", function( length, ply )
 		if not IsValid( ply ) or not ply:IsSuperAdmin() then return end
@@ -59,12 +85,17 @@ if SERVER then
 		local dmgMul = tostring(net.ReadFloat())
 		local pdmgEnabled = tostring(net.ReadBool() and 1 or 0)
 		
+		local fuel = tostring(net.ReadBool() and 1 or 0)
+		local fuelscale = tostring(net.ReadFloat())
+		
 		local newtraction = net.ReadTable() 
 		
 		RunConsoleCommand("sv_simfphys_enabledamage", dmgEnabled ) 
 		RunConsoleCommand("sv_simfphys_gib_lifetime", giblifetime )
 		RunConsoleCommand("sv_simfphys_damagemultiplicator", dmgMul ) 
 		RunConsoleCommand("sv_simfphys_playerdamage", pdmgEnabled ) 
+		RunConsoleCommand("sv_simfphys_fuel", fuel ) 
+		RunConsoleCommand("sv_simfphys_fuelscale", fuelscale ) 
 		
 		for k, v in pairs( newtraction ) do
 			RunConsoleCommand("sv_simfphys_traction_"..k, v) 
@@ -182,6 +213,8 @@ if SERVER then
 			Ent:SetLights_List( Ent.LightsTable or "no_lights" )
 			
 			Ent:SetBulletProofTires( Ent.BulletProofTires or false )
+			
+			Ent:SetBackfireSound( Ent.snd_backfire or "" )
 			
 			duplicator.StoreEntityModifier( Ent, "VehicleMemDupe", VTable.Members )
 		end

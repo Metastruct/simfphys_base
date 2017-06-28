@@ -6,6 +6,18 @@ ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
 
 if CLIENT then
+	local Mat = CreateMaterial("simfphysdamage", "VertexLitGeneric", {["$basetexture"] = "models/player/player_chrome1"})
+	
+	function ENT:Draw()
+		self:DrawModel()
+		
+		render.ModelMaterialOverride( Mat )
+		render.SetBlend( 0.8 )
+		self:DrawModel()
+		
+		render.ModelMaterialOverride()
+		render.SetBlend(1)
+	end
 	net.Receive("simfphys_explosion_fx", function(length)
 		local self = net.ReadEntity()
 		if IsValid( self ) then
@@ -28,9 +40,6 @@ if SERVER then
 		self:SetCollisionGroup( COLLISION_GROUP_DEBRIS ) 
 		self:SetRenderMode( RENDERMODE_TRANSALPHA )
 		
-		self:SetMaterial( "models/player/player_chrome1" )
-		self:SetColor( Color( 145 , 145, 145 , 255) )
-
 		timer.Simple( 0.05, function()
 			if not IsValid( self ) then return end
 			if self.MakeSound == true then

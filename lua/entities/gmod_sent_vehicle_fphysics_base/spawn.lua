@@ -5,7 +5,12 @@ function ENT:Initialize()
 	self:SetNotSolid( true )
 	self:SetUseType( SIMPLE_USE )
 	self:SetRenderMode( RENDERMODE_TRANSALPHA )
-	self:GetPhysicsObject():EnableMotion(false) 
+	
+	local PObj = self:GetPhysicsObject()
+	if not IsValid( PObj ) then print("[SIMFPHYS] ERROR COULDN'T INITIALIZE VEHICLE! '"..self:GetModel().."' has no physics model!") return end
+	
+	PObj:EnableMotion( false )
+	
 	self:SetValues()
 	
 	timer.Simple( 0.1, function()
@@ -95,7 +100,11 @@ function ENT:SetupEnteringAnims()
 end
 
 function ENT:InitializeVehicle()
-	if not IsValid(self) then return end
+	if not IsValid( self ) then return end
+	
+	local physObj = self:GetPhysicsObject()
+	
+	if not IsValid( physObj ) then return end
 	
 	if self.LightsTable then
 		local vehiclelist = list.Get( "simfphys_lights" )[self.LightsTable] or false
@@ -110,8 +119,20 @@ function ENT:InitializeVehicle()
 		end
 	end
 	
-	self:GetPhysicsObject():SetDragCoefficient( self.AirFriction or -250 )
-	self:GetPhysicsObject():SetMass( self.Mass * 0.75 )
+	physObj:SetDragCoefficient( self.AirFriction or -250 )
+	physObj:SetMass( self.Mass * 0.75 )
+	
+	if self.Inertia then
+		physObj:SetInertia( self.Inertia ) 
+	end
+	
+	local tanksize = self.FuelTankSize and self.FuelTankSize or 65
+	local fueltype = self.FuelType and self.FuelType or FUELTYPE_PETROL
+	
+	self:SetMaxFuel( tanksize )
+	self:SetFuel( self:GetMaxFuel() )
+	self:SetFuelType( fueltype )
+	self:SetFuelPos( self.FuelFillPos and self.FuelFillPos or Vector(0,0,0) )
 	
 	local View = self:SetupView()
 	
@@ -201,11 +222,21 @@ function ENT:InitializeVehicle()
 			prop.DoNotDuplicate = true
 			simfphys.SetOwner( self.EntityOwner, prop )
 			
+			if self.Attachments[i].skin then
+				prop:SetSkin( self.Attachments[i].skin )
+			end
+			
+			if self.Attachments[i].bodygroups then
+				for b = 1, table.Count( self.Attachments[i].bodygroups ) do
+					prop:SetBodygroup(b, self.Attachments[i].bodygroups[b] )
+				end
+			end
+			
 			if self.Attachments[i].useVehicleColor == true then
 				self.ColorableProps[i] = prop
 				prop:SetColor( self:GetColor() )
 			else
-				prop:SetColor( self.Attachments[i].color )
+				prop:SetColor( self.Attachments[i].color or Color(255,255,255,255) )
 			end
 			
 			self:DeleteOnRemove( prop )
@@ -343,9 +374,14 @@ function ENT:WriteVehicleDataTable()
 		local pRR = self.posepositions.Pose0_Pos_RR
 		local pAngL = self:WorldToLocalAngles( ((pFL + pFR) / 2 - (pRL + pRR) / 2):Angle() )
 		pAngL.r = 0
+		pAngL.p = 0
 		
 		self.VehicleData["LocalAngForward"] = pAngL
-		self.VehicleData["LocalAngRight"] = self.VehicleData.LocalAngForward - Angle(0,90,0)
+		
+		local yAngL = self.VehicleData.LocalAngForward - Angle(0,90,0)
+		yAngL:Normalize() 
+		
+		self.VehicleData["LocalAngRight"] = yAngL
 		self.VehicleData[ "pp_spin_1" ] = "vehicle_wheel_fl_spin"
 		self.VehicleData[ "pp_spin_2" ] = "vehicle_wheel_fr_spin"
 		self.VehicleData[ "pp_spin_3" ] = "vehicle_wheel_rl_spin"
@@ -399,7 +435,9 @@ function ENT:SetupVehicle()
 	if self.CustomWheels then
 		if self.CustomWheelModel then
 			if not file.Exists( self.CustomWheelModel, "GAME" ) then 
-				self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" does not exist! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+				if IsValid( self.EntityOwner ) then
+					self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" does not exist! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+				end
 				self:Remove()
 				return
 			end
@@ -417,7 +455,9 @@ function ENT:SetupVehicle()
 				if IsValid(pobj) then
 					pobj:EnableMotion(false)
 				else
-					self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" doesn't have an collision model! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+					if IsValid( self.EntityOwner ) then
+						self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" doesn't have an collision model! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+					end
 					self.SteerMaster:Remove()
 					self:Remove()
 					
@@ -445,7 +485,9 @@ function ENT:SetupVehicle()
 				if IsValid(pobj) then
 					pobj:EnableMotion(false)
 				else
-					self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" doesn't have an collision model! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+					if IsValid( self.EntityOwner ) then
+						self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: \""..self.CustomWheelModel.."\" doesn't have an collision model! Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+					end
 					self.SteerMaster2:Remove()
 					self:Remove()
 					return
@@ -477,7 +519,9 @@ function ENT:SetupVehicle()
 				self:CreateWheel(6, WheelMR, self:LocalToWorld( self.CustomWheelPosMR ), self.RearHeight, self.RearWheelRadius, true , self:LocalToWorld( self.CustomWheelPosMR + Vector(0,0,self.CustomSuspensionTravel * 0.5) ), self.CustomSuspensionTravel, self.RearConstant, self.RearDamping, self.RearRelativeDamping)
 			end
 		else
-			self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: no wheel model defined. Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+			if IsValid( self.EntityOwner ) then
+				self.EntityOwner:PrintMessage( HUD_PRINTTALK, "ERROR: no wheel model defined. Removing vehicle. (Class: "..self:GetSpawn_List()..")")
+			end
 			self:Remove()
 		end
 	else
@@ -510,6 +554,9 @@ function ENT:SetupVehicle()
 			end
 		end )
 	end )
+	
+	self.VehicleData["filter"] = table.Copy( self.Wheels )
+	table.insert( self.VehicleData["filter"], self )
 	
 	self.EnableSuspension = 1
 end

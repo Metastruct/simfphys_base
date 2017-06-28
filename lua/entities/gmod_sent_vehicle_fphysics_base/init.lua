@@ -702,7 +702,7 @@ function ENT:DamagedStall()
 	local rtimer = 0.8
 	
 	timer.Simple( rtimer, function()
-		if not IsValid(self) then return end
+		if not IsValid( self ) then return end
 		net.Start( "simfphys_backfire" )
 			net.WriteEntity( self )
 		net.Broadcast()
@@ -723,7 +723,16 @@ function ENT:StopEngine()
 	end
 end
 
+function ENT:CanStart()
+	local FuelSystemOK = simfphys.Fuel and self:GetFuel() > 0 or true
+	local canstart = self:GetCurHealth() > (self:GetMaxHealth() * 0.1) and FuelSystemOK
+	
+	return canstart
+end
+
 function ENT:StartEngine( bIgnoreSettings )
+	if not self:CanStart() then return end
+	
 	if not self:EngineActive() then
 		if not bIgnoreSettings then
 			self.CurrentGear = 2
@@ -890,6 +899,12 @@ function ENT:GetMouseSteer()
 end
 
 function ENT:Use( ply )
+	self:SetPassenger( ply )
+end
+
+function ENT:SetPassenger( ply )
+	if not IsValid( ply ) then return end
+	
 	if self.IsLocked then 
 		self:EmitSound( "doors/default_locked.wav" )
 		return
@@ -1195,7 +1210,13 @@ function ENT:DamageLoop()
 	
 	if CurHealth <= 0 then return end
 	
-	self:TakeDamage(1, Entity(0), Entity(0) )
+	if self:GetMaxHealth() > 30 then
+		if CurHealth > 30 then
+			self:TakeDamage(1, Entity(0), Entity(0) )
+		elseif CurHealth < 30 then
+			self:SetCurHealth( CurHealth + 1 )
+		end
+	end
 	
 	timer.Simple( 0.15, function()
 		if IsValid( self ) then
@@ -1230,3 +1251,24 @@ end
 function ENT:SetCurHealth( nHealth )
 	self:SetNWFloat( "Health", nHealth )
 end
+
+function ENT:SetMaxFuel( nFuel )
+	self:SetNWFloat( "MaxFuel", nFuel )
+end
+
+function ENT:SetFuel( nFuel )
+	self:SetNWFloat( "Fuel", math.Clamp( nFuel,0,self:GetMaxFuel() ) )
+end
+
+function ENT:SetFuelUse( nFuel )
+	self:SetNWFloat( "FuelUse", nFuel )
+end
+
+function ENT:SetFuelType( fueltype )
+	self:SetNWInt( "FuelType", fueltype )
+end
+
+function ENT:SetFuelPos( vPos )
+	self:SetFuelPortPosition( vPos )
+end
+

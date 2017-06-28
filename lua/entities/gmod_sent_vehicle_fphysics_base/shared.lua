@@ -9,7 +9,7 @@ ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
 
 ENT.AutomaticFrameAdvance = true
-ENT.RenderGroup = RENDERGROUP_BOTH
+ENT.RenderGroup = RENDERGROUP_BOTH 
 ENT.Editable = (GetConVar("sv_simfphys_devmode"):GetInt() or 1) >= 1
 ENT.IsSimfphyscar = true
 
@@ -63,6 +63,8 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "String",1, "Spawn_List")
 	self:NetworkVar( "String",2, "Lights_List")
 	self:NetworkVar( "String",3, "Soundoverride")
+	
+	self:NetworkVar( "Vector",1, "FuelPortPosition" )
 
 	if SERVER then
 		self:NetworkVarNotify( "FrontSuspensionHeight", self.OnFrontSuspensionHeightChanged )
@@ -85,11 +87,31 @@ function VehicleMeta:IsVehicle()
 end
 
 function ENT:GetCurHealth()
-	return self:GetNWFloat( "Health", 0 )
+	return self:GetNWFloat( "Health", self:GetMaxHealth() )
 end
 
 function ENT:GetMaxHealth()
-	return self:GetNWFloat( "MaxHealth", 0 )
+	return self:GetNWFloat( "MaxHealth", 2000 )
+end
+
+function ENT:GetMaxFuel()
+	return self:GetNWFloat( "MaxFuel", 60 )
+end
+
+function ENT:GetFuel()
+	return self:GetNWFloat( "Fuel", self:GetMaxFuel() )
+end
+
+function ENT:GetFuelUse()
+	return self:GetNWFloat( "FuelUse", 0 )
+end
+
+function ENT:GetFuelType()
+	return self:GetNWInt( "FuelType", 1 )
+end
+
+function ENT:GetFuelPos()
+	return self:LocalToWorld( self:GetFuelPortPosition() )
 end
 
 function ENT:OnSmoke()
@@ -98,6 +120,14 @@ end
 
 function ENT:OnFire()
 	return self:GetNWBool( "OnFire", false )
+end
+
+function ENT:GetBackfireSound()
+	return self:GetNWString( "backfiresound" )
+end
+
+function ENT:SetBackfireSound( the_sound )
+	self:SetNWString( "backfiresound", the_sound ) 
 end
 
 function ENT:BodyGroupIsValid( bodygroups )

@@ -29,7 +29,9 @@ function TOOL:LeftClick( trace )
 		[1] = {tonumber( self:GetClientInfo( "constant_f" ) ),tonumber( self:GetClientInfo( "damping_f" ) )},
 		[2] = {tonumber( self:GetClientInfo( "constant_f" ) ),tonumber( self:GetClientInfo( "damping_f" ) )},
 		[3] = {tonumber( self:GetClientInfo( "constant_r" ) ),tonumber( self:GetClientInfo( "damping_r" ) )},
-		[4] = {tonumber( self:GetClientInfo( "constant_r" ) ),tonumber( self:GetClientInfo( "damping_r" ) )}
+		[4] = {tonumber( self:GetClientInfo( "constant_r" ) ),tonumber( self:GetClientInfo( "damping_r" ) )},
+		[5] = {tonumber( self:GetClientInfo( "constant_r" ) ),tonumber( self:GetClientInfo( "damping_r" ) )},
+		[6] = {tonumber( self:GetClientInfo( "constant_r" ) ),tonumber( self:GetClientInfo( "damping_r" ) )}
 	}
 	
 	local elastics = ent.Elastics
@@ -112,6 +114,8 @@ function TOOL:Reload( trace )
 			[2] = {VehicleList.Members.FrontConstant,VehicleList.Members.FrontDamping,VehicleList.Members.FrontHeight},
 			[3] = {VehicleList.Members.RearConstant,VehicleList.Members.RearDamping,VehicleList.Members.RearHeight},
 			[4] = {VehicleList.Members.RearConstant,VehicleList.Members.RearDamping,VehicleList.Members.RearHeight},
+			[5] = {VehicleList.Members.RearConstant,VehicleList.Members.RearDamping,VehicleList.Members.RearHeight},
+			[6] = {VehicleList.Members.RearConstant,VehicleList.Members.RearDamping,VehicleList.Members.RearHeight},
 		}
 		
 		local elastics = ent.Elastics

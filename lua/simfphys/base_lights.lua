@@ -60,6 +60,20 @@ local light_table = {
 		Vector(25.8,-139.2,53),Vector(24.28,-139.2,53),Vector(22.76,-139.2,53),Vector(21.24,-139.2,53),Vector(19.72,-139.2,53),Vector(18.2,-139.2,53),Vector(16.68,-139.2,53),Vector(15.16,-139.2,53),Vector(13.64,-139.2,53),Vector(12.12,-139.2,53),Vector(10.6,-139.2,53),Vector(9.08,-139.2,53),Vector(7.56,-139.2,53),Vector(6.04,-139.2,53),
 		Vector(-27.32,-139.2,53),Vector(-25.8,-139.2,53),Vector(-24.28,-139.2,53),Vector(-22.76,-139.2,53),Vector(-21.24,-139.2,53),Vector(-19.72,-139.2,53),Vector(-18.2,-139.2,53),Vector(-16.68,-139.2,53),Vector(-15.16,-139.2,53),Vector(-13.64,-139.2,53),Vector(-12.12,-139.2,53),Vector(-10.6,-139.2,53),Vector(-9.08,-139.2,53),Vector(-7.56,-139.2,53)
 	},
+	Turnsignal_sprites = {
+		Left = {
+			{pos =Vector(-34.5,77.5,29),size = 80,material = "sprites/light_ignorez",color = Color( 255, 200, 0,  200)},
+			{pos =Vector(-34.5,77.5,29),size = 40,color = Color( 255, 200, 0,  200)},
+			{pos = Vector(-34.73,-139.52,52.38),material = "sprites/light_ignorez",size = 40,color = Color( 255, 60, 0,  125)},
+			{pos = Vector(-34.73,-139.52,52.38),size = 80,color = Color( 255, 0, 0,  90)},
+		},
+		Right = {
+			{pos =Vector(36,77.5,29),size = 80,material = "sprites/light_ignorez",color = Color( 255, 200, 0,  200)},
+			{pos =Vector(36,77.5,29),size = 40,color = Color( 255, 200, 0,  200)},
+			{pos = Vector(33.23,-139.52,52.38),material = "sprites/light_ignorez",size = 40,color = Color( 255, 60, 0,  125)},
+			{pos = Vector(33.23,-139.52,52.38),size = 80,color = Color( 255, 0, 0,  90)},
+		},
+	},
 }
 list.Set( "simfphys_lights", "jalopy", light_table)
 

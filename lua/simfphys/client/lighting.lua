@@ -54,6 +54,31 @@ end
 local function UpdateSubMats(ent, Lowbeam, Highbeam, IsBraking, IsReversing )
 	if not istable( ent.SubMaterials ) then return end
 	
+	if ent.SubMaterials.turnsignals then
+		local IsTurningLeft = ent.signal_left
+		local IsTurningRight = ent.signal_right
+		local IsFlashing = ent:GetFlasher() == 1
+		
+		if ent.WasTurningLeft ~= IsTurningLeft or ent.WasTurningRight ~= IsTurningRight or ent.WasFlashing ~= IsFlashing then
+			if ent.SubMaterials.turnsignals.left then
+				for k,v in pairs( ent.SubMaterials.turnsignals.left ) do
+					local mat = (IsFlashing and IsTurningLeft) and v or ""
+					ent:SetSubMaterial( k, mat )
+				end
+			end
+			if ent.SubMaterials.turnsignals.right then
+				for k,v in pairs( ent.SubMaterials.turnsignals.right ) do
+					local mat = (IsFlashing and IsTurningRight) and v or ""
+					ent:SetSubMaterial( k, mat )
+				end
+			end
+			
+			ent.WasTurningLeft = IsTurningLeft
+			ent.WasTurningRight = IsTurningRight
+			ent.WasFlashing = IsFlashing 
+		end
+	end
+	
 	if ent.WasReversing == IsReversing and ent.WasBraking == IsBraking and ent.WasLowbeam == Lowbeam and ent.WasHighbeam == Highbeam then return end
 	
 	if Lowbeam then
@@ -168,6 +193,10 @@ local function ManageProjTextures()
 					[3] = ent:GetFogLightsEnabled(),
 					[4] = ent:GetIsBraking(),
 					[5] = (ent:GetGear() == 1),
+					[6] = ent.signal_left,
+					[7] = ent.signal_right,
+					[8] = ent:GetIsBraking(),
+					[9] = ent:GetIsBraking(),
 				}
 				
 				UpdateSubMats(ent, ent.triggers[1], ent.triggers[2], ent.triggers[4], ent.triggers[5] )
@@ -179,6 +208,12 @@ local function ManageProjTextures()
 					if proj.Damaged or (proj.trigger == 2 and not FrontProjectedLights) or (proj.trigger == 4 and not RearProjectedLights) then 
 						trigger = false
 						enable = false
+					end
+					
+					if ent.HasSpecialTurnSignals then
+						if proj.trigger == 4 and (ent.triggers[6] or ent.triggers[7]) then
+							trigger = false
+						end
 					end
 					
 					if proj.Active ~= enable then
@@ -465,7 +500,7 @@ local function SetUpLights( vname , ent )
 				table.insert(ent.Sprites, s)
 			else
 				s.pos = data
-				s.color = Color( 255, 255, 255,  255)
+				s.color = Color( 255, 255, 255,  150)
 				s.material = mat
 				s.size = 12
 				table.insert(ent.Sprites, s)
@@ -474,9 +509,9 @@ local function SetUpLights( vname , ent )
 				s2.PixVis = util.GetPixelVisibleHandle()
 				s2.trigger = s.trigger
 				s2.pos = data
-				s2.color =  Color( 255, 255, 255,  150 )
+				s2.color =  Color( 255, 255, 255,  80 )
 				s2.material = mat2
-				s2.size = 16
+				s2.size = 25
 				table.insert(ent.Sprites, s2)
 			end
 		end
@@ -569,6 +604,140 @@ local function SetUpLights( vname , ent )
 		end
 	end
 	
+	if istable( vehiclelist.Turnsignal_sprites ) then
+		ent.HasTurnSignals = true 
+		
+		if istable( vehiclelist.Turnsignal_sprites.Left ) then
+			for _, data in pairs( vehiclelist.Turnsignal_sprites.Left ) do
+				local s = {}
+				s.PixVis = util.GetPixelVisibleHandle()
+				s.trigger = 6
+				
+				if not isvector( data ) then
+					s.color = data.color and data.color or Color( 200, 100, 0,  255)
+					s.material = data.material and Material( data.material ) or mat2
+					s.size = data.size and data.size or 24
+					s.pos = data.pos
+					if (data.OnBodyGroups) then s.bodygroups = data.OnBodyGroups end
+					table.insert(ent.Sprites, s)
+				else
+					s.pos = data
+					s.color = Color( 255, 150, 0,  150)
+					s.material = mat
+					s.size = 20
+					table.insert(ent.Sprites, s)
+					
+					local s2 = {}
+					s2.PixVis = util.GetPixelVisibleHandle()
+					s2.trigger = s.trigger
+					s2.pos = data
+					s2.color = Color( 200, 100, 0,  80)
+					s2.material = mat2
+					s2.size = 70
+					table.insert(ent.Sprites, s2)
+				end
+			end
+		end
+		
+		if istable( vehiclelist.Turnsignal_sprites.Right ) then
+			for _, data in pairs( vehiclelist.Turnsignal_sprites.Right ) do
+				local s = {}
+				s.PixVis = util.GetPixelVisibleHandle()
+				s.trigger = 7
+				
+				if not isvector( data ) then
+					s.color = data.color and data.color or Color( 200, 100, 0,  255)
+					s.material = data.material and Material( data.material ) or mat2
+					s.size = data.size and data.size or 24
+					s.pos = data.pos
+					if (data.OnBodyGroups) then s.bodygroups = data.OnBodyGroups end
+					table.insert(ent.Sprites, s)
+				else
+					s.pos = data
+					s.color = Color( 255, 150, 0,  150)
+					s.material = mat
+					s.size = 20
+					table.insert(ent.Sprites, s)
+					
+					local s2 = {}
+					s2.PixVis = util.GetPixelVisibleHandle()
+					s2.trigger = s.trigger
+					s2.pos = data
+					s2.color = Color( 200, 100, 0,  80)
+					s2.material = mat2
+					s2.size = 70
+					table.insert(ent.Sprites, s2)
+				end
+			end
+		end
+		
+		if istable( vehiclelist.Turnsignal_sprites.TurnBrakeLeft ) then
+			ent.HasSpecialTurnSignals = true 
+			for _, data in pairs( vehiclelist.Turnsignal_sprites.TurnBrakeLeft ) do
+				local s = {}
+				s.PixVis = util.GetPixelVisibleHandle()
+				s.trigger = 8
+				
+				if not isvector(data) then
+					s.color = data.color and data.color or Color( 255, 0, 0,  125)
+					s.material = data.material and Material( data.material ) or mat2
+					s.size = data.size and data.size or 16
+					s.pos = data.pos
+					if (data.OnBodyGroups) then s.bodygroups = data.OnBodyGroups end
+					table.insert(ent.Sprites, s)
+				else
+					s.pos = data
+					s.color = Color( 255, 60, 0,  90 )
+					s.material = mat
+					s.size = 40
+					table.insert(ent.Sprites, s)
+					
+					local s2 = {}
+					s2.PixVis = util.GetPixelVisibleHandle()
+					s2.trigger = s.trigger
+					s2.pos = data
+					s2.color = Color( 255, 120, 0,  125 ) 
+					s2.material = mat2
+					s2.size = 16
+					table.insert(ent.Sprites, s2)
+				end
+			end
+		end
+		
+		if istable( vehiclelist.Turnsignal_sprites.TurnBrakeRight ) then
+			ent.HasSpecialTurnSignals = true 
+			for _, data in pairs( vehiclelist.Turnsignal_sprites.TurnBrakeRight ) do
+				local s = {}
+				s.PixVis = util.GetPixelVisibleHandle()
+				s.trigger = 9
+				
+				if not isvector(data) then
+					s.color = data.color and data.color or Color( 255, 0, 0,  125)
+					s.material = data.material and Material( data.material ) or mat2
+					s.size = data.size and data.size or 16
+					s.pos = data.pos
+					if (data.OnBodyGroups) then s.bodygroups = data.OnBodyGroups end
+					table.insert(ent.Sprites, s)
+				else
+					s.pos = data
+					s.color = Color( 255, 60, 0,  90 )
+					s.material = mat
+					s.size = 40
+					table.insert(ent.Sprites, s)
+					
+					local s2 = {}
+					s2.PixVis = util.GetPixelVisibleHandle()
+					s2.trigger = s.trigger
+					s2.pos = data
+					s2.color = Color( 255, 120, 0,  125 ) 
+					s2.material = mat2
+					s2.size = 16
+					table.insert(ent.Sprites, s2)
+				end
+			end
+		end
+	end
+	
 	ent.EnableLights = true
 	table.insert(vtable, ent)
 end
@@ -646,9 +815,9 @@ end )
 
 hook.Add( "PostDrawTranslucentRenderables", "simfphys_draw_sprites", function()
 	if vtable then
-		for i, ent in pairs(vtable) do
-			if IsValid(ent) then
-				if (ent:GetEMSEnabled()) then
+		for i, ent in pairs( vtable ) do
+			if IsValid( ent ) then
+				if ent:GetEMSEnabled() then
 					DrawEMSLights( ent )
 				end
 			
@@ -658,8 +827,11 @@ hook.Add( "PostDrawTranslucentRenderables", "simfphys_draw_sprites", function()
 				for _, sprite in pairs( ent.Sprites ) do
 					
 					if not sprite.Damaged then
+						local regTrigger = ent.triggers[ sprite.trigger ]
+						local typeSpecial = (sprite.trigger == 8 and ent.triggers[ 6 ]) or (sprite.trigger == 9 and ent.triggers[7])
+						if typeSpecial then regTrigger = false end
 						
-						if ent.triggers[ sprite.trigger ] then
+						if regTrigger or typeSpecial then
 							local LightPos = ent:LocalToWorld( sprite.pos )
 							local Visible = util.PixelVisible( LightPos, 4, sprite.PixVis )
 							local s_col = sprite.color
@@ -673,7 +845,13 @@ hook.Add( "PostDrawTranslucentRenderables", "simfphys_draw_sprites", function()
 							if Visible and Visible >= 0.6 then
 								Visible = (Visible - 0.6) / 0.4
 								render.SetMaterial( s_mat )
-								render.DrawSprite( LightPos, s_size, s_size,  Color( s_col["r"], s_col["g"], s_col["b"],  s_col["a"] * Visible) )
+								
+								local c_Alpha = s_col["a"] * Visible
+								if sprite.trigger == 6 or sprite.trigger == 7 or typeSpecial then
+									c_Alpha = c_Alpha * (ent:GetFlasher() ^ 7)
+								end
+								
+								render.DrawSprite( LightPos, s_size, s_size,  Color( s_col["r"], s_col["g"], s_col["b"],  c_Alpha) )
 							end
 						end
 					end
@@ -707,6 +885,10 @@ local function spritedamage( length )
 				
 				if Dist < Rad then
 					veh.Sprites[i].Damaged = true
+					
+					if sprite.trigger >= 6 then
+						veh.turnsignals_damaged = true
+					end
 					
 					local effectdata = EffectData()
 						effectdata:SetOrigin( spritepos )
@@ -769,6 +951,8 @@ local function spriterepair( length )
 	
 	if not IsValid( veh ) then return end
 	
+	veh.turnsignals_damaged = nil
+	
 	if istable( veh.Sprites ) then
 		for i, sprite in pairs( veh.Sprites ) do
 			veh.Sprites[i].Damaged = false
@@ -788,3 +972,31 @@ local function spriterepair( length )
 	end
 end
 net.Receive("simfphys_lightsfixall", spriterepair)
+
+
+net.Receive( "simfphys_turnsignal", function( length )
+	local ent = net.ReadEntity()
+	local turnmode = net.ReadInt( 32 ) 
+	
+	if not IsValid( ent ) then return end
+	
+	if turnmode == 0 then
+		ent.signal_left = false
+		ent.signal_right = false
+	end
+	
+	if turnmode == 1 then
+		ent.signal_left = true
+		ent.signal_right = true
+	end
+	
+	if turnmode == 2 then
+		ent.signal_left = true
+		ent.signal_right = false
+	end
+	
+	if turnmode == 3 then
+		ent.signal_left = false
+		ent.signal_right = true
+	end
+end )

@@ -27,6 +27,7 @@ if SERVER then
 		self:SetMoveType( MOVETYPE_VPHYSICS )
 		self:SetSolid( SOLID_VPHYSICS )
 		self:SetCollisionGroup( COLLISION_GROUP_WEAPON  ) 
+		self:SetUseType( SIMPLE_USE )
 		
 		self:DrawShadow( false )
 
@@ -71,6 +72,13 @@ if SERVER then
 		self.Skid = CreateSound(self, self.snd_skid)
 		self.Skid_Dirt = CreateSound(self, self.snd_skid_dirt)
 		self.Skid_Grass = CreateSound(self, self.snd_skid_grass)
+	end
+
+	function ENT:Use( ply )
+		local base = self:GetBaseEnt()
+		if not IsValid( base ) then return end
+		
+		base:SetPassenger( ply )
 	end
 
 	function ENT:Think()	

@@ -8,7 +8,10 @@ local hud = CreateClientConVar( "cl_simfphys_hud", "1", true, false )
 local alt_hud = CreateClientConVar( "cl_simfphys_althud", "1", true, false )
 local alt_hud_arc = CreateClientConVar( "cl_simfphys_althud_arcs", "0", true, false )
 
+local hud_x = CreateClientConVar( "cl_simfphys_hud_offset_x", "0", true, false )
+local hud_y = CreateClientConVar( "cl_simfphys_hud_offset_y", "0", true, false )
 local hud_mph = CreateClientConVar( "cl_simfphys_hudmph", "0", true, false )
+local hud_mpg = CreateClientConVar( "cl_simfphys_hudmpg", "0", true, false )
 local hud_realspeed = CreateClientConVar( "cl_simfphys_hudrealspeed", "0", true, false )
 local autostart = CreateClientConVar( "cl_simfphys_autostart", "1", true, true )
 
@@ -20,6 +23,7 @@ local msexponent = CreateClientConVar( "cl_simfphys_ms_exponent", "1.5", true, t
 local mslockpitch = CreateClientConVar( "cl_simfphys_ms_lockpitch", "0", true, true )
 local mshud = CreateClientConVar( "cl_simfphys_ms_hud", "1", true, false )
 local k_msfreelook = CreateClientConVar( "cl_simfphys_ms_keyfreelook", KEY_Y, true, true )
+local mslockedpitch = CreateClientConVar( "cl_simfphys_ms_lockedpitch", "5", true, true )
 
 local overwrite = CreateClientConVar( "cl_simfphys_overwrite", 0, true, true )
 local smoothsteer = CreateClientConVar( "cl_simfphys_smoothsteer", 0, true, true )
@@ -52,6 +56,7 @@ local k_abck = CreateClientConVar( "cl_simfphys_key_air_reverse", KEY_PAD_2, tru
 local k_aleft = CreateClientConVar( "cl_simfphys_key_air_left", k_left:GetInt(), true, true )
 local k_aright = CreateClientConVar( "cl_simfphys_key_air_right", k_right:GetInt(), true, true )
 local k_lock = CreateClientConVar( "cl_simfphys_key_lock", KEY_NONE, true, true )
+local k_turnmenu = CreateClientConVar( "cl_simfphys_key_turnmenu", KEY_COMMA, true, true )
 
 local k_list = {
 	{k_fwd,KEY_W,"Forward"},
@@ -73,6 +78,7 @@ local k_list = {
 	{k_aleft,KEY_A,"Tilt Left"},
 	{k_aright,KEY_D,"Tilt Right"},
 	{k_lock,KEY_NONE ,"Lock / Unlock"},
+	{k_turnmenu, KEY_COMMA, "Turnsignals"},
 }
 
 local function simplebinder( x, y, tbl, num, parent)
@@ -179,49 +185,52 @@ local function buildclientsettingsmenu( self )
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
 	Shape:SetPos( 20, 20 )
-	Shape:SetSize( 350, 90 )
+	Shape:SetSize( 350, 180 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	createcheckbox(25,25,"Show Hud","cl_simfphys_hud",self.PropPanel,hud:GetInt())
-	createcheckbox(210,25,"Alternative Hud","cl_simfphys_althud",self.PropPanel,alt_hud:GetInt())
+	createcheckbox(210,25,"Racing Hud","cl_simfphys_althud",self.PropPanel,alt_hud:GetInt())
 	createcheckbox(210,45,"Draw Arcs\n(will cause problems\nwith multicore!)","cl_simfphys_althud_arcs",self.PropPanel,alt_hud_arc:GetInt())
 	createcheckbox(25,45,"MPH instead of KMH","cl_simfphys_hudmph",self.PropPanel,hud_mph:GetInt())
 	createcheckbox(25,65,"Speed relative to \nplayersize instead \nworldsize","cl_simfphys_hudrealspeed",self.PropPanel,hud_realspeed:GetInt())
+	createcheckbox(25,110,"Fuel consumption \nin MPG instead \nof L/100KM","cl_simfphys_hudmpg",self.PropPanel,hud_mpg:GetInt())
+	createslider(30,155,345,20,"Hud offset X","cl_simfphys_hud_offset_x",self.PropPanel,-1,1,hud_x:GetFloat())
+	createslider(30,175,345,20,"Hud offset Y","cl_simfphys_hud_offset_y",self.PropPanel,-1,1,hud_y:GetFloat())
 	
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
-	Shape:SetPos( 20, 120 )
+	Shape:SetPos( 20, 210 )
 	Shape:SetSize( 350, 85 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
-	createcheckbox(25,125,"Hide Sprites","cl_simfphys_hidesprites",self.PropPanel,0)
-	createcheckbox(210,125,"Allow light damaging","cl_simfphys_spritedamage",self.PropPanel,0)
-	createcheckbox(25,145,"Front Projected Textures","cl_simfphys_frontlamps",self.PropPanel,0)
-	createcheckbox(25,165,"Rear Projected Textures","cl_simfphys_rearlamps",self.PropPanel,0)
-	createcheckbox(25,185,"Enable Shadows","cl_simfphys_shadows",self.PropPanel,0)
+	createcheckbox(25,215,"Hide Sprites","cl_simfphys_hidesprites",self.PropPanel,0)
+	createcheckbox(210,215,"Allow light damaging","cl_simfphys_spritedamage",self.PropPanel,0)
+	createcheckbox(25,235,"Front Projected Textures","cl_simfphys_frontlamps",self.PropPanel,0)
+	createcheckbox(25,255,"Rear Projected Textures","cl_simfphys_rearlamps",self.PropPanel,0)
+	createcheckbox(25,275,"Enable Shadows","cl_simfphys_shadows",self.PropPanel,0)
 	
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
-	Shape:SetPos( 20, 215 )
+	Shape:SetPos( 20, 305 )
 	Shape:SetSize( 350, 85 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
-	createcheckbox(25,220,"Always Fullthrottle","cl_simfphys_sanic",self.PropPanel,sanic:GetInt())
-	createcheckbox(25,240,"Engine Auto Start/Stop","cl_simfphys_autostart",self.PropPanel,autostart:GetInt())
-	createcheckbox(25,260,"Automatic Transmission","cl_simfphys_auto",self.PropPanel,auto:GetInt())
-	createcheckbox(25,280,"Automatic Sportmode (late up and downshifts)","cl_simfphys_sport",self.PropPanel,sport:GetInt())
+	createcheckbox(25,310,"Always Fullthrottle","cl_simfphys_sanic",self.PropPanel,sanic:GetInt())
+	createcheckbox(25,330,"Engine Auto Start/Stop","cl_simfphys_autostart",self.PropPanel,autostart:GetInt())
+	createcheckbox(25,350,"Automatic Transmission","cl_simfphys_auto",self.PropPanel,auto:GetInt())
+	createcheckbox(25,370,"Automatic Sportmode (late up and downshifts)","cl_simfphys_sport",self.PropPanel,sport:GetInt())
 	
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
-	Shape:SetPos( 20, 310 )
+	Shape:SetPos( 20, 400 )
 	Shape:SetSize( 350, 115 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	
-	local ctitem_1 = createcheckbox(25,315,"Enable Countersteer","cl_simfphys_ctenable",self.PropPanel,ctenable:GetInt())
-	local ctitem_2 = createslider(30,335,345,40,"Countersteer Mul","cl_simfphys_ctmul",self.PropPanel,0.1,2,ctmul:GetFloat())
-	local ctitem_3 = createslider(30,355,345,40,"Countersteer MaxAng","cl_simfphys_ctang",self.PropPanel,1,90,ctang:GetFloat())
+	local ctitem_1 = createcheckbox(25,405,"Enable Countersteer","cl_simfphys_ctenable",self.PropPanel,ctenable:GetInt())
+	local ctitem_2 = createslider(30,425,345,40,"Countersteer Mul","cl_simfphys_ctmul",self.PropPanel,0.1,2,ctmul:GetFloat())
+	local ctitem_3 = createslider(30,445,345,40,"Countersteer MaxAng","cl_simfphys_ctang",self.PropPanel,1,90,ctang:GetFloat())
 	
 	local Reset = vgui.Create( "DButton" )
 	Reset:SetParent( self.PropPanel )
 	Reset:SetText( "Reset" )	
-	Reset:SetPos( 25, 395 )
+	Reset:SetPos( 25, 485 )
 	Reset:SetSize( 340, 25 )
 	Reset.DoClick = function()
 		ctitem_1:SetValue( 1 )
@@ -234,20 +243,20 @@ local function buildclientsettingsmenu( self )
 	
 	local Shape = vgui.Create( "DShape", self.PropPanel)
 	Shape:SetType( "Rect" )
-	Shape:SetPos( 20, 435 )
+	Shape:SetPos( 20, 525 )
 	Shape:SetSize( 350, 165 )
 	Shape:SetColor( Color( 0, 0, 0, 200 ) )
 	
-	local st_item_1 = createcheckbox(25,440,"Use these settings\n(you need to re-enter the vehicle)","cl_simfphys_overwrite",self.PropPanel,overwrite:GetInt())
-	local st_item_2 = createslider(30,460,345,40,"steer speed","cl_simfphys_steerspeed",self.PropPanel,1,16,steerspeed:GetFloat())
-	local st_item_3 = createslider(30,480,345,40,"fast speed steer angle","cl_simfphys_steerangfast",self.PropPanel,0,90,faststeerang:GetFloat())
-	local st_item_4 = createslider(30,505,345,40,"fade speed(units/seconds)\nfor fast speed steer angle","cl_simfphys_fadespeed",self.PropPanel,1,5000,fadespeed:GetFloat())
-	local st_item_5 = createcheckbox(25,545,"extra smooth steering","cl_simfphys_smoothsteer",self.PropPanel,smoothsteer:GetInt())
+	local st_item_1 = createcheckbox(25,530,"Use these settings\n(you need to re-enter the vehicle)","cl_simfphys_overwrite",self.PropPanel,overwrite:GetInt())
+	local st_item_2 = createslider(30,550,345,40,"steer speed","cl_simfphys_steerspeed",self.PropPanel,1,16,steerspeed:GetFloat())
+	local st_item_3 = createslider(30,570,345,40,"fast speed steer angle","cl_simfphys_steerangfast",self.PropPanel,0,90,faststeerang:GetFloat())
+	local st_item_4 = createslider(30,595,345,40,"fade speed(units/seconds)\nfor fast speed steer angle","cl_simfphys_fadespeed",self.PropPanel,1,5000,fadespeed:GetFloat())
+	local st_item_5 = createcheckbox(25,635,"extra smooth steering","cl_simfphys_smoothsteer",self.PropPanel,smoothsteer:GetInt())
 	
 	local Reset = vgui.Create( "DButton" )
 	Reset:SetParent( self.PropPanel )
 	Reset:SetText( "Reset" )	
-	Reset:SetPos( 25, 570 )
+	Reset:SetPos( 25, 660 )
 	Reset:SetSize( 340, 25 )
 	Reset.DoClick = function()
 		st_item_1:SetValue( 0 )
@@ -316,6 +325,9 @@ local function buildmsmenu( self )
 	local msitem_2 = createcheckbox(25,55,"Lock Pitch View","cl_simfphys_ms_lockpitch",self.PropPanel,mslockpitch:GetInt())
 	local msitem_8 = createcheckbox(25,85,"Show Hud","cl_simfphys_ms_hud",self.PropPanel,mshud:GetInt())
 	
+	
+	local msitem_9 = createslider(60,50,315,40,"","cl_simfphys_ms_lockedpitch",self.PropPanel,-90,90,mslockedpitch:GetFloat())
+	
 	local msitem_4 = createslider(30,110,345,40,"Deadzone","cl_simfphys_ms_deadzone",self.PropPanel,0,16,msdeadzone:GetFloat())
 	local msitem_5 = createslider(30,140,345,40,"Exponent","cl_simfphys_ms_exponent",self.PropPanel,1,4,msexponent:GetFloat())
 	local msitem_6 = createslider(30,170,345,40,"Sensitivity","cl_simfphys_ms_sensitivity",self.PropPanel,0.01,10,mssensitivity:GetFloat())
@@ -337,6 +349,7 @@ local function buildmsmenu( self )
 		msitem_6:SetValue( 1 )
 		msitem_7:SetValue( 1 )
 		msitem_8:SetValue( 1 )
+		msitem_9:SetValue( 5 )
 		
 		mshud:SetInt( 1 )
 		mousesteer:SetInt( 0 )
@@ -346,6 +359,7 @@ local function buildmsmenu( self )
 		msexponent:SetFloat( 1.5 )
 		mslockpitch:SetInt( 0 )
 		k_msfreelook:SetInt( KEY_Y )
+		mslockedpitch:SetFloat( 5 )
 	end
 end
 
@@ -355,10 +369,6 @@ local function buildserversettingsmenu( self )
 	Background:SetPos( 20, 20 )
 	Background:SetColor( Color( 0, 0, 0, 200 ) )
 	local y = 0
-	
-	--local MaxVel = physenv.GetPerformanceSettings().MaxVelocity
-	--local mph = MaxVel * 0.0568182
-	--local kmh = MaxVel * 0.09144
 	
 	if LocalPlayer():IsSuperAdmin() then
 		y = y + 25
@@ -396,6 +406,23 @@ local function buildserversettingsmenu( self )
 		GibRemoveTimer:SetValue( GetConVar( "sv_simfphys_gib_lifetime" ):GetInt() )
 		
 		y = y + 45
+		local CheckBoxFuel = vgui.Create( "DCheckBoxLabel", self.PropPanel)
+		CheckBoxFuel:SetPos( 25, y )
+		CheckBoxFuel:SetText( "Enable Fuelsystem" )
+		CheckBoxFuel:SetValue( GetConVar( "sv_simfphys_fuel" ) :GetInt() )
+		CheckBoxFuel:SizeToContents()
+		
+		y = y + 18
+		local ScaleFuel = vgui.Create( "DNumSlider", self.PropPanel)
+		ScaleFuel:SetPos( 30, y )
+		ScaleFuel:SetSize( 345, 30 )
+		ScaleFuel:SetText( "Fuel tank size multiplier" )
+		ScaleFuel:SetMin( 0 )
+		ScaleFuel:SetMax( 1 )
+		ScaleFuel:SetDecimals( 2 )
+		ScaleFuel:SetValue( GetConVar( "sv_simfphys_fuelscale" ):GetFloat() )
+		
+		y = y + 45
 		local tractionLabel = vgui.Create( "DLabel", self.PropPanel )
 		tractionLabel:SetPos( 25, y )
 		tractionLabel:SetText( "Traction Multiplicator for:" )
@@ -419,15 +446,6 @@ local function buildserversettingsmenu( self )
 			y = y + 25
 		end
 		
-		--[[
-		local Label = vgui.Create( "DLabel", self.PropPanel )
-		Label:SetPos( 30, y + 35 )
-		Label:SetText( "Max possibe speed is: \n(playersize) "..math.Round(mph,0).." mph or "..math.Round(kmh,0).." km/h\n(worldsize) "..math.Round(mph * 0.75,0).." mph or "..math.Round(kmh * 0.75,0).." km/h" )
-		Label:SizeToContents()
-		
-		y = y + 80
-		]]--
-		
 		y = y + 30
 		local DermaButton = vgui.Create( "DButton" )
 		DermaButton:SetParent( self.PropPanel )
@@ -440,6 +458,8 @@ local function buildserversettingsmenu( self )
 				net.WriteFloat( GibRemoveTimer:GetValue() )
 				net.WriteFloat( DamageMul:GetValue() )
 				net.WriteBool( CheckBoxpDamage:GetChecked() )
+				net.WriteBool( CheckBoxFuel:GetChecked() )
+				net.WriteFloat( ScaleFuel:GetValue() )
 				net.WriteTable( NewTractionData ) 
 			net.SendToServer()
 		end
@@ -474,12 +494,16 @@ local function buildserversettingsmenu( self )
 			GibRemoveTimer:SetValue( 120 )
 			DamageMul:SetValue( 1 )
 			CheckBoxpDamage:SetValue( 1 )
+			CheckBoxFuel:SetValue( 1 )
+			ScaleFuel:SetValue( 0.1 )
 			
 			net.Start("simfphys_settings")
 				net.WriteBool( true )
 				net.WriteFloat( 120 )
 				net.WriteFloat( 1 )
 				net.WriteBool( true )
+				net.WriteBool( true )
+				net.WriteFloat( 0.1 )
 				net.WriteTable( NewTractionData ) 
 			net.SendToServer()
 		end
@@ -511,7 +535,20 @@ local function buildserversettingsmenu( self )
 		Label:SetText( (lifetime > 0) and ("Gib Lifetime = "..lifetime.." seconds") or "Gibs never despawn" )
 		Label:SizeToContents()
 
-		y = y + 45
+		y = y + 25
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		Label:SetPos( 30, y )
+		Label:SetText( "Vehicles "..(GetConVar( "sv_simfphys_fuel" ):GetBool() and "are running on fuel" or "don't use fuel") )
+		Label:SizeToContents()
+		
+		y = y + 25
+		local Label = vgui.Create( "DLabel", self.PropPanel )
+		local fuelscale = math.Round( GetConVar( "sv_simfphys_fuelscale" ):GetFloat() , 3 )
+		Label:SetPos( 30, y )
+		Label:SetText( "Fuel tank size multiplier is: "..fuelscale )
+		Label:SizeToContents()
+
+		y = y + 40
 		local Label = vgui.Create( "DLabel", self.PropPanel )
 		Label:SetPos( 30, y )
 		Label:SetText( "Traction multiplier for..." )
@@ -537,14 +574,6 @@ local function buildserversettingsmenu( self )
 			y = y + 25
 		end
 		y = y - 25
-		
-		--[[
-		local Label = vgui.Create( "DLabel", self.PropPanel )
-		Label:SetPos( 30, y + 35 )
-		Label:SetText( "Max possibe speed is: \n(playersize) "..math.Round(mph,0).." mph or "..math.Round(kmh,0).." km/h\n(worldsize) "..math.Round(mph * 0.75,0).." mph or "..math.Round(kmh * 0.75,0).." km/h" )
-		Label:SizeToContents()
-		y = y + 65
-		]]--
 	end
 	
 	Background:SetSize( 350, y )

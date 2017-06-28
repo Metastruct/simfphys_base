@@ -8,7 +8,6 @@ function ENT:Initialize()
 	self.OldGear = 0
 	self.OldThrottle = 0
 	self.FadeThrottle = 0
-	
 	self.SoundMode = 0
 	
 	self.DamageSnd = CreateSound(self, "simulated_vehicles/engine_damaged.wav")
@@ -27,8 +26,9 @@ function ENT:Think()
 		
 		self:ManageSounds( Active, Throttle, LimitRPM )
 		self:ManageEffects( Active, Throttle, LimitRPM )
+		self:CalcFlasher()
 		
-		self.RunNext = curtime + 0.03
+		self.RunNext = curtime + 0.06
 	end
 	
 	self:SetPoseParameters( curtime )
@@ -36,6 +36,39 @@ function ENT:Think()
 	self:NextThink( curtime )
 	
 	return true
+end
+
+function ENT:CalcFlasher()
+	self.Flasher = self.Flasher or 0
+	
+	local flashspeed = self.turnsignals_damaged and 0.08 or 0.035
+	
+	self.Flasher = self.Flasher and self.Flasher + flashspeed or 0
+	if self.Flasher >= 1 then
+		self.Flasher = self.Flasher - 1
+	end
+	
+	self.flashnum = math.min( math.abs( math.cos( math.rad( self.Flasher * 360 ) ) ^ 2 * 1.5 ) , 1)
+	
+	if not self.signal_left and not self.signal_right then return end
+	
+	if LocalPlayer() == self:GetDriver() then
+		local fl_snd = self.flashnum > 0.9
+		
+		if fl_snd ~= self.fl_snd then
+			self.fl_snd = fl_snd
+			if fl_snd then
+				self:EmitSound( "simulated_vehicles/sfx/flasher_on.ogg" )
+			else
+				self:EmitSound( "simulated_vehicles/sfx/flasher_off.ogg" )
+			end
+		end
+	end
+end
+
+function ENT:GetFlasher()
+	self.flashnum = self.flashnum or 0
+	return self.flashnum
 end
 
 function ENT:SetPoseParameters( curtime )
@@ -193,7 +226,7 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 	self.FadeThrottle = self.FadeThrottle + math.Clamp(Throttle - self.FadeThrottle,-0.2,0.2)
 	self.PitchOffset = self.PitchOffset + ((CurDist - self.OldDist) * 0.23 - self.PitchOffset) * 0.5
 	self.OldDist = CurDist
-	self.SmoothRPM = self.SmoothRPM + math.Clamp(FlyWheelRPM - self.SmoothRPM,-350,350)
+	self.SmoothRPM = self.SmoothRPM + math.Clamp(FlyWheelRPM - self.SmoothRPM,-350,600)
 	
 	self.OldThrottle2 = self.OldThrottle2 or 0
 	if Throttle ~= self.OldThrottle2 then
