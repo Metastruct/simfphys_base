@@ -72,7 +72,7 @@ if CLIENT then
 		outline = false,
 	} )
 	
-	function GetDigit( value )
+	local function GetDigit( value )
 		local fvalue = math.floor(value,0)
 		
 		local decimal = 1000 + (value - fvalue) * 1000
