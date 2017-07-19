@@ -172,6 +172,13 @@ local function bcDamage( vehicle , position , cdamage )
 end
 
 local function onCollide( ent, data )
+	if IsValid( data.HitEntity ) then
+		if data.HitEntity:GetClass():StartWith( "npc_" ) then
+			Spark( data.HitPos , data.HitNormal , "MetalVehicle.ImpactSoft" )
+			return
+		end
+	end
+	
 	if ( data.Speed > 60 && data.DeltaTime > 0.2 ) then
 		
 		local pos = data.HitPos

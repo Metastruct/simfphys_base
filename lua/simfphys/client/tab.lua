@@ -372,6 +372,13 @@ local function buildserversettingsmenu( self )
 	
 	if LocalPlayer():IsSuperAdmin() then
 		y = y + 25
+		local CheckBoxTeam = vgui.Create( "DCheckBoxLabel", self.PropPanel)
+		CheckBoxTeam:SetPos( 25, y )
+		CheckBoxTeam:SetText( "Disallow players of different teams to enter the same vehicle" )
+		CheckBoxTeam:SetValue( GetConVar( "sv_simfphys_teampassenger" ) :GetInt() )
+		CheckBoxTeam:SizeToContents()
+	
+		y = y + 25
 		local CheckBoxDamage = vgui.Create( "DCheckBoxLabel", self.PropPanel)
 		CheckBoxDamage:SetPos( 25, y )
 		CheckBoxDamage:SetText( "Enable Damage" )
@@ -461,6 +468,7 @@ local function buildserversettingsmenu( self )
 				net.WriteBool( CheckBoxFuel:GetChecked() )
 				net.WriteFloat( ScaleFuel:GetValue() )
 				net.WriteTable( NewTractionData ) 
+				net.WriteBool( CheckBoxTeam:GetChecked() )
 			net.SendToServer()
 		end
 		
@@ -496,6 +504,7 @@ local function buildserversettingsmenu( self )
 			CheckBoxpDamage:SetValue( 1 )
 			CheckBoxFuel:SetValue( 1 )
 			ScaleFuel:SetValue( 0.1 )
+			CheckBoxTeam:SetValue( 0 )
 			
 			net.Start("simfphys_settings")
 				net.WriteBool( true )
@@ -505,6 +514,7 @@ local function buildserversettingsmenu( self )
 				net.WriteBool( true )
 				net.WriteFloat( 0.1 )
 				net.WriteTable( NewTractionData ) 
+				net.WriteBool( false )
 			net.SendToServer()
 		end
 	else
@@ -547,6 +557,14 @@ local function buildserversettingsmenu( self )
 		Label:SetPos( 30, y )
 		Label:SetText( "Fuel tank size multiplier is: "..fuelscale )
 		Label:SizeToContents()
+
+		if GetConVar( "sv_simfphys_teampassenger" ):GetBool() then
+			y = y + 25
+			local Label = vgui.Create( "DLabel", self.PropPanel )
+			Label:SetPos( 30, y )
+			Label:SetText( "Only players of the same team can enter the same vehicle" )
+			Label:SizeToContents()
+		end
 
 		y = y + 40
 		local Label = vgui.Create( "DLabel", self.PropPanel )

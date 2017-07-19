@@ -905,7 +905,7 @@ end
 function ENT:SetPassenger( ply )
 	if not IsValid( ply ) then return end
 	
-	if self.IsLocked then 
+	if self.IsLocked or self:HasPassengerEnemyTeam( ply ) then 
 		self:EmitSound( "doors/default_locked.wav" )
 		return
 	end
@@ -962,6 +962,35 @@ function ENT:GetClosestSeat( ply )
 	end
 	
 	return Seat
+end
+
+function ENT:HasPassengerEnemyTeam( ply )
+	if not GetConVar( "sv_simfphys_teampassenger" ):GetBool() then return false end
+	
+	if not IsValid( ply ) then return true end
+	
+	local myteam = ply:Team()
+	if IsValid( self:GetDriver() ) then
+		if self:GetDriver():Team() ~= myteam then
+			return true
+		end
+	end
+	
+	if self.PassengerSeats then
+		for i = 1, table.Count( self.pSeat ) do
+			if IsValid(self.pSeat[i]) then
+				
+				local Passenger = self.pSeat[i]:GetDriver()
+				if IsValid( Passenger ) then
+					if Passenger:Team() ~= myteam then
+						return true
+					end
+				end
+			end
+		end
+	end
+	
+	return false
 end
 
 function ENT:SetPhysics( enable )

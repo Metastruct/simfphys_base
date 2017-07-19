@@ -26,6 +26,12 @@ SWEP.Secondary.DefaultClip	= -1
 SWEP.Secondary.Automatic		= false
 SWEP.Secondary.Ammo		= "none"
 
+local inv_time = 0
+
+function SWEP:SetupDataTables()
+	self:NetworkVar( "Int",0, "FuelType" )
+end
+
 function SWEP:IsAimingAt( vpos )
 	if not IsValid( self.Owner ) then return false end
 	local dir = self.Owner:GetAimVector()
@@ -130,6 +136,7 @@ if CLIENT then
 	
 	
 	local fuelposmat = Material( "sprites/fuelfiller_icon" )
+	local wrong_type = Material( "conquest/aim_friendly" )
 	
 	function SWEP:DrawHUD()
 		if LocalPlayer():InVehicle() then return end
@@ -141,9 +148,15 @@ if CLIENT then
 		local sizey = screenh
 		local xpos = sizex * 0.02
 		local ypos = sizey * 0.85
+		local dia =  screenw * 0.025
+		local radius = dia * 0.5
 		
 		local Trace = self.Owner:GetEyeTrace()
 		local ent = Trace.Entity
+		
+		surface.SetDrawColor( 255, 0, 0,255 * math.Clamp(inv_time + 0.5 - CurTime(),0,1) )
+		surface.SetMaterial( wrong_type )
+		surface.DrawTexturedRect( screenw * 0.5 - radius, screenh * 0.5 - radius, dia, dia )
 		
 		surface.SetDrawColor( 0, 0, 0, 80 )
 		surface.DrawRect( xpos, ypos, sizex * 0.118, sizey * 0.02 )
@@ -166,6 +179,11 @@ if CLIENT then
 			local MaxFuel = math.Round( ent:GetMaxFuel() , 1)
 			local Fuel = math.Round( ent:GetFuel() , 1 )
 			local fueltype = ent:GetFuelType()
+			
+			if fueltype == FUELTYPE_ELECTRIC then
+				MaxFuel = MaxFuel * 0.5
+				Fuel = Fuel * 0.5
+			end
 			
 			local fueltype_color = Color(0,127,255,150)
 			if fueltype == 1 then
@@ -205,11 +223,17 @@ function SWEP:Think()
 		if not IsValid( self.Owner ) then return end
 		if not self.Owner:KeyDown( IN_ATTACK ) then return end
 		
+		if self:GetFuelType() == FUELTYPE_ELECTRIC then return end
+		
 		local Trace = self.Owner:GetEyeTrace()
 		local ent = Trace.Entity
 		local InRange = (Trace.HitPos - self.Owner:GetPos()):Length() < self.MaxDistance
 		local HIT = IsValid( ent ) and simfphys.IsCar( ent ) and InRange
 	
+		if HIT then
+			if self:GetFuelType() ~=  ent:GetFuelType() then inv_time = CurTime() return end
+		end
+		
 		local id = self.Owner:LookupAttachment("anim_attachment_rh")
 		local attachment = self.Owner:GetAttachment( id )
 		
@@ -284,6 +308,8 @@ function SWEP:PrimaryAttack()
 	local HIT = IsValid( ent ) and simfphys.IsCar( ent ) and InRange
 	
 	if SERVER then
+		self.Owner.usedFuel = self.Owner.usedFuel or 0
+	
 		if HIT then
 			local Fuel = ent:GetFuel()
 			local MaxFuel = ent:GetMaxFuel()
@@ -295,17 +321,34 @@ function SWEP:PrimaryAttack()
 						if not IsValid( self ) then return end
 						if not IsValid( self.Owner ) then return end
 						
+						if self:GetFuelType() ~=  ent:GetFuelType() then return end
+						
 						ent:SetFuel( Fuel + self.RefilAmount )
 					
 						timer.Simple(0.2, function()
-							sound.Play( Sound( "vehicles/jetski/jetski_no_gas_start.wav" ), Trace.HitPos, 65)
+							if self:GetFuelType() == FUELTYPE_ELECTRIC then
+								sound.Play( Sound( "items/battery_pickup.wav" ), Trace.HitPos, 65)
+								
+								local effectdata = EffectData() 
+									effectdata:SetOrigin( Trace.HitPos ) 
+									effectdata:SetNormal( Trace.HitNormal * 3 ) 
+									effectdata:SetMagnitude( 2 ) 
+									effectdata:SetRadius( 8 ) 
+								util.Effect( "Sparks", effectdata, true, true ) 
+								
+								self.Owner.usedFuel = self.Owner.usedFuel + self.RefilAmount
+							else
+								sound.Play( Sound( "vehicles/jetski/jetski_no_gas_start.wav" ), Trace.HitPos, 65)
+							end
 						end)
 					end)
 				end
 			end
 		end
 		
-		self.Owner.usedFuel = self.Owner.usedFuel and (self.Owner.usedFuel + self.RefilAmount) or 0
+		if self:GetFuelType() ~= FUELTYPE_ELECTRIC then
+			self.Owner.usedFuel = self.Owner.usedFuel + self.RefilAmount
+		end
 		
 	end
 	self:SetNextPrimaryFire( CurTime() + 0.5 )
