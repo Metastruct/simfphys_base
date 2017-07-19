@@ -18,7 +18,7 @@ local function ExitUsingMyTraces( ent, ply, b_ent )
 		local targetpos = pos - dir *  (radius + 40)
 		
 		local tr = util.TraceHull( {
-			start = targetpos + Vector(0,0,10),
+			start = Center,
 			endpos = targetpos - Vector(0,0,10),
 			maxs = HullSize,
 			mins = -HullSize,
