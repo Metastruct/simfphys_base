@@ -22,7 +22,7 @@ local function ExitUsingMyTraces( ent, ply, b_ent )
 			endpos = targetpos - Vector(0,0,10),
 			maxs = HullSize,
 			mins = -HullSize,
-			filter = Filter1
+			filter = Filter2
 		} )
 		
 		local exitpoint = tr.HitPos + Vector(0,0,10)
