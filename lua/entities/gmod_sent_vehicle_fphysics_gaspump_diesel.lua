@@ -2,7 +2,7 @@ AddCSLuaFile()
 
 ENT.Type            = "anim"
 
-ENT.PrintName	= "gas pump (petrol)"
+ENT.PrintName	= "gas pump (diesel)"
 ENT.Author	= ""
 ENT.Information = ""
 ENT.Category	= "simfphys"
@@ -137,10 +137,10 @@ if CLIENT then
 			surface.SetDrawColor( 0, 0, 0, 255 )
 			surface.DrawRect( -150, -120, 300, 240 )
 			
-			draw.RoundedBox( 5, -130, -110, 260, 200, Color( 240, 200, 0, 150 ) ) 
+			draw.RoundedBox( 5, -130, -110, 260, 200, Color(255,60,0,150) ) 
 			draw.RoundedBox( 5, -129, -109, 258, 198, Color( 50, 50, 50, 255 ) ) 
 			
-			draw.RoundedBox( 5, -91, -75, 182, 30, Color( 240, 200, 0, 150 ) ) 
+			draw.RoundedBox( 5, -91, -75, 182, 30, Color(255,60,0,150) ) 
 			draw.RoundedBox( 5, -90, -74, 180, 28, Color( 50, 50, 50, 255 ) ) 
 			draw.RoundedBox( 5, -88, -72, 19, 24, Color( 0, 0, 0, 255 ) )
 			draw.RoundedBox( 5, -68, -72, 19, 24, Color( 0, 0, 0, 255 ) ) 
@@ -149,7 +149,7 @@ if CLIENT then
 			draw.RoundedBox( 5, -8, -72, 19, 24, Color( 0, 0, 0, 255 ) ) 
 			draw.RoundedBox( 5, 12, -72, 76, 24, Color( 0, 0, 0, 255 ) ) 
 			
-			draw.RoundedBox( 5, -91, -25, 182, 30, Color( 240, 200, 0, 150 ) ) 
+			draw.RoundedBox( 5, -91, -25, 182, 30, Color(255,60,0,150) ) 
 			draw.RoundedBox( 5, -90, -24, 180, 28, Color( 50, 50, 50, 255 ) ) 
 			draw.RoundedBox( 5, -88, -22, 19, 24, Color( 0, 0, 0, 255 ) )
 			draw.RoundedBox( 5, -68, -22, 19, 24, Color( 0, 0, 0, 255 ) ) 
@@ -183,7 +183,7 @@ if CLIENT then
 			
 			draw.SimpleText( "Tropfmengen sind sofort aufzunehmen", "simfphys_gaspump_note", 85, 20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
 			
-			draw.SimpleText( "PETROL", "simfphys_gaspump", 0, -100, Color(240,200,0,150), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP )
+			draw.SimpleText( "DIESEL", "simfphys_gaspump", 0, -100, Color(255,60,0,150), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP )
 			
 		cam.End3D2D()
 	end
@@ -216,7 +216,7 @@ function ENT:Use( ply )
 			
 			local weapon = ply:GetActiveWeapon()
 			if IsValid( weapon ) and weapon:GetClass() == "weapon_simfillerpistol" then
-				weapon:SetFuelType( FUELTYPE_PETROL )
+				weapon:SetFuelType( FUELTYPE_DIESEL )
 			end
 		end
 	else

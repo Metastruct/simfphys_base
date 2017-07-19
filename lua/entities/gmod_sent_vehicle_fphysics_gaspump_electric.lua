@@ -2,7 +2,7 @@ AddCSLuaFile()
 
 ENT.Type            = "anim"
 
-ENT.PrintName	= "gas pump (petrol)"
+ENT.PrintName	= "gas pump (electric)"
 ENT.Author	= ""
 ENT.Information = ""
 ENT.Category	= "simfphys"
@@ -35,6 +35,7 @@ end
 
 if CLIENT then 
 	local cable = Material( "cable/cable2" )
+	local electric_meme = Material( "conquest/energy_collector" )
 	
 	surface.CreateFont( "simfphys_gaspump", {
 		font = "Verdana",
@@ -137,10 +138,10 @@ if CLIENT then
 			surface.SetDrawColor( 0, 0, 0, 255 )
 			surface.DrawRect( -150, -120, 300, 240 )
 			
-			draw.RoundedBox( 5, -130, -110, 260, 200, Color( 240, 200, 0, 150 ) ) 
+			draw.RoundedBox( 5, -130, -110, 260, 200, Color(0,127,255,150) ) 
 			draw.RoundedBox( 5, -129, -109, 258, 198, Color( 50, 50, 50, 255 ) ) 
 			
-			draw.RoundedBox( 5, -91, -75, 182, 30, Color( 240, 200, 0, 150 ) ) 
+			draw.RoundedBox( 5, -91, -75, 182, 30, Color(0,127,255,150) ) 
 			draw.RoundedBox( 5, -90, -74, 180, 28, Color( 50, 50, 50, 255 ) ) 
 			draw.RoundedBox( 5, -88, -72, 19, 24, Color( 0, 0, 0, 255 ) )
 			draw.RoundedBox( 5, -68, -72, 19, 24, Color( 0, 0, 0, 255 ) ) 
@@ -149,22 +150,14 @@ if CLIENT then
 			draw.RoundedBox( 5, -8, -72, 19, 24, Color( 0, 0, 0, 255 ) ) 
 			draw.RoundedBox( 5, 12, -72, 76, 24, Color( 0, 0, 0, 255 ) ) 
 			
-			draw.RoundedBox( 5, -91, -25, 182, 30, Color( 240, 200, 0, 150 ) ) 
-			draw.RoundedBox( 5, -90, -24, 180, 28, Color( 50, 50, 50, 255 ) ) 
-			draw.RoundedBox( 5, -88, -22, 19, 24, Color( 0, 0, 0, 255 ) )
-			draw.RoundedBox( 5, -68, -22, 19, 24, Color( 0, 0, 0, 255 ) ) 
-			draw.RoundedBox( 5, -48, -22, 19, 24, Color( 0, 0, 0, 255 ) ) 
-			draw.RoundedBox( 5, -28, -22, 19, 24, Color( 0, 0, 0, 255 ) ) 
-			draw.RoundedBox( 5, -8, -22, 19, 24, Color( 0, 0, 0, 255 ) ) 
-			draw.RoundedBox( 5, 12, -22, 76, 24, Color( 0, 0, 0, 255 ) ) 
+			surface.SetDrawColor( 0,127,255 )
+			surface.SetMaterial( electric_meme )
+			surface.DrawTexturedRect( -35, -12, 70, 70 )
+		
+			draw.SimpleText( "kW/h", "simfphys_gaspump", 50, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP )
 			
-			draw.SimpleText( "LITER", "simfphys_gaspump", 50, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP )
-			draw.SimpleText( "GALLONS", "simfphys_gaspump", 50, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP )
-			
-			local liter = self:GetFuelUsed()
-			local gallon = liter * 0.264172
-			local l_digits = GetDigit( math.Round( liter, 2) )
-			local g_digits = GetDigit( math.Round( gallon, 2) )
+			local kwh = self:GetFuelUsed() / 2
+			local l_digits = GetDigit( math.Round( kwh, 2) )
 			
 			draw.SimpleText( l_digits[4], "simfphys_gaspump", 6, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
 			draw.SimpleText( l_digits[5], "simfphys_gaspump", -14, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
@@ -173,17 +166,7 @@ if CLIENT then
 			draw.SimpleText( l_digits[2], "simfphys_gaspump", -54, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
 			draw.SimpleText( l_digits[3], "simfphys_gaspump", -74, -70, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
 			
-			
-			draw.SimpleText( g_digits[4], "simfphys_gaspump", 6, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
-			draw.SimpleText( g_digits[5], "simfphys_gaspump", -14, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
-			draw.SimpleText( ",", "simfphys_gaspump", -26, -15, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
-			draw.SimpleText( g_digits[1], "simfphys_gaspump", -34, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
-			draw.SimpleText( g_digits[2], "simfphys_gaspump", -54, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
-			draw.SimpleText( g_digits[3], "simfphys_gaspump", -74, -20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
-			
-			draw.SimpleText( "Tropfmengen sind sofort aufzunehmen", "simfphys_gaspump_note", 85, 20, Color( 200, 200, 200, 255 ), TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP )
-			
-			draw.SimpleText( "PETROL", "simfphys_gaspump", 0, -100, Color(240,200,0,150), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP )
+			draw.SimpleText( "ELECTRIC", "simfphys_gaspump", 0, -100, Color(0,127,255,150), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP )
 			
 		cam.End3D2D()
 	end
@@ -216,7 +199,7 @@ function ENT:Use( ply )
 			
 			local weapon = ply:GetActiveWeapon()
 			if IsValid( weapon ) and weapon:GetClass() == "weapon_simfillerpistol" then
-				weapon:SetFuelType( FUELTYPE_PETROL )
+				weapon:SetFuelType( FUELTYPE_ELECTRIC )
 			end
 		end
 	else
@@ -237,10 +220,10 @@ function ENT:OnActiveChanged( name, old, new)
 			self.sound:Stop()
 			self.sound = nil
 		end
-		self.sound = CreateSound(self, "vehicles/crane/crane_idle_loop3.wav")
+		self.sound = CreateSound(self, "npc/scanner/combat_scan_loop6.wav")
 		self.sound:PlayEx(0,0)
-		self.sound:ChangeVolume( 0.4,2 )
-		self.sound:ChangePitch( 255,3 )
+		self.sound:ChangeVolume( 0.8,1 )
+		self.sound:ChangePitch( 130,2 )
 		if IsValid( self.PumpEnt ) then
 			self.PumpEnt:SetNoDraw( true )
 		end
