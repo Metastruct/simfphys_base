@@ -5,6 +5,7 @@ CreateConVar( "sv_simfphys_playerdamage", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE
 CreateConVar( "sv_simfphys_damagemultiplicator", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"vehicle damage multiplicator" )
 CreateConVar( "sv_simfphys_fuel", "1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"enable fuel? 1 = enabled, 0 = disabled" )
 CreateConVar( "sv_simfphys_fuelscale", "0.1", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"fuel tank size multiplier. 1 = Realistic fuel tank size (about 2-3 hours of fullthrottle driving, Lol, have fun)" )
+CreateConVar( "sv_simfphys_teampassenger", "0", {FCVAR_REPLICATED , FCVAR_ARCHIVE},"allow players of different teams to enter the same vehicle?, 0 = allow everyone, 1 = team only" )
 
 simfphys = istable( simfphys ) and simfphys or {}
 simfphys.DamageEnabled = false
@@ -90,12 +91,16 @@ if SERVER then
 		
 		local newtraction = net.ReadTable() 
 		
+		local teamonly = tostring(net.ReadBool() and 1 or 0)
+		
 		RunConsoleCommand("sv_simfphys_enabledamage", dmgEnabled ) 
 		RunConsoleCommand("sv_simfphys_gib_lifetime", giblifetime )
 		RunConsoleCommand("sv_simfphys_damagemultiplicator", dmgMul ) 
 		RunConsoleCommand("sv_simfphys_playerdamage", pdmgEnabled ) 
 		RunConsoleCommand("sv_simfphys_fuel", fuel ) 
 		RunConsoleCommand("sv_simfphys_fuelscale", fuelscale ) 
+		
+		RunConsoleCommand("sv_simfphys_teampassenger", teamonly ) 
 		
 		for k, v in pairs( newtraction ) do
 			RunConsoleCommand("sv_simfphys_traction_"..k, v) 
