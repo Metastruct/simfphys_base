@@ -231,6 +231,26 @@ local function drawsimfphysHUD(vehicle)
 			--draw.Arc(x + o_x,y + o_y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
 			--draw.Arc(x + o_x,y + o_y,radius / 5,radius / 70,0,360,15,center_ncol,true)
 		end
+		--[[
+		else
+			for i = 0, s_smoothrpm,125 do
+				local anglestep = (255 / maxrpm) * i
+				
+				local u_col
+				if (i < powerbandend) then
+					u_col = Color( 200, 200, 200, 100 )
+				else
+					u_col= Color( 200, 0, 0, 100)
+				end
+				surface.SetDrawColor( u_col )
+				
+				local cos_a = math.cos( math.rad(startang + anglestep) )
+				local sin_a = math.sin( math.rad(startang + anglestep) )
+				
+				surface.DrawLine( x + cos_a * (radius - radius / 6.66) + o_x, y + sin_a * (radius - radius / 6.66) + o_y, x + cos_a * radius / 1.05 + o_x, y + sin_a * radius / 1.05 + o_y)
+			end
+		end
+		]]
 		
 		local step = 0
 		for i = 0,maxrpm,250 do
@@ -259,7 +279,6 @@ local function drawsimfphysHUD(vehicle)
 				local printnumber = tostring(i / 1000)
 				draw.SimpleText(printnumber, "simfphysfont3", x + cos_a * radius / 1.5 + o_x, y + sin_a * radius / 1.5 + o_y,u_col, 1, 1 )
 			else
-				surface.SetDrawColor( Color(0,0,0,255) )
 				surface.DrawLine( x + cos_a * radius / 1.05 + o_x, y + sin_a * radius / 1.05 + o_y, x + cos_a * radius + o_x, y + sin_a * radius + o_y)
 			end
 		end
