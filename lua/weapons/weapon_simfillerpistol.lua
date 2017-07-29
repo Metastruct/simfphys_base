@@ -223,8 +223,6 @@ function SWEP:Think()
 		if not IsValid( self.Owner ) then return end
 		if not self.Owner:KeyDown( IN_ATTACK ) then return end
 		
-		if self:GetFuelType() == FUELTYPE_ELECTRIC then return end
-		
 		local Trace = self.Owner:GetEyeTrace()
 		local ent = Trace.Entity
 		local InRange = (Trace.HitPos - self.Owner:GetPos()):Length() < self.MaxDistance
@@ -233,6 +231,8 @@ function SWEP:Think()
 		if HIT then
 			if self:GetFuelType() ~=  ent:GetFuelType() then inv_time = CurTime() return end
 		end
+		
+		if self:GetFuelType() == FUELTYPE_ELECTRIC then return end
 		
 		local id = self.Owner:LookupAttachment("anim_attachment_rh")
 		local attachment = self.Owner:GetAttachment( id )
@@ -327,7 +327,7 @@ function SWEP:PrimaryAttack()
 					
 						timer.Simple(0.2, function()
 							if self:GetFuelType() == FUELTYPE_ELECTRIC then
-								sound.Play( Sound( "items/battery_pickup.wav" ), Trace.HitPos, 65)
+								sound.Play( Sound( "items/battery_pickup.wav" ), Trace.HitPos, 50)
 								
 								local effectdata = EffectData() 
 									effectdata:SetOrigin( Trace.HitPos ) 
