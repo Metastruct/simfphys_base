@@ -1,10 +1,7 @@
 AddCSLuaFile()
 
-ENT.Type            = "anim"
-
+ENT.Type	= "anim"
 ENT.PrintName	= "gas pump (diesel)"
-ENT.Author	= ""
-ENT.Information = ""
 ENT.Category	= "simfphys"
 
 ENT.Spawnable = true
@@ -36,42 +33,6 @@ end
 if CLIENT then 
 	local cable = Material( "cable/cable2" )
 	
-	surface.CreateFont( "simfphys_gaspump", {
-		font = "Verdana",
-		extended = false,
-		size = 18,
-		weight = 500,
-		blursize = 0,
-		scanlines = 0,
-		antialias = true,
-		underline = false,
-		italic = false,
-		strikeout = false,
-		symbol = false,
-		rotary = false,
-		shadow = false,
-		additive = false,
-		outline = false,
-	} )
-	
-	surface.CreateFont( "simfphys_gaspump_note", {
-		font = "Verdana",
-		extended = false,
-		size = 9,
-		weight = 500,
-		blursize = 0,
-		scanlines = 0,
-		antialias = true,
-		underline = false,
-		italic = false,
-		strikeout = false,
-		symbol = false,
-		rotary = false,
-		shadow = false,
-		additive = false,
-		outline = false,
-	} )
-	
 	local function GetDigit( value )
 		local fvalue = math.floor(value,0)
 		
@@ -97,6 +58,8 @@ if CLIENT then
 	
 	function ENT:Draw()
 		self:DrawModel()
+		
+		if LocalPlayer():GetPos():DistToSqr(self:GetPos()) > 350000 then return end
 		
 		local pos = self:LocalToWorld( Vector(10,0,45) )
 		local ang = self:LocalToWorldAngles( Angle(0,90,90) )
@@ -189,20 +152,6 @@ if CLIENT then
 	end
 	return
 end
-
-function ENT:SpawnFunction( ply, tr, ClassName )
-
-	if not tr.Hit then return end
-
-	local ent = ents.Create( ClassName )
-	ent:SetPos( tr.HitPos + tr.HitNormal )
-	ent:SetAngles( Angle(0,ply:EyeAngles().y + 180,0) )
-	ent:Spawn()
-	ent:Activate()
-
-	return ent
-
-end
 	
 function ENT:Use( ply )
 	if not self:GetActive() then
@@ -261,17 +210,17 @@ function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-	self:SetRenderMode( RENDERMODE_TRANSALPHA )
 	self:SetUseType( SIMPLE_USE )
 	
-	self.PumpEnt = ents.Create( "prop_physics" )
+	self.PumpEnt = ents.Create( "prop_dynamic" )
 	self.PumpEnt:SetModel( "models/props_equipment/gas_pump_p13.mdl" )
-	self.PumpEnt:SetPos( self:LocalToWorld( Vector(-0.2,-14.6,45.7)  ) )
+	self.PumpEnt:SetPos( self:LocalToWorld( Vector(-0.2,-14.6,45.7) ) )
 	self.PumpEnt:SetAngles( self:LocalToWorldAngles( Angle(-0.3,92.3,-0.1) ) )
 	self.PumpEnt:SetMoveType( MOVETYPE_NONE )
 	self.PumpEnt:Spawn()
 	self.PumpEnt:Activate()
 	self.PumpEnt:SetNotSolid( true )
+	self.PumpEnt:DrawShadow( false )
 	self.PumpEnt:SetParent( self )
 	
 	local PObj = self:GetPhysicsObject()
