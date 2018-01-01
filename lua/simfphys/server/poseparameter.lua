@@ -9,7 +9,7 @@ local function sendppdata( length, ply )
 	if (not ent.IsInitialized or not ent:IsInitialized()) then return end
 	if not istable( ent.Wheels ) then return end
 	
-	net.Start( "simfphys_send_ppdata" )
+	net.Start( "simfphys_send_ppdata", true )
 		net.WriteEntity( ent )
 		net.WriteBool( ent.CustomWheels )
 		

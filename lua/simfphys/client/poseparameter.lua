@@ -21,6 +21,8 @@ local function receiveppdata( length )
 			local posRR = net.ReadFloat()
 			local travelRR = net.ReadFloat()
 			
+			if not wheelFL:IsValid() or not not wheelFR:IsValid() or not not wheelRL:IsValid() or not not wheelRR:IsValid() then return end
+			
 			ent.pp_data = {
 				[1] = {
 					name = "vehicle_wheel_fl_height",

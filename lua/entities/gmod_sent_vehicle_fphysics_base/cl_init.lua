@@ -80,7 +80,7 @@ function ENT:SetPoseParameters( curtime )
 		if self.ppNextCheck < curtime then
 			self.ppNextCheck = curtime + 0.5
 			
-			net.Start("simfphys_request_ppdata")
+			net.Start("simfphys_request_ppdata",true)
 				net.WriteEntity( self )
 			net.SendToServer()
 		end
