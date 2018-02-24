@@ -56,7 +56,7 @@ local function DestroyVehicle( ent )
 		ply:AddCleanup( "Gibs", bprop )
 	end
 	
-	if ent.CustomWheels == true then
+	if ent.CustomWheels == true and not ent.NoWheelGibs then
 		for i = 1, table.Count( ent.GhostWheels ) do
 			local Wheel = ent.GhostWheels[i]
 			if IsValid(Wheel) then
