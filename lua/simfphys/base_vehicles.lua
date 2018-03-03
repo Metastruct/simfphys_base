@@ -7,6 +7,8 @@ local V = {
 	Members = {
 		Mass = 1700,
 		
+		--OnTick = function(ent) print("hi") end,
+		
 		LightsTable = "jeep",
 		
 		FrontWheelRadius = 18,

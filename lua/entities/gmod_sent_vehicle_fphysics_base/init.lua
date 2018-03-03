@@ -5,94 +5,105 @@ include("spawn.lua")
 include("simfunc.lua")
 include("numpads.lua")
 
+function ENT:OnTick()
+end
+
 function ENT:Think()
 	local Time = CurTime()
-	if IsValid( self.DriverSeat ) then
-		local Driver = self.DriverSeat:GetDriver()
-		Driver = IsValid( self.RemoteDriver ) and self.RemoteDriver or Driver
+	
+	self:OnTick()
+	
+	self.NextTick = self.NextTick or 0
+	if self.NextTick < Time then
+		self.NextTick = Time + 0.025
 		
-		local OldDriver = self:GetDriver()
-		if OldDriver ~= Driver then
-			self:SetDriver( Driver )
+		if IsValid( self.DriverSeat ) then
+			local Driver = self.DriverSeat:GetDriver()
+			Driver = IsValid( self.RemoteDriver ) and self.RemoteDriver or Driver
 			
-			local HadDriver = IsValid( OldDriver )
-			local HasDriver = IsValid( Driver )
-			
-			if HasDriver then
-				self:SetActive( true )
-				self:SetupControls( Driver )
+			local OldDriver = self:GetDriver()
+			if OldDriver ~= Driver then
+				self:SetDriver( Driver )
 				
-				if Driver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
-					self:StartEngine()
-				end
+				local HadDriver = IsValid( OldDriver )
+				local HasDriver = IsValid( Driver )
 				
-			else
-				self:UnLock()
-				
-				if self.ems then
-					self.ems:Stop()
-				end
-
-				if self.horn then
-					self.horn:Stop()
-				end
-				
-				if self.PressedKeys then
-					for k,v in pairs( self.PressedKeys ) do
-						if isbool( v ) then
-							self.PressedKeys[k] = false
-						end
+				if HasDriver then
+					self:SetActive( true )
+					self:SetupControls( Driver )
+					
+					if Driver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
+						self:StartEngine()
 					end
-				end
-				
-				if self.keys then
-					for i = 1, table.Count( self.keys ) do
-						numpad.Remove( self.keys[i] )
-					end
-				end
-				
-				if HadDriver then
-					if OldDriver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
-						self:StopEngine()
-						self:SetActive( false )
-					else
-						self:ResetJoystick()
-						
-						if not self:EngineActive() then
-							self:SetActive( false )
-						end
-					end
+					
 				else
-					self:SetActive( false )
-					self:StopEngine()
+					self:UnLock()
+					
+					if self.ems then
+						self.ems:Stop()
+					end
+
+					if self.horn then
+						self.horn:Stop()
+					end
+					
+					if self.PressedKeys then
+						for k,v in pairs( self.PressedKeys ) do
+							if isbool( v ) then
+								self.PressedKeys[k] = false
+							end
+						end
+					end
+					
+					if self.keys then
+						for i = 1, table.Count( self.keys ) do
+							numpad.Remove( self.keys[i] )
+						end
+					end
+					
+					if HadDriver then
+						if OldDriver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
+							self:StopEngine()
+							self:SetActive( false )
+						else
+							self:ResetJoystick()
+							
+							if not self:EngineActive() then
+								self:SetActive( false )
+							end
+						end
+					else
+						self:SetActive( false )
+						self:StopEngine()
+					end
 				end
+			end
+		end
+		
+		if self:IsInitialized() then
+			self:SetColors()
+			self:SimulateVehicle( Time )
+			self:ControlLighting( Time )
+			
+			if istable( WireLib ) then
+				self:UpdateWireOutputs()
+			end
+			
+			self.NextWaterCheck = self.NextWaterCheck or 0
+			if self.NextWaterCheck < Time then
+				self.NextWaterCheck = Time + 0.2
+				self:WaterPhysics()
+			end
+			
+			if self:GetActive() then
+				self:SetPhysics( ((math.abs(self.ForwardSpeed) < 50) and (self.Brake > 0 or self.HandBrake > 0)) )
+			else
+				self:SetPhysics( true )
 			end
 		end
 	end
 	
-	if self:IsInitialized() then
-		self:SetColors()
-		self:SimulateVehicle( Time )
-		self:ControlLighting( Time )
-		
-		if istable( WireLib ) then
-			self:UpdateWireOutputs()
-		end
-		
-		self.NextWaterCheck = self.NextWaterCheck or 0
-		if self.NextWaterCheck < Time then
-			self.NextWaterCheck = Time + 0.2
-			self:WaterPhysics()
-		end
-		
-		if self:GetActive() then
-			self:SetPhysics( ((math.abs(self.ForwardSpeed) < 50) and (self.Brake > 0 or self.HandBrake > 0)) )
-		else
-			self:SetPhysics( true )
-		end
-	end
-	
-	self:NextThink(Time + 0.025)
+	self:NextThink( Time )
 	
 	return true
 end
