@@ -8,6 +8,9 @@ local V = {
 		Mass = 1700,
 		
 		--OnTick = function(ent) print("hi") end,
+		--OnSpawn = function(ent) print("i spawned") end,
+		--OnDelete = function(ent) print("im removed :(") end,
+		--OnDestroyed = function(ent) print("im destroyed :((((") end,
 		
 		LightsTable = "jeep",
 		

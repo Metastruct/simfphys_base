@@ -5,7 +5,16 @@ include("spawn.lua")
 include("simfunc.lua")
 include("numpads.lua")
 
+function ENT:OnSpawn()
+end
+
 function ENT:OnTick()
+end
+
+function ENT:OnDelete()
+end
+
+function ENT:OnDestroyed()
 end
 
 function ENT:Think()
@@ -1237,6 +1246,8 @@ function ENT:OnRemove()
 	if self.ems then
 		self.ems:Stop()
 	end
+	
+	self:OnDelete()
 end
 
 function ENT:PlayPP( On )

@@ -23,6 +23,8 @@ local function DestroyVehicle( ent )
 	if not IsValid( ent ) then return end
 	if ent.destroyed then return end
 	
+	ent:OnDestroyed()
+	
 	ent.destroyed = true
 	
 	local ply = ent.EntityOwner
