@@ -345,39 +345,42 @@ local function drawsimfphysHUD(vehicle)
 		return
 	end
 	
+	local s_xpos = xpos
+	local s_ypos = ypos
+	
 	if SimpleHudIsForced then
 		o_x = 0
 		o_y = 0
-		xpos = screenw * 0.5 - sizex * 0.115 - sizex * 0.032
-		ypos = screenh - sizey * 0.092 - sizey * 0.02
+		s_xpos = screenw * 0.5 - sizex * 0.115 - sizex * 0.032
+		s_ypos = screenh - sizey * 0.092 - sizey * 0.02
 	else
-		draw.RoundedBox( 8, xpos + o_x, ypos + o_y, sizex * 0.118, sizey * 0.075, Color( 0, 0, 0, 80 ) )
+		draw.RoundedBox( 8, s_xpos + o_x, s_ypos + o_y, sizex * 0.118, sizey * 0.075, Color( 0, 0, 0, 80 ) )
 	end
 	
 	if cruisecontrol then
-		draw.SimpleText( "cruise", "simfphysfont", xpos + sizex * 0.115 + o_x, ypos + sizey * 0.035 + o_y, Color( 255, 127, 0, 255 ), 2, 1 )
+		draw.SimpleText( "cruise", "simfphysfont", s_xpos + sizex * 0.115 + o_x, s_ypos + sizey * 0.035 + o_y, Color( 255, 127, 0, 255 ), 2, 1 )
 	end
 
 	
 	
-	draw.SimpleText( "Throttle: "..throttle.." %", "simfphysfont", xpos + sizex * 0.005 + o_x, ypos + sizey * 0.035 + o_y, Color( 255, 235, 0, 255 ), 0, 1)
+	draw.SimpleText( "Throttle: "..throttle.." %", "simfphysfont", s_xpos + sizex * 0.005 + o_x, s_ypos + sizey * 0.035 + o_y, Color( 255, 235, 0, 255 ), 0, 1)
 	
-	draw.SimpleText( "RPM: "..math.Round(rpm,0)..Active, "simfphysfont", xpos + sizex * 0.005 + o_x, ypos + sizey * 0.012 + o_y, Color( 255, 235 * (1 - redline), 0, 255 ), 0, 1 )
+	draw.SimpleText( "RPM: "..math.Round(rpm,0)..Active, "simfphysfont", s_xpos + sizex * 0.005 + o_x, s_ypos + sizey * 0.012 + o_y, Color( 255, 235 * (1 - redline), 0, 255 ), 0, 1 )
 	
-	draw.SimpleText( "GEAR:", "simfphysfont", xpos + sizex * 0.062 + o_x, ypos + sizey * 0.012 + o_y, Color( 255, 235, 0, 255 ), 0, 1 )
-	draw.SimpleText( DrawGear, "simfphysfont", xpos + sizex * 0.11 + o_x, ypos + sizey * 0.012 + o_y, Color( 255, 235, 0, 255 ), 2, 1 )
+	draw.SimpleText( "GEAR:", "simfphysfont", s_xpos + sizex * 0.062 + o_x, s_ypos + sizey * 0.012 + o_y, Color( 255, 235, 0, 255 ), 0, 1 )
+	draw.SimpleText( DrawGear, "simfphysfont", s_xpos + sizex * 0.11 + o_x, s_ypos + sizey * 0.012 + o_y, Color( 255, 235, 0, 255 ), 2, 1 )
 	
-	draw.SimpleText( (Hudreal and mph or wiremph).." mph", "simfphysfont", xpos + sizex * 0.005 + o_x, ypos + sizey * 0.062 + o_y, Color( 255, 235, 0, 255 ), 0, 1 )
+	draw.SimpleText( (Hudreal and mph or wiremph).." mph", "simfphysfont", s_xpos + sizex * 0.005 + o_x, s_ypos + sizey * 0.062 + o_y, Color( 255, 235, 0, 255 ), 0, 1 )
 	
-	draw.SimpleText( (Hudreal and kmh or wirekmh).." kmh", "simfphysfont", xpos + sizex * 0.11 + o_x, ypos + sizey * 0.062 + o_y, Color( 255, 235, 0, 255 ), 2, 1 )
+	draw.SimpleText( (Hudreal and kmh or wirekmh).." kmh", "simfphysfont", s_xpos + sizex * 0.11 + o_x, s_ypos + sizey * 0.062 + o_y, Color( 255, 235, 0, 255 ), 2, 1 )
 	
 	if not cvarFuelSystem:GetBool() then return end
 	
 	local r = math.Round(sizey * 0.075,0)
 	surface.SetDrawColor( Color(0,0,0,80) )
-	surface.DrawRect( xpos + o_x - sizex * 0.007, ypos + o_y, sizex * 0.0025, r * (1 - fuel) )
+	surface.DrawRect( s_xpos + o_x - sizex * 0.007, s_ypos + o_y, sizex * 0.0025, r * (1 - fuel) )
 	surface.SetDrawColor( fueltype_color )
-	surface.DrawRect( xpos + o_x - sizex * 0.007, ypos + o_y + r * (1 - fuel), sizex * 0.0025, r * fuel )
+	surface.DrawRect( s_xpos + o_x - sizex * 0.007, s_ypos + o_y + r * (1 - fuel), sizex * 0.0025, r * fuel )
 end
 
 local turnmode = 0
