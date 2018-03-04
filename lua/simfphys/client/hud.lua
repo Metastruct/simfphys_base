@@ -148,12 +148,14 @@ local function drawsimfphysHUD(vehicle)
 		end
 	end
 	
-	if not ShowHud or vehicle:GetNWBool( "simfphys_DisableHUD", false ) then return end
+	if not ShowHud then return end
 	
 	local maxrpm = vehicle:GetLimitRPM()
 	local rpm = vehicle:GetRPM()
 	local throttle = math.Round(vehicle:GetThrottle() * 100,0)
 	local revlimiter = vehicle:GetRevlimiter() and (maxrpm > 2500) and (throttle > 0)
+	
+	local SimpleHudIsForced = vehicle:GetNWBool( "simfphys_NoRacingHud", false )
 	
 	local powerbandend = math.min(vehicle:GetPowerBandEnd(), maxrpm)
 	local redline = math.max(rpm - powerbandend,0) / (maxrpm - powerbandend)
@@ -180,7 +182,7 @@ local function drawsimfphysHUD(vehicle)
 		fueltype_color = Color(255,60,0,150)
 	end
 	
-	if AltHud and not ForceSimpleHud then
+	if AltHud and not ForceSimpleHud and not SimpleHudIsForced then
 		local LightsOn = vehicle:GetLightsEnabled()
 		local LampsOn = vehicle:GetLampsEnabled()
 		local FogLightsOn = vehicle:GetFogLightsEnabled()
@@ -343,11 +345,20 @@ local function drawsimfphysHUD(vehicle)
 		return
 	end
 	
+	if SimpleHudIsForced then
+		o_x = 0
+		o_y = 0
+		xpos = screenw * 0.5 - sizex * 0.115 - sizex * 0.032
+		ypos = screenh - sizey * 0.092 - sizey * 0.02
+	else
+		draw.RoundedBox( 8, xpos + o_x, ypos + o_y, sizex * 0.118, sizey * 0.075, Color( 0, 0, 0, 80 ) )
+	end
+	
 	if cruisecontrol then
 		draw.SimpleText( "cruise", "simfphysfont", xpos + sizex * 0.115 + o_x, ypos + sizey * 0.035 + o_y, Color( 255, 127, 0, 255 ), 2, 1 )
 	end
 
-	draw.RoundedBox( 8, xpos + o_x, ypos + o_y, sizex * 0.118, sizey * 0.075, Color( 0, 0, 0, 80 ) )
+	
 	
 	draw.SimpleText( "Throttle: "..throttle.." %", "simfphysfont", xpos + sizex * 0.005 + o_x, ypos + sizey * 0.035 + o_y, Color( 255, 235, 0, 255 ), 0, 1)
 	
