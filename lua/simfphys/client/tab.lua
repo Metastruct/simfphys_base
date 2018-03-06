@@ -107,6 +107,9 @@ local function simplebinder( x, y, tbl, num, parent)
 	binder:SetValue( setdefault )
 	function binder:SetSelectedNumber( num )
 		self.m_iSelectedNumber = num
+		self:ConVarChanged( num ) 
+		self:UpdateText() 
+		self:OnChange( num ) 
 		key:SetInt( num )
 	end
 	
@@ -145,6 +148,10 @@ local function simplebinder_old( x, y, tbl, num, parent, sizex, sizey)
 	binder:SetValue( setdefault )
 	function binder:SetSelectedNumber( num )
 		self.m_iSelectedNumber = num
+		self:ConVarChanged( num ) 
+		self:UpdateText() 
+		self:OnChange( num ) 
+		
 		key:SetInt( num )
 	end
 	
