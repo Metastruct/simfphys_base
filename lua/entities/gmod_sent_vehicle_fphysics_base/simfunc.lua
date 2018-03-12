@@ -84,7 +84,7 @@ function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 	
 	local TurboCharged = self:GetTurboCharged()
 	local SuperCharged = self:GetSuperCharged()
-	local boost = (TurboCharged and self:SimulateTurbo(LimitRPM) or 0) * 0.3 + (SuperCharged and self:SimulateBlower(LimitRPM) or 0)
+	local boost = (TurboCharged and self:SimulateTurbo(Powerbandend) or 0) * 0.3 + (SuperCharged and self:SimulateBlower(Powerbandend) or 0)
 	
 	if self:GetCurHealth() <= self:GetMaxHealth() * 0.3 then
 		MaxTorque = MaxTorque * (self:GetCurHealth() / (self:GetMaxHealth() * 0.3))
@@ -311,19 +311,19 @@ end
 
 function ENT:SimulateWheels(k_clutch,LimitRPM)
 	local Steer = self:GetTransformedDirection()
-	
+	local MaxGrip = self:GetMaxTraction()
+	local Efficiency = self:GetEfficiency()
+	local GripOffset = self:GetTractionBias() * MaxGrip
+
 	for i = 1, table.Count( self.Wheels ) do
 		local Wheel = self.Wheels[i]
 		
 		if IsValid( Wheel ) then
-			local MaxGrip = self:GetMaxTraction()
-			local GripOffset = self:GetTractionBias() * MaxGrip
 			local WheelPos = self:LogicWheelPos( i )
 			local WheelRadius = WheelPos.IsFrontWheel and self.FrontWheelRadius or self.RearWheelRadius
 			local WheelDiameter = WheelRadius * 2
 			local SurfaceMultiplicator = self.VehicleData[ "SurfaceMul_" .. i ]
 			local MaxTraction = (WheelPos.IsFrontWheel and (MaxGrip + GripOffset) or  (MaxGrip - GripOffset)) * SurfaceMultiplicator
-			local Efficiency = self:GetEfficiency()
 			
 			local IsPoweredWheel = (WheelPos.IsFrontWheel and self.FrontWheelPowered or not WheelPos.IsFrontWheel and self.RearWheelPowered) and 1 or 0
 			
@@ -360,8 +360,9 @@ function ENT:SimulateWheels(k_clutch,LimitRPM)
 			local ForwardForce = self.EngineTorque * PowerBiasMul * IsPoweredWheel + (not WheelPos.IsFrontWheel and math.Clamp(-Fx,-self.HandBrake,self.HandBrake) or 0)
 			
 			local TractionCycle = Vector(math.min(absFy,MaxTraction),ForwardForce,0):Length()
+			
 			local GripLoss = math.max(TractionCycle - MaxTraction,0)
-			local GripRemaining = math.max(MaxTraction - GripLoss,math.min(absFy / 25,MaxTraction / 2))
+			local GripRemaining = math.max(MaxTraction - GripLoss,math.min(absFy / 15,MaxTraction))
 			
 			local signForwardForce = ((ForwardForce > 0) and 1 or 0) + ((ForwardForce < 0) and -1 or 0)
 			local signEngineTorque = ((self.EngineTorque > 0) and 1 or 0) + ((self.EngineTorque < 0) and -1 or 0)
