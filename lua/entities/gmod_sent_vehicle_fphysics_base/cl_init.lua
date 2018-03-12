@@ -41,7 +41,7 @@ end
 function ENT:CalcFlasher()
 	self.Flasher = self.Flasher or 0
 	
-	local flashspeed = self.turnsignals_damaged and 0.08 or 0.035
+	local flashspeed = self.turnsignals_damaged and 0.06 or 0.03
 	
 	self.Flasher = self.Flasher and self.Flasher + flashspeed or 0
 	if self.Flasher >= 1 then
@@ -226,7 +226,7 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 	self.FadeThrottle = self.FadeThrottle + math.Clamp(Throttle - self.FadeThrottle,-0.2,0.2)
 	self.PitchOffset = self.PitchOffset + ((CurDist - self.OldDist) * 0.23 - self.PitchOffset) * 0.5
 	self.OldDist = CurDist
-	self.SmoothRPM = self.SmoothRPM + math.Clamp(FlyWheelRPM - self.SmoothRPM,-350,600)
+	self.SmoothRPM = self.SmoothRPM + math.Clamp(FlyWheelRPM - self.SmoothRPM,-(350 / 6000) * LimitRPM,(600 / 6000) * LimitRPM)
 	
 	self.OldThrottle2 = self.OldThrottle2 or 0
 	if Throttle ~= self.OldThrottle2 then
@@ -240,7 +240,7 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 	
 	if self:GetRevlimiter() and LimitRPM > 2500 then
 		if (self.SmoothRPM >= LimitRPM - 200) and self.FadeThrottle > 0 then
-			self.SmoothRPM = self.SmoothRPM - 1200
+			self.SmoothRPM = self.SmoothRPM - (1200 / 6000) * LimitRPM
 			self.FadeThrottle = 0.2
 			self:Backfire()
 		end
