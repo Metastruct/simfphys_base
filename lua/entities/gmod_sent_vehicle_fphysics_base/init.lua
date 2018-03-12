@@ -93,6 +93,7 @@ function ENT:Think()
 			self:SetColors()
 			self:SimulateVehicle( Time )
 			self:ControlLighting( Time )
+			self:ControlHorn()
 			
 			if istable( WireLib ) then
 				self:UpdateWireOutputs()
@@ -115,6 +116,22 @@ function ENT:Think()
 	self:NextThink( Time )
 	
 	return true
+end
+
+function ENT:ControlHorn()	
+	local HornVol = self.HornKeyIsDown and 1 or 0
+	self.HornVolume = self.HornVolume and self.HornVolume + math.Clamp(HornVol - self.HornVolume,-0.45,0.8) or 0
+	
+	if self.horn then
+		if self.HornVolume <= 0 then
+			if self.horn then
+				self.horn:Stop()
+				self.horn = nil
+			end
+		else
+			self.horn:ChangeVolume( self.HornVolume ^ 2 )
+		end
+	end
 end
 
 function ENT:createWireIO()
