@@ -13,6 +13,7 @@ local AllowVisualDamage = true
 local FrontProjectedLights = true
 local RearProjectedLights = true
 local Shadows = false
+local vtable = istable( vtable ) and vtable or {}
 
 
 cvars.AddChangeCallback( "cl_simfphys_hidesprites", function( convar, oldValue, newValue ) SpritesDisabled = ( tonumber( newValue )~=0 ) end)
@@ -35,11 +36,6 @@ FrontProjectedLights = GetConVar( "cl_simfphys_frontlamps" ):GetBool()
 RearProjectedLights = GetConVar( "cl_simfphys_rearlamps" ):GetBool()
 
 Shadows = GetConVar( "cl_simfphys_shadows" ):GetBool()
-
-
-if not istable( vtable ) then
-	vtable = {}
-end
 
 local function BodyGroupIsValid( bodygroups, entity )
 	for index, groups in pairs( bodygroups ) do
