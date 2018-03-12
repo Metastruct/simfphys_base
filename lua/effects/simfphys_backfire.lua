@@ -28,7 +28,7 @@ function EFFECT:Init( data )
 	timer.Simple( Delay, function()
 		if IsValid( Entity ) then
 			local Vel = Entity:GetVelocity()
-			local Pos = Entity:LocalToWorld( lPos ) + Vel * FrameTime()
+			local Pos = Entity:LocalToWorld( lPos ) + Vel * FrameTime() * 0.5
 			local Ang = Entity:LocalToWorldAngles( lAng )
 			
 			local snd1 = "simulated_vehicles/sfx/ex_backfire_damaged_"..math.Round(math.random(1,3),1)..".ogg"
