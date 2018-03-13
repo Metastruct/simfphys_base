@@ -188,8 +188,6 @@ if CLIENT then
 							for i = 0, (table.Count( submats ) - 1) do
 								TOOLMemory[name][i] = submats[i+1]
 							end
-							
-							PrintTable(TOOLMemory[name])
 						else
 							TOOLMemory[name] = variable
 						end
@@ -346,6 +344,22 @@ function TOOL:GetVehicleData( ent, ply )
 	
 	if ent.WheelTool_Roffset then
 		ply.TOOLMemory.WheelTool_Roffset = ent.WheelTool_Roffset
+	end
+	
+	if ent.snd_blowoff then
+		ply.TOOLMemory.snd_blowoff = ent.snd_blowoff
+	end
+	
+	if ent.snd_spool then
+		ply.TOOLMemory.snd_spool = ent.snd_spool
+	end
+	
+	if ent.snd_bloweron then
+		ply.TOOLMemory.snd_bloweron = ent.snd_bloweron
+	end
+	
+	if ent.snd_bloweroff then
+		ply.TOOLMemory.snd_bloweroff = ent.snd_bloweroff
 	end
 	
 	ply.TOOLMemory.backfiresound = ent:GetBackfireSound()
@@ -566,6 +580,11 @@ function TOOL:LeftClick( trace )
 	Ent:SetBulletProofTires( tobool( ply.TOOLMemory.HasBulletProofTires ) )
 	
 	Ent.snd_horn = ply.TOOLMemory.HornSound
+	
+	Ent.snd_blowoff = ply.TOOLMemory.snd_blowoff
+	Ent.snd_spool = ply.TOOLMemory.snd_spool
+	Ent.snd_bloweron = ply.TOOLMemory.snd_bloweron
+	Ent.snd_bloweroff = ply.TOOLMemory.snd_bloweroff
 	
 	Ent:SetBackfireSound( ply.TOOLMemory.backfiresound or "" )
 	
