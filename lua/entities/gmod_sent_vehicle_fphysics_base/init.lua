@@ -238,8 +238,7 @@ function ENT:TriggerInput( name, value )
 	end
 	
 	if name == "Set Gear" then
-		self.CurrentGear = math.Clamp( math.Round( value, 0 ),1,table.Count( self.Gears ) )
-		self:SetGear( self.CurrentGear )
+		self:ForceGear( math.Round( value, 0 ) )
 	end
 	
 	if name == "Clutch" then
@@ -249,6 +248,11 @@ function ENT:TriggerInput( name, value )
 	if name == "Handbrake" then
 		self.PressedKeys["joystick_handbrake"] = (value > 0) and 1 or 0
 	end
+end
+
+function ENT:ForceGear( desGear )
+	self.CurrentGear = math.Clamp( math.Round( desGear, 0 ),1,table.Count( self.Gears ) )
+	self:SetGear( self.CurrentGear )
 end
 
 function ENT:UpdateWireOutputs()
