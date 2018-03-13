@@ -112,7 +112,21 @@ if CLIENT then
 						local DataString = ""
 						
 						for k,v in pairs(TOOLMemory) do
-							DataString = DataString..k.."="..tostring( v ).."#"
+							if k == "SubMaterials" then
+								local mats = ""
+								local first = true
+								for k, v in pairs( v ) do
+									if first then
+										first = false
+										mats = mats..v
+									else
+										mats = mats..","..v
+									end
+								end
+								DataString = DataString..k.."="..mats.."#"
+							else
+								DataString = DataString..k.."="..tostring( v ).."#"
+							end
 						end
 						
 						local words = string.Explode( "", DataString )
@@ -167,7 +181,18 @@ if CLIENT then
 					local variable = Var[2]
 					
 					if name and variable then
-						TOOLMemory[name] = variable
+						if name == "SubMaterials" then
+							TOOLMemory[name] = {}
+							
+							local submats = string.Explode( ",", variable )
+							for i = 0, (table.Count( submats ) - 1) do
+								TOOLMemory[name][i] = submats[i+1]
+							end
+							
+							PrintTable(TOOLMemory[name])
+						else
+							TOOLMemory[name] = variable
+						end
 					end
 				end
 				
@@ -324,6 +349,11 @@ function TOOL:GetVehicleData( ent, ply )
 	end
 	
 	ply.TOOLMemory.backfiresound = ent:GetBackfireSound()
+	
+	ply.TOOLMemory.SubMaterials = {}
+	for i = 0, (table.Count( ent:GetMaterials() ) - 1) do
+		ply.TOOLMemory.SubMaterials[i] = ent:GetSubMaterial( i )
+	end
 	
 	if not IsValid( ply ) then return end
 	
@@ -544,6 +574,11 @@ function TOOL:LeftClick( trace )
 	for i = 1, table.Count( Data ) do Gears[i] = tonumber( Data[i] ) end
 	Ent.Gears = Gears
 	
+	if istable( ply.TOOLMemory.SubMaterials ) then
+		for i = 0, table.Count( ply.TOOLMemory.SubMaterials ) do
+			Ent:SetSubMaterial( i, ply.TOOLMemory.SubMaterials[i] )
+		end
+	end
 	
 	timer.Simple( 0.5, function()
 		if not IsValid(Ent) then return end
