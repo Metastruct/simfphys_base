@@ -278,7 +278,7 @@ function ENT:OnActiveChanged( name, old, new)
 	
 	if new == true then
 		
-		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
+		self.HandBrakePower = self:GetMaxTraction() + 40 - self:GetTractionBias() * self:GetMaxTraction()
 		
 		if self:GetEMSEnabled() then
 			if self.ems then
