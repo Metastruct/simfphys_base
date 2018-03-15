@@ -442,7 +442,7 @@ function ENT:SimulateTurbo(LimitRPM)
 	
 	local Throttle = self:GetThrottle()
 	
-	self.SmoothTurbo = self.SmoothTurbo + math.Clamp((self.EngineRPM / LimitRPM) * 600 * (0.75 + 0.25 * Throttle) - self.SmoothTurbo,-15,15)
+	self.SmoothTurbo = self.SmoothTurbo + math.Clamp(math.min(self.EngineRPM / LimitRPM,1) * 600 * (0.75 + 0.25 * Throttle) - self.SmoothTurbo,-15,15)
 	
 	local Volume = math.Clamp( ((self.SmoothTurbo - 300) / 150) ,0, 1) * 0.5
 	local Pitch = math.Clamp( self.SmoothTurbo / 7 , 0 , 255)
@@ -460,7 +460,7 @@ function ENT:SimulateBlower(LimitRPM)
 	
 	local Throttle = self:GetThrottle()
 	
-	self.SmoothBlower = self.SmoothBlower + math.Clamp((self.EngineRPM / LimitRPM) * 500 - self.SmoothBlower,-20,20)
+	self.SmoothBlower = self.SmoothBlower + math.Clamp(math.min(self.EngineRPM / LimitRPM,1) * 500 - self.SmoothBlower,-20,20)
 	
 	local Volume1 = math.Clamp( self.SmoothBlower / 400 * (1 - 0.4 * Throttle) ,0, 1)
 	local Volume2 = math.Clamp( self.SmoothBlower / 400 * (0.10 + 0.4 * Throttle) ,0, 1)
