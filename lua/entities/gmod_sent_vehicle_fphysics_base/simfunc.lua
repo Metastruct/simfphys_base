@@ -362,7 +362,8 @@ function ENT:SimulateWheels(k_clutch,LimitRPM)
 			local TractionCycle = Vector(math.min(absFy,MaxTraction),ForwardForce,0):Length()
 			
 			local GripLoss = math.max(TractionCycle - MaxTraction,0)
-			local GripRemaining = math.max(MaxTraction - GripLoss,math.min(absFy / 15,MaxTraction))
+			local GripRemaining = math.max(MaxTraction - GripLoss,math.min(absFy / 15,MaxTraction * 0.7))
+			--local GripRemaining = math.max(MaxTraction - GripLoss,math.min(absFy / 25,MaxTraction / 2))
 			
 			local signForwardForce = ((ForwardForce > 0) and 1 or 0) + ((ForwardForce < 0) and -1 or 0)
 			local signEngineTorque = ((self.EngineTorque > 0) and 1 or 0) + ((self.EngineTorque < 0) and -1 or 0)
