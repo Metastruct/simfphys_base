@@ -559,6 +559,7 @@ function ENT:SetupVehicle()
 	table.insert( self.VehicleData["filter"], self )
 	
 	self.EnableSuspension = 1
+	self:OnSpawn()
 end
 
 function ENT:CreateWheel(index, name, attachmentpos, height, radius, swap_y , poseposition, suspensiontravel, constant, damping, rdamping)

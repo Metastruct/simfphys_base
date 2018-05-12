@@ -5,96 +5,133 @@ include("spawn.lua")
 include("simfunc.lua")
 include("numpads.lua")
 
+function ENT:OnSpawn()
+end
+
+function ENT:OnTick()
+end
+
+function ENT:OnDelete()
+end
+
+function ENT:OnDestroyed()
+end
+
 function ENT:Think()
 	local Time = CurTime()
-	if IsValid( self.DriverSeat ) then
-		local Driver = self.DriverSeat:GetDriver()
-		Driver = IsValid( self.RemoteDriver ) and self.RemoteDriver or Driver
+	
+	self:OnTick()
+	
+	self.NextTick = self.NextTick or 0
+	if self.NextTick < Time then
+		self.NextTick = Time + 0.025
 		
-		local OldDriver = self:GetDriver()
-		if OldDriver ~= Driver then
-			self:SetDriver( Driver )
+		if IsValid( self.DriverSeat ) then
+			local Driver = self.DriverSeat:GetDriver()
+			Driver = IsValid( self.RemoteDriver ) and self.RemoteDriver or Driver
 			
-			local HadDriver = IsValid( OldDriver )
-			local HasDriver = IsValid( Driver )
-			
-			if HasDriver then
-				self:SetActive( true )
-				self:SetupControls( Driver )
+			local OldDriver = self:GetDriver()
+			if OldDriver ~= Driver then
+				self:SetDriver( Driver )
 				
-				if Driver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
-					self:StartEngine()
-				end
+				local HadDriver = IsValid( OldDriver )
+				local HasDriver = IsValid( Driver )
 				
-			else
-				self:UnLock()
-				
-				if self.ems then
-					self.ems:Stop()
-				end
-
-				if self.horn then
-					self.horn:Stop()
-				end
-				
-				if self.PressedKeys then
-					for k,v in pairs( self.PressedKeys ) do
-						if isbool( v ) then
-							self.PressedKeys[k] = false
-						end
+				if HasDriver then
+					self:SetActive( true )
+					self:SetupControls( Driver )
+					
+					if Driver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
+						self:StartEngine()
 					end
-				end
-				
-				if self.keys then
-					for i = 1, table.Count( self.keys ) do
-						numpad.Remove( self.keys[i] )
-					end
-				end
-				
-				if HadDriver then
-					if OldDriver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
-						self:StopEngine()
-						self:SetActive( false )
-					else
-						self:ResetJoystick()
-						
-						if not self:EngineActive() then
-							self:SetActive( false )
-						end
-					end
+					
 				else
-					self:SetActive( false )
-					self:StopEngine()
+					self:UnLock()
+					
+					if self.ems then
+						self.ems:Stop()
+					end
+
+					if self.horn then
+						self.horn:Stop()
+					end
+					
+					if self.PressedKeys then
+						for k,v in pairs( self.PressedKeys ) do
+							if isbool( v ) then
+								self.PressedKeys[k] = false
+							end
+						end
+					end
+					
+					if self.keys then
+						for i = 1, table.Count( self.keys ) do
+							numpad.Remove( self.keys[i] )
+						end
+					end
+					
+					if HadDriver then
+						if OldDriver:GetInfoNum( "cl_simfphys_autostart", 1 ) > 0 then 
+							self:StopEngine()
+							self:SetActive( false )
+						else
+							self:ResetJoystick()
+							
+							if not self:EngineActive() then
+								self:SetActive( false )
+							end
+						end
+					else
+						self:SetActive( false )
+						self:StopEngine()
+					end
 				end
+			end
+		end
+		
+		if self:IsInitialized() then
+			self:SetColors()
+			self:SimulateVehicle( Time )
+			self:ControlLighting( Time )
+			self:ControlHorn()
+			
+			if istable( WireLib ) then
+				self:UpdateWireOutputs()
+			end
+			
+			self.NextWaterCheck = self.NextWaterCheck or 0
+			if self.NextWaterCheck < Time then
+				self.NextWaterCheck = Time + 0.2
+				self:WaterPhysics()
+			end
+			
+			if self:GetActive() then
+				self:SetPhysics( ((math.abs(self.ForwardSpeed) < 50) and (self.Brake > 0 or self.HandBrake > 0)) )
+			else
+				self:SetPhysics( true )
 			end
 		end
 	end
 	
-	if self:IsInitialized() then
-		self:SetColors()
-		self:SimulateVehicle( Time )
-		self:ControlLighting( Time )
-		
-		if istable( WireLib ) then
-			self:UpdateWireOutputs()
-		end
-		
-		self.NextWaterCheck = self.NextWaterCheck or 0
-		if self.NextWaterCheck < Time then
-			self.NextWaterCheck = Time + 0.2
-			self:WaterPhysics()
-		end
-		
-		if self:GetActive() then
-			self:SetPhysics( ((math.abs(self.ForwardSpeed) < 50) and (self.Brake > 0 or self.HandBrake > 0)) )
-		else
-			self:SetPhysics( true )
-		end
-	end
-	
-	self:NextThink(Time + 0.025)
+	self:NextThink( Time )
 	
 	return true
+end
+
+function ENT:ControlHorn()	
+	local HornVol = self.HornKeyIsDown and 1 or 0
+	self.HornVolume = self.HornVolume and self.HornVolume + math.Clamp(HornVol - self.HornVolume,-0.45,0.8) or 0
+	
+	if self.horn then
+		if self.HornVolume <= 0 then
+			if self.horn then
+				self.horn:Stop()
+				self.horn = nil
+			end
+		else
+			self.horn:ChangeVolume( self.HornVolume ^ 2 )
+		end
+	end
 end
 
 function ENT:createWireIO()
@@ -201,8 +238,7 @@ function ENT:TriggerInput( name, value )
 	end
 	
 	if name == "Set Gear" then
-		self.CurrentGear = math.Clamp( math.Round( value, 0 ),1,table.Count( self.Gears ) )
-		self:SetGear( self.CurrentGear )
+		self:ForceGear( math.Round( value, 0 ) )
 	end
 	
 	if name == "Clutch" then
@@ -212,6 +248,11 @@ function ENT:TriggerInput( name, value )
 	if name == "Handbrake" then
 		self.PressedKeys["joystick_handbrake"] = (value > 0) and 1 or 0
 	end
+end
+
+function ENT:ForceGear( desGear )
+	self.CurrentGear = math.Clamp( math.Round( desGear, 0 ),1,table.Count( self.Gears ) )
+	self:SetGear( self.CurrentGear )
 end
 
 function ENT:UpdateWireOutputs()
@@ -241,7 +282,7 @@ function ENT:OnActiveChanged( name, old, new)
 	
 	if new == true then
 		
-		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
+		self.HandBrakePower = self:GetMaxTraction() + 40 - self:GetTractionBias() * self:GetMaxTraction()
 		
 		if self:GetEMSEnabled() then
 			if self.ems then
@@ -1226,6 +1267,8 @@ function ENT:OnRemove()
 	if self.ems then
 		self.ems:Stop()
 	end
+	
+	self:OnDelete()
 end
 
 function ENT:PlayPP( On )

@@ -10,7 +10,6 @@ if SERVER then
 	
 	AddCSLuaFile("simfphys/anim.lua")
 	AddCSLuaFile("simfphys/base_functions.lua")
-	AddCSLuaFile("simfphys/rescuespawnlists.lua")
 	AddCSLuaFile("simfphys/base_lights.lua")
 	AddCSLuaFile("simfphys/base_vehicles.lua")
 	AddCSLuaFile("simfphys/view.lua")
@@ -42,7 +41,3 @@ include("simfphys/base_lights.lua")
 include("simfphys/base_vehicles.lua")
 include("simfphys/view.lua")
 include("simfphys/wheelpickup.lua")
-
-timer.Simple( 0.5, function()
-	include("simfphys/rescuespawnlists.lua")
-end)

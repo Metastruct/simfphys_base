@@ -85,6 +85,76 @@ hook.Add("JoystickInitialize", "simfphys_joystick", function()
 		category = "Simfphys",
 	}
 	
+	simfphys.jcon.gear_n = jcon.register{
+		uid = "joystick_gear_n",
+		type = "digital",
+		description = "Gear Neutral",
+		category = "Simfphys (Gears)",
+	}
+	
+	simfphys.jcon.gear_1 = jcon.register{
+		uid = "joystick_gear_1",
+		type = "digital",
+		description = "Gear 1",
+		category = "Simfphys (Gears)",
+	}
+	
+	simfphys.jcon.gear_2 = jcon.register{
+		uid = "joystick_gear_2",
+		type = "digital",
+		description = "Gear 2",
+		category = "Simfphys (Gears)",
+	}
+	
+	simfphys.jcon.gear_3 = jcon.register{
+		uid = "joystick_gear_3",
+		type = "digital",
+		description = "Gear 3",
+		category = "Simfphys (Gears)",
+	}
+	
+	simfphys.jcon.gear_4 = jcon.register{
+		uid = "joystick_gear_4",
+		type = "digital",
+		description = "Gear 4",
+		category = "Simfphys (Gears)",
+	}
+	
+	simfphys.jcon.gear_5 = jcon.register{
+		uid = "joystick_gear_5",
+		type = "digital",
+		description = "Gear 5",
+		category = "Simfphys (Gears)",
+	}
+	
+	simfphys.jcon.gear_6 = jcon.register{
+		uid = "joystick_gear_6",
+		type = "digital",
+		description = "Gear 6",
+		category = "Simfphys (Gears)",
+	}
+	
+	simfphys.jcon.gear_7 = jcon.register{
+		uid = "joystick_gear_7",
+		type = "digital",
+		description = "Gear 7",
+		category = "Simfphys (Gears)",
+	}
+	
+	simfphys.jcon.gear_8 = jcon.register{
+		uid = "joystick_gear_8",
+		type = "digital",
+		description = "Gear 8",
+		category = "Simfphys (Gears)",
+	}
+	
+	simfphys.jcon.gear_r = jcon.register{
+		uid = "joystick_gear_r",
+		type = "digital",
+		description = "Gear Reverse",
+		category = "Simfphys (Gears)",
+	}
+	
 	hook.Add("VehicleMove","simfphys_joystickhandler",function(ply, vehicle)
 		--[[
 		for i,ply in pairs( player.GetAll() ) do
@@ -105,13 +175,34 @@ hook.Add("JoystickInitialize", "simfphys_joystick", function()
 						if v.type == "analog" then
 							vehicle.base.PressedKeys[v.uid] = val and val / 255 or 0
 						else
-							vehicle.base.PressedKeys[v.uid] = val and 1 or 0
+							if string.StartWith( v.uid, "joystick_gear_" ) then
+								if v.uid == "joystick_gear_r" then
+									if val then
+										vehicle.base:ForceGear( 1 )
+									end
+								
+								elseif v.uid == "joystick_gear_n" then
+									if val then
+										vehicle.base:ForceGear( 2 )
+									end
+								
+								else
+									for i = 1, 8 do
+										if v.uid == ("joystick_gear_"..i) then
+											if val then
+												vehicle.base:ForceGear( i + 2 )
+											end
+											break
+										end
+									end
+								end
+							else
+								vehicle.base.PressedKeys[v.uid] = val and 1 or 0
+							end
 						end
 					end
 				end
-		--[[
 			end
 		end
-		--]]
 	end)
 end)

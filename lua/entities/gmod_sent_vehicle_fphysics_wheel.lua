@@ -469,7 +469,7 @@ if CLIENT then
 		local Material = self:GetSurfaceMaterial()
 		
 		if WheelOnGround > 0 and (Material == "concrete" or Material == "rock" or Material == "tile") and GripLoss > 0 then
-			self.FadeHeat = math.Clamp( self.FadeHeat + GripLoss * 0.07,0,10)
+			self.FadeHeat = math.Clamp( self.FadeHeat + GripLoss * 0.06,0,10)
 		else
 			self.FadeHeat = self.FadeHeat * 0.995
 		end

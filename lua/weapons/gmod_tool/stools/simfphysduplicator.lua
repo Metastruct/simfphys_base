@@ -107,11 +107,26 @@ if CLIENT then
 				
 				TextEntry.OnEnter = function()
 					local Name = TextEntry:GetValue()
-					if Name ~= "" then						
+					
+					if Name ~= "" then
 						local DataString = ""
 						
 						for k,v in pairs(TOOLMemory) do
-							DataString = DataString..k.."="..tostring( v ).."#"
+							if k == "SubMaterials" then
+								local mats = ""
+								local first = true
+								for k, v in pairs( v ) do
+									if first then
+										first = false
+										mats = mats..v
+									else
+										mats = mats..","..v
+									end
+								end
+								DataString = DataString..k.."="..mats.."#"
+							else
+								DataString = DataString..k.."="..tostring( v ).."#"
+							end
 						end
 						
 						local words = string.Explode( "", DataString )
@@ -166,7 +181,16 @@ if CLIENT then
 					local variable = Var[2]
 					
 					if name and variable then
-						TOOLMemory[name] = variable
+						if name == "SubMaterials" then
+							TOOLMemory[name] = {}
+							
+							local submats = string.Explode( ",", variable )
+							for i = 0, (table.Count( submats ) - 1) do
+								TOOLMemory[name][i] = submats[i+1]
+							end
+						else
+							TOOLMemory[name] = variable
+						end
 					end
 				end
 				
@@ -322,7 +346,28 @@ function TOOL:GetVehicleData( ent, ply )
 		ply.TOOLMemory.WheelTool_Roffset = ent.WheelTool_Roffset
 	end
 	
+	if ent.snd_blowoff then
+		ply.TOOLMemory.snd_blowoff = ent.snd_blowoff
+	end
+	
+	if ent.snd_spool then
+		ply.TOOLMemory.snd_spool = ent.snd_spool
+	end
+	
+	if ent.snd_bloweron then
+		ply.TOOLMemory.snd_bloweron = ent.snd_bloweron
+	end
+	
+	if ent.snd_bloweroff then
+		ply.TOOLMemory.snd_bloweroff = ent.snd_bloweroff
+	end
+	
 	ply.TOOLMemory.backfiresound = ent:GetBackfireSound()
+	
+	ply.TOOLMemory.SubMaterials = {}
+	for i = 0, (table.Count( ent:GetMaterials() ) - 1) do
+		ply.TOOLMemory.SubMaterials[i] = ent:GetSubMaterial( i )
+	end
 	
 	if not IsValid( ply ) then return end
 	
@@ -471,7 +516,7 @@ function TOOL:LeftClick( trace )
 	if not istable(ply.TOOLMemory) then return end
 	
 	local vname = ply.TOOLMemory.SpawnName
-	
+	local Update = false
 	local VehicleList = list.Get( "simfphys_vehicles" )
 	local vehicle = VehicleList[ vname ]
 	
@@ -489,6 +534,7 @@ function TOOL:LeftClick( trace )
 			ply:PrintMessage( HUD_PRINTTALK, vname.." is not compatible with "..Ent:GetSpawn_List() )
 			return
 		end
+		Update = true
 	else
 		Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle )
 	end
@@ -535,6 +581,11 @@ function TOOL:LeftClick( trace )
 	
 	Ent.snd_horn = ply.TOOLMemory.HornSound
 	
+	Ent.snd_blowoff = ply.TOOLMemory.snd_blowoff
+	Ent.snd_spool = ply.TOOLMemory.snd_spool
+	Ent.snd_bloweron = ply.TOOLMemory.snd_bloweron
+	Ent.snd_bloweroff = ply.TOOLMemory.snd_bloweroff
+	
 	Ent:SetBackfireSound( ply.TOOLMemory.backfiresound or "" )
 	
 	local Gears = {}
@@ -542,6 +593,11 @@ function TOOL:LeftClick( trace )
 	for i = 1, table.Count( Data ) do Gears[i] = tonumber( Data[i] ) end
 	Ent.Gears = Gears
 	
+	if istable( ply.TOOLMemory.SubMaterials ) then
+		for i = 0, table.Count( ply.TOOLMemory.SubMaterials ) do
+			Ent:SetSubMaterial( i, ply.TOOLMemory.SubMaterials[i] )
+		end
+	end
 	
 	timer.Simple( 0.5, function()
 		if not IsValid(Ent) then return end
@@ -609,29 +665,91 @@ function TOOL:LeftClick( trace )
 		}
 		duplicator.StoreEntityModifier( Ent, "colour", data )
 		
+		if Update then
+			local PhysObj = Ent:GetPhysicsObject()
+			if not IsValid( PhysObj ) then return end
+			
+			local freezeWhenDone = PhysObj:IsMotionEnabled()
+			local freezeWheels = {}
+			PhysObj:EnableMotion( false )
+			Ent:SetNotSolid( true )
+			
+			local ResetPos = Ent:GetPos()
+			local ResetAng = Ent:GetAngles()
+			
+			Ent:SetPos( ResetPos + Vector(0,0,30) )
+			Ent:SetAngles( Angle(0,ResetAng.y,0) )
+			
+			for i = 1, table.Count( Ent.Wheels ) do
+				local Wheel = Ent.Wheels[ i ]
+				if IsValid( Wheel ) then
+					local wPObj = Wheel:GetPhysicsObject()
+					
+					if IsValid( wPObj ) then
+						freezeWheels[ i ] = {}
+						freezeWheels[ i ].dofreeze = wPObj:IsMotionEnabled()
+						freezeWheels[ i ].pos = Wheel:GetPos()
+						freezeWheels[ i ].ang = Wheel:GetAngles()
+						Wheel:SetNotSolid( true )
+						wPObj:EnableMotion( true ) 
+						wPObj:Wake() 
+					end
+				end
+			end
+			
+			timer.Simple( 0.5, function()
+				if not IsValid( Ent ) then return end
+				if not IsValid( PhysObj ) then return end
+				
+				PhysObj:EnableMotion( freezeWhenDone )
+				Ent:SetNotSolid( false )
+				Ent:SetPos( ResetPos )
+				Ent:SetAngles( ResetAng )
+		
+				for i = 1, table.Count( freezeWheels ) do
+					local Wheel = Ent.Wheels[ i ]
+					if IsValid( Wheel ) then
+						local wPObj = Wheel:GetPhysicsObject()
+						
+						Wheel:SetNotSolid( false )
+						
+						if IsValid( wPObj ) then
+							wPObj:EnableMotion( freezeWheels[i].dofreeze ) 
+						end
+						
+						Wheel:SetPos( freezeWheels[ i ].pos )
+						Wheel:SetAngles( freezeWheels[ i ].ang )
+					end
+				end
+			end)
+		end
+		
 		if Ent.CustomWheels then
 			if Ent.GhostWheels then
-				if ply.TOOLMemory.WheelTool_Foffset and ply.TOOLMemory.WheelTool_Roffset then
-					SetWheelOffset( Ent, ply.TOOLMemory.WheelTool_Foffset, ply.TOOLMemory.WheelTool_Roffset )
-				end
-				
-				if not ply.TOOLMemory.FrontWheelOverride and not ply.TOOLMemory.RearWheelOverride then return end
-				
-				local front_model = ply.TOOLMemory.FrontWheelOverride or vehicle.Members.CustomWheelModel
-				local front_angle = GetAngleFromSpawnlist(front_model)
-				
-				local camber = ply.TOOLMemory.Camber or 0
-				local rear_model = ply.TOOLMemory.RearWheelOverride or (vehicle.Members.CustomWheelModel_R and vehicle.Members.CustomWheelModel_R or front_model)
-				local rear_angle = GetAngleFromSpawnlist(rear_model)
-				
-				if not front_model or not rear_model or not front_angle or not rear_angle then return end
-				
-				if ValidateModel( front_model ) and ValidateModel( rear_model ) then 
-					Ent.Camber = camber
-					ApplyWheel(Ent, {front_model,front_angle,rear_model,rear_angle,camber})
-				else
-					ply:PrintMessage( HUD_PRINTTALK, "selected wheel does not exist on the server")
-				end
+				timer.Simple( Update and 0.25 or 0, function()
+					if not IsValid( Ent ) then return end
+					if ply.TOOLMemory.WheelTool_Foffset and ply.TOOLMemory.WheelTool_Roffset then
+						SetWheelOffset( Ent, ply.TOOLMemory.WheelTool_Foffset, ply.TOOLMemory.WheelTool_Roffset )
+					end
+					
+					if not ply.TOOLMemory.FrontWheelOverride and not ply.TOOLMemory.RearWheelOverride then return end
+					
+					local front_model = ply.TOOLMemory.FrontWheelOverride or vehicle.Members.CustomWheelModel
+					local front_angle = GetAngleFromSpawnlist(front_model)
+					
+					local camber = ply.TOOLMemory.Camber or 0
+					local rear_model = ply.TOOLMemory.RearWheelOverride or (vehicle.Members.CustomWheelModel_R and vehicle.Members.CustomWheelModel_R or front_model)
+					local rear_angle = GetAngleFromSpawnlist(rear_model)
+					
+					if not front_model or not rear_model or not front_angle or not rear_angle then return end
+					
+					if ValidateModel( front_model ) and ValidateModel( rear_model ) then 
+						Ent.Camber = camber
+						ApplyWheel(Ent, {front_model,front_angle,rear_model,rear_angle,camber})
+					else
+						ply:PrintMessage( HUD_PRINTTALK, "selected wheel does not exist on the server")
+					end
+				end)
 			end
 		end
 	end)
