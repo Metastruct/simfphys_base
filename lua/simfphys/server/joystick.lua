@@ -202,7 +202,9 @@ hook.Add("JoystickInitialize", "simfphys_joystick", function()
 						end
 					end
 				end
+		--[[
 			end
 		end
+		--]]
 	end)
 end)
