@@ -236,10 +236,8 @@ local function OnDamage( ent, dmginfo )
 		
 		local effectdata = EffectData()
 		effectdata:SetOrigin( DamagePos )
-		effectdata:SetNormal( Vector(0,0,1) )
-		effectdata:SetMagnitude( 0.2 )
-		effectdata:SetRadius( 4 )
-		util.Effect( "Sparks", effectdata, true, true )
+		effectdata:SetNormal( (ent:GetPos() - DamagePos):GetNormalized() )
+		util.Effect( "stunstickimpact", effectdata, true, true )
 	end
 	
 	DamageVehicle( ent , Damage * Mul, Type )
