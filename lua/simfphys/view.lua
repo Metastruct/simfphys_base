@@ -4,61 +4,6 @@ if CLIENT then
 	LockedPitch = GetConVar( "cl_simfphys_ms_lockedpitch" ):GetFloat()
 end
 
-
-local function simfphyslerpView( ply, view )
-	
-	ply.simfphys_smooth_in = ply.simfphys_smooth_in or 1
-	ply.simfphys_smooth_out = ply.simfphys_smooth_out or 1
-	
-	if ply:InVehicle() then
-		if ply.simfphys_smooth_in < 0.999 then
-			ply.simfphys_smooth_in = ply.simfphys_smooth_in + (1 - ply.simfphys_smooth_in) * FrameTime() * 5
-			
-			view.origin = LerpVector(ply.simfphys_smooth_in, ply.simfphys_eyepos_in, view.origin )
-			view.angles = LerpAngle(ply.simfphys_smooth_in, ply.simfphys_eyeang_in, view.angles )
-		end
-		
-		local vehicle = ply:GetVehicle()
-		if IsValid(vehicle) then
-			ply.simfphys_eyeang_out = view.angles
-			ply.simfphys_eyepos_out = view.origin
-		end
-	else
-		if ply.simfphys_smooth_out < 0.999 then
-			ply.simfphys_smooth_out = ply.simfphys_smooth_out + (1 - ply.simfphys_smooth_out) * FrameTime() * 5
-			
-			view.origin = LerpVector(ply.simfphys_smooth_out, ply.simfphys_eyepos_out, ply:GetShootPos() )
-			view.angles = LerpAngle(ply.simfphys_smooth_out, ply.simfphys_eyeang_out, ply:EyeAngles() )
-		end
-		
-		ply.simfphys_eyeang_in = view.angles
-		ply.simfphys_eyepos_in = view.origin
-	end
-	
-	return view
-end
-
-hook.Add( "CalcView", "simfphys_camtransitionshit", function( ply, pos, angles, fov )
-	if not ply:InVehicle() then
-		ply.simfphys_smooth_in = 0
-		ply.simfphys_smooth_out = ply.simfphys_smooth_out or 1
-		
-		if ply.simfphys_smooth_out < 0.999 then
-			
-			local view = {}
-			view.origin = Vector(0,0,0)
-			view.angles = angles
-			view.fov = fov
-			view.drawviewer = false
-			
-			return simfphyslerpView( ply, view )
-		else
-			ply.simfphys_eyeang_in = angles
-			ply.simfphys_eyepos_in = pos
-		end
-	end
-end)
-
 local function GetViewOverride( vehicle )
 	if not IsValid( vehicle ) then return Vector(0,0,0) end
 	
@@ -98,7 +43,7 @@ hook.Add("CalcVehicleView", "simfphysViewOverride", function(Vehicle, ply, view)
 		
 		view.origin = IsDriverSeat and view.origin + Vehicle:GetForward() * X + Vehicle:GetRight() * Y + Vehicle:GetUp() * Z or view.origin + Vehicle:GetUp() * 5
 		
-		return simfphyslerpView( ply, view )
+		return view
 	end
 	
 	local mn, mx = vehiclebase:GetRenderBounds()
@@ -127,7 +72,7 @@ hook.Add("CalcVehicleView", "simfphysViewOverride", function(Vehicle, ply, view)
 		view.origin = view.origin + tr.HitNormal * WallOffset
 	end
 	
-	return simfphyslerpView( ply, view )
+	return view
 end)
 
 hook.Add("StartCommand", "simfphys_lockview", function(ply, ucmd)
