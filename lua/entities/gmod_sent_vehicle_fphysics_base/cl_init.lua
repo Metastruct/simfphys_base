@@ -41,7 +41,7 @@ end
 function ENT:CalcFlasher()
 	self.Flasher = self.Flasher or 0
 	
-	local flashspeed = self.turnsignals_damaged and 0.06 or 0.03
+	local flashspeed = self.turnsignals_damaged and 0.06 or 0.0375
 	
 	self.Flasher = self.Flasher and self.Flasher + flashspeed or 0
 	if self.Flasher >= 1 then
@@ -217,8 +217,8 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 	
 	local IsCruise = self:GetIsCruiseModeOn()
 	
-	local CurDist =  (LocalPlayer():GetPos() - self:GetPos()):Length()
-	local Throttle =  IsCruise and math.Clamp(self:GetThrottle() ^ 3,0.01,0.7) or fThrottle
+	local CurDist = (LocalPlayer():GetPos() - self:GetPos()):Length()
+	local Throttle = IsCruise and math.Clamp(self:GetThrottle() ^ 3,0.01,0.7) or fThrottle
 	local Gear = self:GetGear()
 	local Clutch = self:GetClutch()
 	local FadeRPM = LimitRPM * 0.5
