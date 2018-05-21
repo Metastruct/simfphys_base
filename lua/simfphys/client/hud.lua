@@ -22,6 +22,7 @@ local hbrake_off = Material( "simfphys/hud/handbrake_off" )
 local HUD_1 = Material( "simfphys/hud/hud" )
 local HUD_2 = Material( "simfphys/hud/hud_center" )
 local HUD_3 = Material( "simfphys/hud/hud_center_red" )
+local HUD_5 = file.Exists( "materials/simfphys/hud/hud_5.vmt", "GAME") and Material( "simfphys/hud/hud_5" ) or false
 local ForceSimpleHud = not file.Exists( "materials/simfphys/hud/hud.vmt", "GAME" ) -- lets check if the background material exists, if not we will force the old hud to prevent fps drop
 
 local ShowHud = false
@@ -232,6 +233,26 @@ local function drawsimfphysHUD(vehicle)
 			--draw.Arc(x + o_x,y + o_y,radius / 3.5,radius / 66,startang,360,15,Color(255,255,255,50),true)
 			--draw.Arc(x + o_x,y + o_y,radius,radius / 6.66,startang,ang_pend,1,Color(150,150,150,50),true)
 			--draw.Arc(x + o_x,y + o_y,radius / 5,radius / 70,0,360,15,center_ncol,true)
+		else
+			if HUD_5 then
+				surface.SetMaterial( HUD_5 )
+				for i = 345, 90, -4.6 do
+					if i <= (450 - ang_pend) then
+						surface.SetDrawColor( 120, 0, 0, 230 )
+						surface.DrawTexturedRectRotated(x + o_x, y + 1 + o_y, radius * 2, radius * 2 , i)
+					end
+					
+					if i >= (450 - endang) then 
+						if i < (450 - ang_pend) then
+							surface.SetDrawColor( 255, 0, 0, 140 )
+						else
+							surface.SetDrawColor( 255, 255, 255, 100 )
+						end
+						surface.DrawTexturedRectRotated(x + o_x, y + 1 + o_y, radius * 2, radius * 2 , i)
+					end
+				end
+				surface.SetDrawColor( 255, 255, 255, 255 )
+			end
 		end
 		--[[
 		else
