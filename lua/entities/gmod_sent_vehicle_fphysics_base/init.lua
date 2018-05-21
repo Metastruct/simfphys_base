@@ -5,6 +5,29 @@ include("spawn.lua")
 include("simfunc.lua")
 include("numpads.lua")
 
+local function EntityLookup(CreatedEntities)
+	return function(id, default)
+		if id == nil then return default end
+		if id == 0 then return game.GetWorld() end
+		local ent = CreatedEntities[id] or (isnumber(id) and ents.GetByIndex(id))
+		if IsValid(ent) then return ent else return default end
+	end
+end
+
+function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
+	WireLib.ApplyDupeInfo(ply, ent, info, GetEntByID)
+end
+
+function ENT:PreEntityCopy()
+	duplicator.StoreEntityModifier(self, "WireDupeInfo", WireLib.BuildDupeInfo(self))
+end
+
+function ENT:PostEntityPaste(Player,Ent,CreatedEntities)
+	if Ent.EntityMods and Ent.EntityMods.WireDupeInfo then
+		WireLib.ApplyDupeInfo(Player, Ent, Ent.EntityMods.WireDupeInfo, EntityLookup(CreatedEntities))
+	end
+end
+
 function ENT:OnSpawn()
 end
 
@@ -282,7 +305,7 @@ function ENT:OnActiveChanged( name, old, new)
 	
 	if new == true then
 		
-		self.HandBrakePower = self:GetMaxTraction() + 40 - self:GetTractionBias() * self:GetMaxTraction()
+		self.HandBrakePower = self:GetMaxTraction() + 20 - self:GetTractionBias() * self:GetMaxTraction()
 		
 		if self:GetEMSEnabled() then
 			if self.ems then
@@ -1051,6 +1074,12 @@ function ENT:SetPhysics( enable )
 				local Wheel = self.Wheels[i]
 				if IsValid(Wheel) then
 					Wheel:GetPhysicsObject():SetMaterial("friction_00")
+					if Wheel:GetPhysicsObject():GetMaterial() ~= "friction_00" then
+						print("(SIMFPHYS) WARNING! MISSING PHYSPROP MATERIAL FOR WHEEL"..i..". THIS SHOULD NEVER HAPPEN!! CLEAN YOUR GMOD!! DON'T USE CONTENT OF GAMES YOU DON'T OWN!!")
+						print("NOW KISS MY BUTT FOR ADDING THIS FIX BUT DON'T CRY ABOUT WIERD PERFORMANCE OR NOISES!")
+						
+						Wheel:GetPhysicsObject():SetMaterial("gmod_ice")
+					end
 				end
 			end
 			self.PhysicsEnabled = false
