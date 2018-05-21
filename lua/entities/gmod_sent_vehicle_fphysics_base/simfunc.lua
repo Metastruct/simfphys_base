@@ -356,19 +356,20 @@ function ENT:SimulateWheels(k_clutch,LimitRPM)
 			local absFx = math.abs(Fx)
 			
 			local PowerBiasMul = WheelPos.IsFrontWheel and (1 - self:GetPowerDistribution()) * 0.5 or (1 + self:GetPowerDistribution()) * 0.5
+			local BrakeForce = math.Clamp(-Fx,-self.Brake,self.Brake) * SurfaceMultiplicator
 			
-			local ForwardForce = self.EngineTorque * PowerBiasMul * IsPoweredWheel + (not WheelPos.IsFrontWheel and math.Clamp(-Fx,-self.HandBrake,self.HandBrake) or 0)
+			local ForwardForce = self.EngineTorque * PowerBiasMul * IsPoweredWheel + (not WheelPos.IsFrontWheel and math.Clamp(-Fx,-self.HandBrake,self.HandBrake) or 0) + BrakeForce * 0.5
 			
 			local TractionCycle = Vector(math.min(absFy,MaxTraction),ForwardForce,0):Length()
 			
 			local GripLoss = math.max(TractionCycle - MaxTraction,0)
-			local GripRemaining = math.max(MaxTraction - GripLoss,math.min(absFy / 15,MaxTraction))
+			local GripRemaining = math.max(MaxTraction - GripLoss,math.min(absFy / 25,MaxTraction))
+			--local GripRemaining = math.max(MaxTraction - GripLoss,math.min(absFy / 25,MaxTraction / 2))
 			
 			local signForwardForce = ((ForwardForce > 0) and 1 or 0) + ((ForwardForce < 0) and -1 or 0)
 			local signEngineTorque = ((self.EngineTorque > 0) and 1 or 0) + ((self.EngineTorque < 0) and -1 or 0)
-			local BrakeForce = math.Clamp(-Fx,-self.Brake,self.Brake) * SurfaceMultiplicator
 			
-			local Power = ForwardForce * Efficiency - GripLoss * signForwardForce + BrakeForce
+			local Power = ForwardForce * Efficiency - GripLoss * signForwardForce + math.Clamp(BrakeForce * 0.5,-MaxTraction,MaxTraction)
 			
 			local Force = -Right * math.Clamp(Fy,-GripRemaining,GripRemaining) + Forward * Power
 			
@@ -387,7 +388,9 @@ function ENT:SimulateWheels(k_clutch,LimitRPM)
 			Wheel:SetGripLoss( GripLossFaktor )
 			
 			if WheelPos.IsFrontWheel then
-				self.VehicleData[ "spin_" .. i ] = self.VehicleData[ "spin_" .. i ] + TurnWheel
+				if self.Brake < MaxTraction * 2 then
+					self.VehicleData[ "spin_" .. i ] = self.VehicleData[ "spin_" .. i ] + TurnWheel
+				end
 			else
 				if self.HandBrake < MaxTraction then
 					self.VehicleData[ "spin_" .. i ] = self.VehicleData[ "spin_" .. i ] + TurnWheel
@@ -399,7 +402,10 @@ function ENT:SimulateWheels(k_clutch,LimitRPM)
 				local Angle = GhostEnt:GetAngles()
 				local offsetang = WheelPos.IsFrontWheel and self.CustomWheelAngleOffset or (self.CustomWheelAngleOffset_R or self.CustomWheelAngleOffset)
 				local Direction = GhostEnt:LocalToWorldAngles( offsetang ):Forward()
-				local AngleStep = WheelPos.IsFrontWheel and TurnWheel or (self.HandBrake < MaxTraction) and TurnWheel or 0
+				local TFront = (self.Brake < MaxTraction * 2) and TurnWheel or 0
+				local TBack = (self.Brake < MaxTraction * 2) and TurnWheel or 0
+				
+				local AngleStep = WheelPos.IsFrontWheel and TFront or TBack
 				Angle:RotateAroundAxis(Direction, WheelPos.IsRightWheel and AngleStep or -AngleStep)
 				
 				self.GhostWheels[i]:SetAngles( Angle )
