@@ -9,7 +9,6 @@ if file.Exists( "materials/sprites/glow_headlight_ignorez.vmt", "GAME" ) then
 end
 
 local SpritesDisabled = false
-local AllowVisualDamage = true
 local FrontProjectedLights = true
 local RearProjectedLights = true
 local Shadows = false
@@ -17,8 +16,6 @@ local vtable = istable( vtable ) and vtable or {}
 
 
 cvars.AddChangeCallback( "cl_simfphys_hidesprites", function( convar, oldValue, newValue ) SpritesDisabled = ( tonumber( newValue )~=0 ) end)
-
-cvars.AddChangeCallback( "cl_simfphys_spritedamage", function( convar, oldValue, newValue ) AllowVisualDamage = ( tonumber( newValue )~=0 ) end)
 
 cvars.AddChangeCallback( "cl_simfphys_frontlamps", function( convar, oldValue, newValue ) FrontProjectedLights = ( tonumber( newValue )~=0 ) end)
 
@@ -28,8 +25,6 @@ cvars.AddChangeCallback( "cl_simfphys_shadows", function( convar, oldValue, newV
 
 
 SpritesDisabled = GetConVar( "cl_simfphys_hidesprites" ):GetBool()
-
-AllowVisualDamage = GetConVar( "cl_simfphys_spritedamage" ):GetBool()
 
 FrontProjectedLights = GetConVar( "cl_simfphys_frontlamps" ):GetBool()
 
@@ -859,7 +854,7 @@ end )
 
 local glassimpact = Sound( "Glass.BulletImpact" )
 local function spritedamage( length )
-	if not AllowVisualDamage then return end
+	if not simfphys.DamageEnabled then return end
 	
 	local veh = net.ReadEntity()
 	if not IsValid( veh ) then return end
