@@ -148,10 +148,6 @@ if SERVER then
 		Ent.VehicleTable = VTable
 		Ent.EntityOwner = Player
 		Ent:SetSpawn_List( VName )
-
-		if IsValid( Player ) then
-			gamemode.Call( "PlayerSpawnedVehicle", Player, Ent )
-		end
 		
 		if VTable.Members then
 			table.Merge( Ent, VTable.Members )
@@ -224,6 +220,12 @@ if SERVER then
 			duplicator.StoreEntityModifier( Ent, "VehicleMemDupe", VTable.Members )
 		end
 		
+		if IsValid( Player ) then
+			gamemode.Call( "PlayerSpawnedVehicle", Player, Ent )
+			
+			return Ent
+		end
+		
 		return Ent
 	end
 	
@@ -231,6 +233,8 @@ if SERVER then
 		if not IsValid( entity ) or not IsValid( ply ) then return end
 		
 		if CPPI then
+			if not IsEntity( ply ) then return end
+			
 			if IsValid( ply ) then
 				entity:CPPISetOwner( ply )
 			end
