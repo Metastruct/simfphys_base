@@ -53,7 +53,24 @@ if SERVER then
 			self.WheelDust:Activate()
 			self.WheelDust:SetParent( self )
 			self.WheelDust.DoNotDuplicate = true
+			
 			simfphys.SetOwner( self.EntityOwner, self.WheelDust )
+			
+			
+			if not istable( StormFox ) or not istable( StormFox.Weather ) or not isfunction( StormFox.Weather.GetName ) then return end
+			
+			self.WheelSplash = ents.Create( "info_particle_system" )
+			self.WheelSplash:SetKeyValue( "effect_name" , "WheelSplashForward")
+			self.WheelSplash:SetKeyValue( "start_active" , 0)
+			self.WheelSplash:SetOwner( self )
+			self.WheelSplash:SetPos( self:GetPos() + Vector(0,0,-self:BoundingRadius() - 5) )
+			self.WheelSplash:SetAngles( self:GetAngles() )
+			self.WheelSplash:Spawn()
+			self.WheelSplash:Activate()
+			self.WheelSplash:SetParent( self )
+			self.WheelSplash.DoNotDuplicate = true
+			
+			simfphys.SetOwner( self.EntityOwner, self.WheelSplash )
 		end)
 		
 		self.snd_roll = "simulated_vehicles/sfx/concrete_roll.wav"
@@ -99,10 +116,29 @@ if SERVER then
 			self:WheelFx()
 		end
 		
+		self:CheckWeather()
+		
 		self:NextThink( CurTime() + 0.15 )
 		return true
 	end
 
+	function ENT:CheckWeather()
+		if not istable( StormFox ) or not istable( StormFox.Weather ) or not isfunction( StormFox.Weather.GetName ) then return end
+		
+		local CurWeather = StormFox.Weather.GetName()
+		
+		--if CurWeather == "Raining" or CurWeather == "Thunder" or CurWeather == "Snowing" or CurWeather == "Sleet" or CurWeather == "Storm" then
+		if CurWeather == "Raining" or CurWeather == "Sleet" then
+			self.RainDetected = true
+			self.snd_roll = "simulated_vehicles/sfx/concrete_roll_wet.wav"
+			self.snd_skid = "simulated_vehicles/sfx/concrete_skid_wet.wav"
+		else
+			self.RainDetected = false
+			self.snd_roll = "simulated_vehicles/sfx/concrete_roll.wav"
+			self.snd_skid = "simulated_vehicles/sfx/concrete_skid.wav"
+		end
+	end
+	
 	function ENT:WheelFxBroken()
 		local ForwardSpeed = math.abs( self:GetSpeed() )
 		local SkidSound = math.Clamp( self:GetSkidSound(),0,255)
@@ -114,6 +150,23 @@ if SERVER then
 		
 		if EnableDust ~= self.OldVar then
 			self.OldVar = EnableDust
+			
+			if self.RainDetected then
+				if EnableDust then
+					if IsValid( self.WheelSplash ) then
+						self.WheelSplash:Fire( "Start" )
+					end
+				else
+					if IsValid( self.WheelSplash ) then
+						self.WheelSplash:Fire( "Stop" )
+					end
+				end
+			else
+				if IsValid( self.WheelSplash ) then
+					self.WheelSplash:Fire( "Stop" )
+				end
+			end
+			
 			if EnableDust then
 				if Material == "grass" then
 					if IsValid( self.WheelDust ) then
@@ -181,6 +234,23 @@ if SERVER then
 		
 		if EnableDust ~= self.OldVar then
 			self.OldVar = EnableDust
+			
+			if self.RainDetected then
+				if EnableDust then
+					if IsValid( self.WheelSplash ) then
+						self.WheelSplash:Fire( "Start" )
+					end
+				else
+					if IsValid( self.WheelSplash ) then
+						self.WheelSplash:Fire( "Stop" )
+					end
+				end
+			else
+				if IsValid( self.WheelSplash ) then
+					self.WheelSplash:Fire( "Stop" )
+				end
+			end
+		
 			if EnableDust then
 				if Material == "grass" then
 					if IsValid( self.WheelDust ) then
