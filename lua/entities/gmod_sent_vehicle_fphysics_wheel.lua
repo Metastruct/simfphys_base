@@ -519,7 +519,7 @@ if CLIENT then
 		
 		if self.NextSpark < CurTime() then
 		
-			self.NextSpark = CurTime() + 0.03
+			self.NextSpark = CurTime() + 0.1
 			local effectdata = EffectData()
 				effectdata:SetOrigin( Pos - Vector(0,0,WheelSize * 0.5) )
 				effectdata:SetNormal( (Dir + Vector(0,0,0.5)) * Scale * 0.5)
