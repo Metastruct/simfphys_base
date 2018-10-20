@@ -882,11 +882,11 @@ function ENT:SteerVehicle( steer )
 end
 
 function ENT:Lock()
-	self.IsLocked = true
+	self.VehicleLocked = true
 end
 
 function ENT:UnLock()
-	self.IsLocked = false
+	self.VehicleLocked = false
 end
 
 function ENT:ForceLightsOff()
@@ -969,7 +969,7 @@ end
 function ENT:SetPassenger( ply )
 	if not IsValid( ply ) then return end
 	
-	if self.IsLocked or self:HasPassengerEnemyTeam( ply ) then 
+	if self.VehicleLocked or self:HasPassengerEnemyTeam( ply ) then 
 		self:EmitSound( "doors/default_locked.wav" )
 		return
 	end
