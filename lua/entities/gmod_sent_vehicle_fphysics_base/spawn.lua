@@ -429,8 +429,11 @@ function ENT:SetupVehicle()
 	self.MassOffset.DoNotDuplicate = true
 	simfphys.SetOwner( self.EntityOwner, self.MassOffset )
 	
-	local constraint = constraint.Weld(self.MassOffset,self, 0, 0, 0,true, true) 
-	constraint.DoNotDuplicate = true
+	local weld = constraint.Weld(self.MassOffset,self, 0, 0, 0,true, true) 
+	weld.DoNotDuplicate = true
+	
+	local ballsack = constraint.AdvBallsocket(self.MassOffset, self,0,0,Vector(0,0,0),Vector(0,0,0),0,0, -0.01, -0.01, -0.01, 0.01, 0.01, 0.01, 0, 0, 0, 0, 1)
+	ballsack.DoNotDuplicate = true
 	
 	if self.CustomWheels then
 		if self.CustomWheelModel then
