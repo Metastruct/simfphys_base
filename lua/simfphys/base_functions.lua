@@ -13,6 +13,7 @@ simfphys.DamageMul = 1
 simfphys.pDamageEnabled = false
 simfphys.Fuel = true
 simfphys.FuelMul = 0.1
+simfphys.VERSION = 1.0
 
 FUELTYPE_NONE = 0
 FUELTYPE_PETROL = 1
@@ -216,6 +217,12 @@ if SERVER then
 			Ent:SetBulletProofTires( Ent.BulletProofTires or false )
 			
 			Ent:SetBackfireSound( Ent.snd_backfire or "" )
+			
+			if simfphys.armedAutoRegister then
+				timer.Simple( 0.2, function()
+					simfphys.armedAutoRegister( Ent )
+				end)
+			end
 			
 			duplicator.StoreEntityModifier( Ent, "VehicleMemDupe", VTable.Members )
 		end
