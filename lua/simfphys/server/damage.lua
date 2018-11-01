@@ -23,8 +23,6 @@ local function DestroyVehicle( ent )
 	if not IsValid( ent ) then return end
 	if ent.destroyed then return end
 	
-	ent:OnDestroyed()
-	
 	ent.destroyed = true
 	
 	local ply = ent.EntityOwner
@@ -46,6 +44,8 @@ local function DestroyVehicle( ent )
 	bprop.MakeSound = true
 	bprop:SetColor( Col )
 	bprop:SetSkin( skin )
+	
+	ent.Gib = bprop
 	
 	simfphys.SetOwner( ply , bprop )
 	
@@ -82,7 +82,7 @@ local function DestroyVehicle( ent )
 	local Driver = ent:GetDriver()
 	if IsValid( Driver ) then
 		if ent.RemoteDriver ~= Driver then
-			Driver:Kill()
+			Driver:TakeDamage( Driver:Health() + Driver:Armor(), ent.LastAttacker or Entity(0), ent.LastInflictor or Entity(0) )
 		end
 	end
 	
@@ -90,12 +90,15 @@ local function DestroyVehicle( ent )
 		for i = 1, table.Count( ent.PassengerSeats ) do
 			local Passenger = ent.pSeat[i]:GetDriver()
 			if IsValid( Passenger ) then
-				Passenger:Kill()
+				Passenger:TakeDamage( Passenger:Health() + Passenger:Armor(), ent.LastAttacker or Entity(0), ent.LastInflictor or Entity(0) )
 			end
 		end
 	end
 	
 	ent:Extinguish() 
+	
+	ent:OnDestroyed()
+	
 	ent:Remove()
 end
 
@@ -224,6 +227,10 @@ local function OnDamage( ent, dmginfo )
 	local DamagePos = dmginfo:GetDamagePosition() 
 	local Type = dmginfo:GetDamageType()
 	local Driver = ent:GetDriver()
+	
+	ent.LastAttacker = dmginfo:GetAttacker() 
+	ent.LastInflictor = dmginfo:GetInflictor()
+	
 	bcDamage( ent , ent:WorldToLocal( DamagePos ) )
 	
 	local Mul = 1
