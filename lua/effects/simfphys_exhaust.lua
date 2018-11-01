@@ -34,51 +34,51 @@ function EFFECT:Init( data )
 		
 		local emitter = ParticleEmitter( Pos, false )
 
-		local MaxHealth = Entity:GetMaxHealth()
-		local Health = Entity:GetCurHealth()
-		
-		local particle = emitter:Add( Materials[ math.Round( math.Rand(1, table.Count( Materials ) ) , 0 ) ], Pos )
-		local cAdd = (1 - (Health / MaxHealth)) * 100
-		local cInt = math.Clamp(100 - 40 * Size,0,255)
-		local rand = Vector( math.random(-1,1), math.random(-1,1), math.random(-1,1) ) * 0.25
-		
-		if particle then
-			particle:SetVelocity( Vel + (Dir + rand) * (50 + Size * 100) )
-			particle:SetDieTime( 0.4 + Size * 0.6 )
-			particle:SetAirResistance( 200 ) 
-			particle:SetStartAlpha( math.max(20 + Size ^ 3 * (20 + cAdd) - Vel:Length() / 800,0))
-			particle:SetStartSize( ((SuperCharged and TurboCharged) and 4 or 2) )
-			particle:SetEndSize( 10 + Size * 60 )
-			particle:SetRoll( math.Rand( -1, 1 ) )
-			particle:SetColor( math.Clamp(cInt - cAdd,0,255), math.Clamp(cInt - cAdd,0,255), math.Clamp(cInt - cAdd * 0.5,0,255) )
-			particle:SetGravity( Vector( 0, 0, 100 ) + Vel * 0.5 )
-			particle:SetCollide( false )
-		end
-		
-		emitter:Finish()
-		
-		if SuperCharged and TurboCharged then
-			if Size > 0.4 then
-				for i = 0, 12 do
-					local Pos2 = Pos + Dir * i * 0.7 * math.random(1,2) * 0.5
-					local emitter1 = ParticleEmitter( Pos2, false )
-					local particle1 = emitter1:Add( "effects/muzzleflash2", Pos2 )
-					
-					if particle1 then
-						particle1:SetVelocity( Vel + Dir * (5 + Vel:Length() / 20) )
-						particle1:SetDieTime( 0.05 )
-						particle1:SetStartAlpha( 255 * Size )
-						particle1:SetStartSize( math.max( math.random(4,12) - i * 0.5,0.1 ) * Size )
-						particle1:SetEndSize( 0 )
-						particle1:SetRoll( math.Rand( -1, 1 ) )
-						particle1:SetColor( 255,255,255 )
-						particle1:SetCollide( false )
+		if emitter then
+			local MaxHealth = Entity:GetMaxHealth()
+			local Health = Entity:GetCurHealth()
+			
+			local particle = emitter:Add( Materials[ math.Round( math.Rand(1, table.Count( Materials ) ) , 0 ) ], Pos )
+			local cAdd = (1 - (Health / MaxHealth)) * 100
+			local cInt = math.Clamp(100 - 40 * Size,0,255)
+			local rand = Vector( math.random(-1,1), math.random(-1,1), math.random(-1,1) ) * 0.25
+			
+			if particle then
+				particle:SetVelocity( Vel + (Dir + rand) * (50 + Size * 100) )
+				particle:SetDieTime( 0.4 + Size * 0.6 )
+				particle:SetAirResistance( 200 ) 
+				particle:SetStartAlpha( math.max(20 + Size ^ 3 * (20 + cAdd) - Vel:Length() / 800,0))
+				particle:SetStartSize( ((SuperCharged and TurboCharged) and 4 or 2) )
+				particle:SetEndSize( 10 + Size * 60 )
+				particle:SetRoll( math.Rand( -1, 1 ) )
+				particle:SetColor( math.Clamp(cInt - cAdd,0,255), math.Clamp(cInt - cAdd,0,255), math.Clamp(cInt - cAdd * 0.5,0,255) )
+				particle:SetGravity( Vector( 0, 0, 100 ) + Vel * 0.5 )
+				particle:SetCollide( false )
+			end
+			
+			if SuperCharged and TurboCharged then
+				if Size > 0.4 then
+					for i = 0, 12 do
+						local Pos2 = Pos + Dir * i * 0.7 * math.random(1,2) * 0.5
+						local particle1 = emitter:Add( "effects/muzzleflash2", Pos2 )
+						
+						if particle1 then
+							particle1:SetVelocity( Vel + Dir * (5 + Vel:Length() / 20) )
+							particle1:SetDieTime( 0.05 )
+							particle1:SetStartAlpha( 255 * Size )
+							particle1:SetStartSize( math.max( math.random(4,12) - i * 0.5,0.1 ) * Size )
+							particle1:SetEndSize( 0 )
+							particle1:SetRoll( math.Rand( -1, 1 ) )
+							particle1:SetColor( 255,255,255 )
+							particle1:SetCollide( false )
+						end
 					end
-					
-					emitter1:Finish()
 				end
 			end
+			
+			emitter:Finish()
 		end
+		
 	end
 end
 
