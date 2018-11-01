@@ -39,7 +39,7 @@ function ENT:WheelOnGround()
 	end
 	
 	local FrontOnGround = math.max(self.VehicleData[ "onGround_1" ],self.VehicleData[ "onGround_2" ])
-	local RearOnGround = math.max(self.VehicleData[ "onGround_3" ],self.VehicleData[ "onGround_4" ])
+	local RearOnGround = math.max(self.VehicleData[ "onGround_3" ],self.VehicleData[ "onGround_4" ],self.VehicleData[ "onGround_5" ],self.VehicleData[ "onGround_6" ])
 	
 	self.DriveWheelsOnGround = math.max(self.FrontWheelPowered and FrontOnGround or 0,self.RearWheelPowered and RearOnGround or 0)
 end
