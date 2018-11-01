@@ -57,7 +57,7 @@ if SERVER then
 			simfphys.SetOwner( self.EntityOwner, self.WheelDust )
 			
 			
-			if not istable( StormFox ) or not istable( StormFox.Weather ) or not isfunction( StormFox.Weather.GetName ) then return end
+			if not istable( StormFox ) or not isfunction( StormFox.IsRaining ) then return end
 			
 			self.WheelSplash = ents.Create( "info_particle_system" )
 			self.WheelSplash:SetKeyValue( "effect_name" , "WheelSplashForward")
@@ -123,12 +123,9 @@ if SERVER then
 	end
 
 	function ENT:CheckWeather()
-		if not istable( StormFox ) or not istable( StormFox.Weather ) or not isfunction( StormFox.Weather.GetName ) then return end
-		
-		local CurWeather = StormFox.Weather.GetName()
-		
-		--if CurWeather == "Raining" or CurWeather == "Thunder" or CurWeather == "Snowing" or CurWeather == "Sleet" or CurWeather == "Storm" then
-		if CurWeather == "Raining" or CurWeather == "Sleet" then
+		if not istable( StormFox ) or not isfunction( StormFox.IsRaining ) then return end
+
+		if StormFox.IsRaining() then
 			self.RainDetected = true
 			self.snd_roll = "simulated_vehicles/sfx/concrete_roll_wet.wav"
 			self.snd_skid = "simulated_vehicles/sfx/concrete_skid_wet.wav"
