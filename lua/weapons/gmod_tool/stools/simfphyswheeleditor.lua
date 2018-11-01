@@ -186,6 +186,8 @@ function TOOL:LeftClick( trace )
 	if not simfphys.IsCar( ent ) then return false end
 	
 	if SERVER then
+		if not ent.CustomWheels then return end
+	
 		local PhysObj = ent:GetPhysicsObject()
 		if not IsValid( PhysObj ) then return end
 		
