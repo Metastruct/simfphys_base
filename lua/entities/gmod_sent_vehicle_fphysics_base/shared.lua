@@ -145,3 +145,7 @@ function ENT:BodyGroupIsValid( bodygroups )
 	end
 	return false
 end
+
+function ENT:GetVehicleClass()
+	return "these are not the droids you are looking for"
+end
