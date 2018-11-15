@@ -90,7 +90,7 @@ function meta:GetSimfphys()
 		
 		if not IsValid( Parent ) then Pod.SPHYSchecked = false return NULL end
 		
-		if not Parent:GetClass():lower():StartWith( "gmod_sent_vehicle_fphysics_base" ) then Pod.SPHYSchecked = false return NULL end
+		if not simfphys.IsCar( Parent ) then Pod.SPHYSchecked = false return NULL end
 		
 		Pod.SPHYSchecked = true
 		Pod.SPHYSBaseEnt = Parent
