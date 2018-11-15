@@ -4,27 +4,27 @@ if CLIENT then
 	LockedPitch = GetConVar( "cl_simfphys_ms_lockedpitch" ):GetFloat()
 end
 
-local function GetViewOverride( vehicle )
-	if not IsValid( vehicle ) then return Vector(0,0,0) end
+local function GetViewOverride( ent )
+	if not IsValid( ent ) then return Vector(0,0,0) end
 	
-	if not vehicle.customview then
-		local vehiclelist = list.Get( "simfphys_vehicles" )[ vehicle.vehiclebase:GetSpawn_List() ]
+	if not ent.customview then
+		local vehiclelist = list.Get( "simfphys_vehicles" )[ ent:GetSpawn_List() ]
 		
 		if vehiclelist then
-			vehicle.customview = vehiclelist.Members.FirstPersonViewPos or Vector(0,-9,5)
+			ent.customview = vehiclelist.Members.FirstPersonViewPos or Vector(0,-9,5)
 		else
-			vehicle.customview = Vector(0,-9,5)
+			ent.customview = Vector(0,-9,5)
 		end
 	end
 	
-	return vehicle.customview
+	return ent.customview
 end
 
 hook.Add("CalcVehicleView", "simfphysViewOverride", function(Vehicle, ply, view)
 
-	local vehiclebase = Vehicle.vehiclebase
+	local vehiclebase = ply:GetSimfphys()
 	
-	if not IsValid(vehiclebase) then return end
+	if not IsValid( vehiclebase ) then return end
 
 	local IsDriverSeat = Vehicle == vehiclebase:GetDriverSeat()
 	
@@ -35,7 +35,7 @@ hook.Add("CalcVehicleView", "simfphysViewOverride", function(Vehicle, ply, view)
 	ply.simfphys_smooth_out = 0
 	
 	if not Vehicle:GetThirdPersonMode() then
-		local viewoverride = GetViewOverride( Vehicle )
+		local viewoverride = GetViewOverride( vehiclebase )
 		
 		local X = viewoverride.X
 		local Y = viewoverride.Y
@@ -77,16 +77,17 @@ end)
 
 hook.Add("StartCommand", "simfphys_lockview", function(ply, ucmd)
 	local vehicle = ply:GetVehicle()
-	if not IsValid(vehicle) then return end
 	
-	local vehiclebase = vehicle.vehiclebase
+	if not IsValid( vehicle ) then return end
 	
-	if not IsValid(vehiclebase) then return end
+	local vehiclebase = ply:GetSimfphys()
+	
+	if not IsValid( vehiclebase ) then return end
 
 	local IsDriverSeat = vehicle == vehiclebase:GetDriverSeat()
 	
 	if not IsDriverSeat then return end
-	if not (ply:GetInfoNum( "cl_simfphys_mousesteer", 0 ) == 1) then return end
+	if not ply:GetInfoNum( "cl_simfphys_mousesteer", 0 ) == 1 then return end
 	
 	local ang = ucmd:GetViewAngles()
 	

@@ -62,6 +62,36 @@ function simfphys.IsCar( ent )
 	return IsVehicle
 end
 
+local meta = FindMetaTable( "Player" )
+function meta:GetSimfphys()
+	if not self:InVehicle() then return NULL end
+	
+	local Pod = self:GetVehicle()
+	
+	if not IsValid( Pod ) then return NULL end
+	
+	if Pod.SPHYSchecked == true then
+		
+		return Pod.SPHYSBaseEnt
+		
+	elseif Pod.SPHYSchecked == nil then
+
+		local Parent = Pod:GetParent()
+		
+		if not IsValid( Parent ) then Pod.SPHYSchecked = false return NULL end
+		
+		if not Parent:GetClass():lower():StartWith( "gmod_sent_vehicle_fphysics_base" ) then Pod.SPHYSchecked = false return NULL end
+		
+		Pod.SPHYSchecked = true
+		Pod.SPHYSBaseEnt = Parent
+		
+		return Parent
+	else
+		
+		return NULL
+	end
+end
+
 if SERVER then
 	util.AddNetworkString( "simfphys_settings" )
 	util.AddNetworkString( "simfphys_turnsignal" )
