@@ -13,7 +13,7 @@ simfphys.DamageMul = 1
 simfphys.pDamageEnabled = false
 simfphys.Fuel = true
 simfphys.FuelMul = 0.1
-simfphys.VERSION = 1.0
+simfphys.VERSION = 1.1
 
 FUELTYPE_NONE = 0
 FUELTYPE_PETROL = 1
