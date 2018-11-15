@@ -500,12 +500,11 @@ local function simfphysHUD()
 	local vehicle = ply:GetVehicle()
 	if not IsValid( vehicle ) then turnmenu_wasopen = false return end
 	
-	local vehiclebase = vehicle.vehiclebase
+	local vehiclebase = ply:GetSimfphys()
 	
 	if not IsValid( vehiclebase ) then turnmenu_wasopen = false return end
 	
-	local IsDriverSeat = vehicle == vehiclebase:GetDriverSeat()
-	if not IsDriverSeat then turnmenu_wasopen = false return end
+	if not ply:IsDrivingSimfphys() then turnmenu_wasopen = false return end
 	
 	drawsimfphysHUD( vehiclebase )
 	

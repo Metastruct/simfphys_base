@@ -59,7 +59,7 @@ hook.Add( "Think", "simfphys_seatswitching", function()
 	local vehicle = ply:GetVehicle()
 	if not IsValid( vehicle ) then return end
 	
-	local vehiclebase = vehicle.vehiclebase
+	local vehiclebase = ply:GetSimfphys()
 	
 	if not IsValid( vehiclebase ) then return end
 
