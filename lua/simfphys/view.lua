@@ -87,7 +87,7 @@ hook.Add("StartCommand", "simfphys_lockview", function(ply, ucmd)
 	local IsDriverSeat = vehicle == vehiclebase:GetDriverSeat()
 	
 	if not IsDriverSeat then return end
-	if not ply:GetInfoNum( "cl_simfphys_mousesteer", 0 ) == 1 then return end
+	if not (ply:GetInfoNum( "cl_simfphys_mousesteer", 0 ) == 1) then return end
 	
 	local ang = ucmd:GetViewAngles()
 	
