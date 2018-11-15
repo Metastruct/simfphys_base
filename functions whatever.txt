@@ -1,5 +1,7 @@
 entity = the vehicle base entity, NOT THE SEAT
 
+call ply:GetSimfphys() to get the vehicle base entity
+
 
 ------ shared
 entity:GetSteerSpeed()	-- returns a number
