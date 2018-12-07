@@ -13,6 +13,7 @@ simfphys.DamageMul = 1
 simfphys.pDamageEnabled = false
 simfphys.Fuel = true
 simfphys.FuelMul = 0.1
+simfphys.VERSION = 1.1
 
 FUELTYPE_NONE = 0
 FUELTYPE_PETROL = 1
@@ -59,6 +60,47 @@ function simfphys.IsCar( ent )
 	local IsVehicle = ent:GetClass():lower() == "gmod_sent_vehicle_fphysics_base"
 	
 	return IsVehicle
+end
+
+local meta = FindMetaTable( "Player" )
+function meta:IsDrivingSimfphys()
+	local Car = self:GetSimfphys()
+	local Pod = self:GetVehicle()
+	
+	if not IsValid( Pod ) or not IsValid( Car ) then return false end
+	if not Car.GetDriverSeat or not isfunction( Car.GetDriverSeat ) then return false end
+	
+	return Pod == Car:GetDriverSeat()
+end
+
+function meta:GetSimfphys()
+	if not self:InVehicle() then return NULL end
+	
+	local Pod = self:GetVehicle()
+	
+	if not IsValid( Pod ) then return NULL end
+	
+	if Pod.SPHYSchecked == true then
+		
+		return Pod.SPHYSBaseEnt
+		
+	elseif Pod.SPHYSchecked == nil then
+
+		local Parent = Pod:GetParent()
+		
+		if not IsValid( Parent ) then Pod.SPHYSchecked = false return NULL end
+		
+		if not simfphys.IsCar( Parent ) then Pod.SPHYSchecked = false return NULL end
+		
+		Pod.SPHYSchecked = true
+		Pod.SPHYSBaseEnt = Parent
+		Pod.vehiclebase = Parent -- compatibility for old addons
+		
+		return Parent
+	else
+		
+		return NULL
+	end
 end
 
 if SERVER then
@@ -148,10 +190,6 @@ if SERVER then
 		Ent.VehicleTable = VTable
 		Ent.EntityOwner = Player
 		Ent:SetSpawn_List( VName )
-
-		if IsValid( Player ) then
-			gamemode.Call( "PlayerSpawnedVehicle", Player, Ent )
-		end
 		
 		if VTable.Members then
 			table.Merge( Ent, VTable.Members )
@@ -221,7 +259,19 @@ if SERVER then
 			
 			Ent:SetBackfireSound( Ent.snd_backfire or "" )
 			
+			if simfphys.armedAutoRegister then
+				timer.Simple( 0.2, function()
+					simfphys.armedAutoRegister( Ent )
+				end)
+			end
+			
 			duplicator.StoreEntityModifier( Ent, "VehicleMemDupe", VTable.Members )
+		end
+		
+		if IsValid( Player ) then
+			gamemode.Call( "PlayerSpawnedVehicle", Player, Ent )
+			
+			return Ent
 		end
 		
 		return Ent
@@ -231,6 +281,8 @@ if SERVER then
 		if not IsValid( entity ) or not IsValid( ply ) then return end
 		
 		if CPPI then
+			if not IsEntity( ply ) then return end
+			
 			if IsValid( ply ) then
 				entity:CPPISetOwner( ply )
 			end

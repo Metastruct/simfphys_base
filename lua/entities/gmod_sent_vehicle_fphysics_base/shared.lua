@@ -10,7 +10,13 @@ ENT.AdminSpawnable  = false
 
 ENT.AutomaticFrameAdvance = true
 ENT.RenderGroup = RENDERGROUP_BOTH 
+
+if CLIENT then
+	ENT.Editable = true -- always show it on client
+ else
 ENT.Editable = (GetConVar("sv_simfphys_devmode"):GetInt() or 1) >= 1
+end
+
 ENT.IsSimfphyscar = true
 
 function ENT:SetupDataTables()
@@ -140,3 +146,6 @@ function ENT:BodyGroupIsValid( bodygroups )
 	return false
 end
 
+function ENT:GetVehicleClass()
+	return "these are not the droids you are looking for"
+end

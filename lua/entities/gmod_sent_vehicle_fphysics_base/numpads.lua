@@ -231,11 +231,11 @@ numpad.Register( "k_lock", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
 	
 	if keydown then
-		if ent.IsLocked then
-			ent.IsLocked = false
+		if ent.VehicleLocked then
+			ent.VehicleLocked = false
 			ent:EmitSound( "doors/latchunlocked1.wav" )
 		else
-			ent.IsLocked = true
+			ent.VehicleLocked = true
 			ent:EmitSound( "doors/latchlocked2.wav" )
 		end
 	end

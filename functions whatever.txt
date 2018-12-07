@@ -1,5 +1,7 @@
 entity = the vehicle base entity, NOT THE SEAT
 
+ply:GetSimfphys()  -- called on a player, returns the simfphys base entity (gmod_sent_vehicle_fphysics_base)
+ply:IsDrivingSimfphys()  -- called on a player, returns true when the player is DRIVING the simfphys vehicle. returns false for passengers.
 
 ------ shared
 entity:GetSteerSpeed()	-- returns a number

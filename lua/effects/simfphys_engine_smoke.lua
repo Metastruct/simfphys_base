@@ -18,14 +18,6 @@ local Materials = {
 	"particle/smokesprites_0016"
 }
 
-local function RandVector(min,max)
-	min = min or -1
-	max = max or 1
-	
-	local vec = Vector(math.Rand(min,max),math.Rand(min,max),math.Rand(min,max))
-	return vec
-end
-
 function EFFECT:Init( data )
 	local Pos = data:GetOrigin()
 	local Ent = data:GetEntity()
@@ -39,7 +31,7 @@ function EFFECT:Init( data )
 	local particle = emitter:Add( Materials[math.Round(math.Rand(1,table.Count( Materials )),0)], Pos )
 	
 	if particle then
-		particle:SetVelocity( RandVector() * 100 + Vector(0,0,math.min(Vel,600) ) )
+		particle:SetVelocity( VectorRand() * 100 + Vector(0,0,math.min(Vel,600) ) )
 		particle:SetDieTime( 1.25 )
 		particle:SetAirResistance( 600 ) 
 		particle:SetStartAlpha( math.max(80 - Vel / 100,0) )

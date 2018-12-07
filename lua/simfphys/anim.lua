@@ -1,28 +1,5 @@
 hook.Add("CalcMainActivity", "simfphysSeatActivityOverride", function(ply)
-	local vehicle = ply:GetVehicle()
-	
-	if not IsValid( vehicle ) then return end
-	
-	if not vehicle.vehiclebase and not vehicle.dontcheckmeagainpls then
-		local parent = vehicle:GetParent()
-		
-		if IsValid( parent ) then
-		
-			if simfphys.IsCar( parent ) then
-				vehicle.vehiclebase = parent
-				vehicle.unlockmymemes = CurTime() + 0.25
-			end
-			
-			vehicle.dontcheckmeagainpls = true
-		end
-	end
-	
-	if vehicle.unlockmymemes then
-		if vehicle.unlockmymemes > CurTime() then return end
-	end
-	
-	local vehiclebase = vehicle.vehiclebase
-	if not IsValid( vehiclebase ) then return end
+	if not IsValid( ply:GetSimfphys() ) then return end
 	
 	if ply.m_bWasNoclipping then 
 		ply.m_bWasNoclipping = nil 
@@ -33,7 +10,7 @@ hook.Add("CalcMainActivity", "simfphysSeatActivityOverride", function(ply)
 		end 
 	end 
 	
-	local IsDriverSeat = vehicle == vehiclebase:GetDriverSeat()
+	local IsDriverSeat = ply:IsDrivingSimfphys()
 	
 	ply.CalcIdeal = ACT_HL2MP_SIT
 	ply.CalcSeqOverride = IsDriverSeat and ply:LookupSequence( "drive_jeep" ) or -1
@@ -58,22 +35,15 @@ end)
 
 hook.Add("UpdateAnimation", "simfphysPoseparameters", function(ply , vel, seq)
 	if CLIENT then
-		local vehicle = ply:GetVehicle()
-		if not IsValid( vehicle ) then return end
+		if not ply:IsDrivingSimfphys() then return end
 		
-		if vehicle.unlockmymemes then
-			if vehicle.unlockmymemes > CurTime() then return end
-		end
+		local Car = ply:GetSimfphys()
 		
-		local vehiclebase = vehicle.vehiclebase
-		if not IsValid( vehiclebase ) then return end
+		if not IsValid( Car ) then return end
 		
-		local IsDriverSeat = vehicle == vehiclebase:GetDriverSeat()
-		if not IsDriverSeat then return end
+		local Steer = Car:GetVehicleSteer()
 		
-		local Steer = vehiclebase:GetVehicleSteer()
-		
-		ply:SetPoseParameter("vehicle_steer",Steer)
+		ply:SetPoseParameter( "vehicle_steer", Steer )
 		ply:InvalidateBoneCache()
 		
 		GAMEMODE:GrabEarAnimation( ply ) 

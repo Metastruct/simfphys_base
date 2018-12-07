@@ -41,7 +41,7 @@ end
 function ENT:CalcFlasher()
 	self.Flasher = self.Flasher or 0
 	
-	local flashspeed = self.turnsignals_damaged and 0.06 or 0.03
+	local flashspeed = self.turnsignals_damaged and 0.06 or 0.0375
 	
 	self.Flasher = self.Flasher and self.Flasher + flashspeed or 0
 	if self.Flasher >= 1 then

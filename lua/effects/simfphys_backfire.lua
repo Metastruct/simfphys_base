@@ -52,58 +52,55 @@ function EFFECT:Init( data )
 				dlight.DieTime = CurTime() + 0.5
 			end
 			
-			local emitter1 = ParticleEmitter( Pos, false )
-			local emitter2 = ParticleEmitter( Pos, false )
+			local emitter = ParticleEmitter( Pos, false )
 			
-			for i = 0, 12 do
-				local particle1 = emitter1:Add( "effects/muzzleflash2", Pos )
-				local particle2 = emitter2:Add( Materials[ math.Round( math.Rand(1, table.Count( Materials ) ) , 0 ) ], Pos )
-				
-				if particle1 then
-					particle1:SetVelocity( Vel + Ang:Forward() * (5 + Vel:Length() / 20) )
-					particle1:SetDieTime( 0.1 )
-					particle1:SetStartAlpha( 255 )
-					particle1:SetStartSize( math.random(4,12) )
-					particle1:SetEndSize( 0 )
-					particle1:SetRoll( math.Rand( -1, 1 ) )
-					particle1:SetColor( 255,255,255 )
-					particle1:SetCollide( false )
-				end
-				
-				if particle2 then
-					particle2:SetVelocity( Vel + Ang:Forward() * (10 + Vel:Length() / 20) )
-					particle2:SetDieTime( 0.3 )
-					particle2:SetStartAlpha( 60 )
-					particle2:SetStartSize( 0 )
-					particle2:SetEndSize( math.random(8,20) )
-					particle2:SetRoll( math.Rand( -1, 1 ) )
-					particle2:SetColor( 100,100,100 )
-					particle2:SetCollide( false )
-				end
-				
-				if bdamaged then
-					local emitter3 = ParticleEmitter( Pos, false )
-
-					local particle3 = emitter3:Add( Materials[ math.Round( math.Rand(1, table.Count( Materials ) ) , 0 ) ], Pos )
-
-					if particle3 then
-						particle3:SetVelocity( Vel + Ang:Forward() * math.random(30,60) )
-						particle3:SetDieTime( 0.5 )
-						particle3:SetAirResistance( 20 ) 
-						particle3:SetStartAlpha( 100 )
-						particle3:SetStartSize( 0 )
-						particle3:SetEndSize( math.random(25,50) )
-						particle3:SetRoll( math.Rand( -1, 1 ) )
-						particle3:SetColor( 40,40,40 )
-						particle3:SetCollide( false )
+			if emitter then
+				for i = 0, 12 do
+					local particle1 = emitter:Add( "effects/muzzleflash2", Pos )
+					
+					if particle1 then
+						particle1:SetVelocity( Vel + Ang:Forward() * (5 + Vel:Length() / 20) )
+						particle1:SetDieTime( 0.1 )
+						particle1:SetStartAlpha( 255 )
+						particle1:SetStartSize( math.random(4,12) )
+						particle1:SetEndSize( 0 )
+						particle1:SetRoll( math.Rand( -1, 1 ) )
+						particle1:SetColor( 255,255,255 )
+						particle1:SetCollide( false )
 					end
 					
-					emitter3:Finish()
+					local particle2 = emitter:Add( Materials[ math.Round( math.Rand(1, table.Count( Materials ) ) , 0 ) ], Pos )
+					
+					if particle2 then
+						particle2:SetVelocity( Vel + Ang:Forward() * (10 + Vel:Length() / 20) )
+						particle2:SetDieTime( 0.3 )
+						particle2:SetStartAlpha( 60 )
+						particle2:SetStartSize( 0 )
+						particle2:SetEndSize( math.random(8,20) )
+						particle2:SetRoll( math.Rand( -1, 1 ) )
+						particle2:SetColor( 100,100,100 )
+						particle2:SetCollide( false )
+					end
+					
+					if bdamaged then
+						local particle3 = emitter:Add( Materials[ math.Round( math.Rand(1, table.Count( Materials ) ) , 0 ) ], Pos )
+
+						if particle3 then
+							particle3:SetVelocity( Vel + Ang:Forward() * math.random(30,60) )
+							particle3:SetDieTime( 0.5 )
+							particle3:SetAirResistance( 20 ) 
+							particle3:SetStartAlpha( 100 )
+							particle3:SetStartSize( 0 )
+							particle3:SetEndSize( math.random(25,50) )
+							particle3:SetRoll( math.Rand( -1, 1 ) )
+							particle3:SetColor( 40,40,40 )
+							particle3:SetCollide( false )
+						end
+					end
 				end
+				
+				emitter:Finish()
 			end
-			
-			emitter1:Finish()
-			emitter2:Finish()
 		end
 	end )
 end
