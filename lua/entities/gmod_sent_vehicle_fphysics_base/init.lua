@@ -19,7 +19,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 end
 
 function ENT:PreEntityCopy()
-	duplicator.StoreEntityModifier(self, "WireDupeInfo", WireLib.BuildDupeInfo(self))
+	if istable( WireLib ) then
+		duplicator.StoreEntityModifier( self, "WireDupeInfo", WireLib.BuildDupeInfo(self) )
+	end
 end
 
 function ENT:PostEntityPaste(Player,Ent,CreatedEntities)
