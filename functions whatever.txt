@@ -113,7 +113,7 @@ entity.PressedKeys["joystick_air_a"] = 0
 entity.PressedKeys["joystick_air_s"] = 0
 entity.PressedKeys["joystick_air_d"] = 0
 
-i think its obvious wich variable does what.
+i think its obvious which variable does what.
 
 for steering you can use both the joystick variables or the function:
 entity:SteerVehicle( number )  -- sets the steering ANGLE. Unlike the joystick variables this sets the actual steering angle
