@@ -5,8 +5,36 @@ TOOL.ConfigName	= ""
 
 if SERVER then
 	util.AddNetworkString( "sphys_dupe" )
-	
+
+	local recv_interval_start = 0 -- first second of current interval
+	local recv_interval_len = 1 -- in seconds, length of interval before resetting recv_interval_(start,count)
+	local recv_interval_count = 0 -- current count of messages received in interval
+	local recv_max = 500 -- maximum number of messages to receive during one interval
+	local recv_stop = 0 -- is the net.Receive stopped (activates short-circuit)
+	local recv_delay_after_stop = 3600 -- how long to wait (in seconds) before allowing messages again
+
 	net.Receive("sphys_dupe", function( length, ply )
+		if (recv_stop == 1) then -- if stopped,
+			return -- short-circuit
+		end
+		-- check if a new interval has come
+		if (recv_interval_start + recv_interval_len < os.time()) then
+			recv_interval_start = os.time() -- reset time
+			recv_interval_count = 0 -- reset message count
+		end
+		recv_interval_count = recv_interval_count + 1
+		-- check if below threshold
+		if (recv_interval_count > recv_max) then
+			-- if over threshold, activate short-circuit
+			recv_stop = 1
+			-- and create a timer to deactivate the short-circuit in recv_delay_after_stop seconds
+			timer.Simple(recv_delay_after_stop, function()
+					recv_stop = 0
+				end)
+			-- warn server about attack
+			PrintMessage(HUD_PRINTTALK, "WARNING: " .. ply:Nick() .. " [" .. ply:SteamID() .. "] is attacking sphys_dupe. simfphys duplicator is disabled for " .. tostring(recv_delay_after_stop) .. " seconds.")
+		end
+
 		ply.TOOLMemory = net.ReadTable()
 		ply:SelectWeapon( "gmod_tool" )
 	end)
