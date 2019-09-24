@@ -445,6 +445,14 @@ function ENT:ControlLighting( curtime )
 	end
 end
 
+function ENT:SetTSInternal(mode)
+	self.TSMode = mode
+end
+
+function ENT:GetTSEnabled()
+	if self.TSMode != nil then return self.TSMode else return 0 end
+end
+
 function ENT:GetEngineData()
 	local LimitRPM = math.max(self:GetLimitRPM(),4)
 	local Powerbandend = math.Clamp(self:GetPowerBandEnd(),3,LimitRPM - 1)
