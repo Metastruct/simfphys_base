@@ -112,7 +112,6 @@ if SERVER then
 		local mode = net.ReadInt( 32 ) 
 		
 		if not IsValid( ent ) then return end
-			
 		ent:SetTSInternal( mode )
 			
 		net.Start( "simfphys_turnsignal" )
