@@ -164,8 +164,8 @@ function ENT:createWireIO()
 	--self.Inputs = WireLib.CreateSpecialInputs(self, { "blah" }, { "NORMAL" })
 	
 	self.Outputs = WireLib.CreateSpecialOutputs( self, 
-		{ "Active","Health","RPM","Torque","DriverSeat","PassengerSeats","Driver","Gear","Ratio","Lights Enabled","Highbeams Enabled","Foglights Enabled","Sirens Enabled" },
-		{ "NORMAL","NORMAL","NORMAL","NORMAL","ENTITY","ARRAY","ENTITY","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL" }
+		{ "Active","Health","RPM","Torque","DriverSeat","PassengerSeats","Driver","Gear","Ratio","Lights Enabled","Highbeams Enabled","Foglights Enabled","Sirens Enabled","Turn Signals Enabled","Remaining Fuel" },
+		{ "NORMAL","NORMAL","NORMAL","NORMAL","ENTITY","ARRAY","ENTITY","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL" }
 	)
 end
 
@@ -295,6 +295,8 @@ function ENT:UpdateWireOutputs()
 	WireLib.TriggerOutput(self, "Highbeams Enabled", self:GetLampsEnabled() and 1 or 0 )
 	WireLib.TriggerOutput(self, "Foglights Enabled", self:GetFogLightsEnabled() and 1 or 0 )
 	WireLib.TriggerOutput(self, "Sirens Enabled", self:GetEMSEnabled() and 1 or 0 )
+	WireLib.TriggerOutput(self, "Turn Signals Enabled", self:GetTSEnabled())
+	WireLib.TriggerOutput(self, "Remaining Fuel", self:GetFuel())
 end
 
 function ENT:OnActiveChanged( name, old, new)
@@ -443,6 +445,14 @@ function ENT:ControlLighting( curtime )
 			end
 		end
 	end
+end
+
+function ENT:SetTSInternal(mode)
+	self.TSMode = mode
+end
+
+function ENT:GetTSEnabled()
+	if self.TSMode != nil then return self.TSMode else return 0 end
 end
 
 function ENT:GetEngineData()
