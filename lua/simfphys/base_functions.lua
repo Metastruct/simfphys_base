@@ -13,7 +13,7 @@ simfphys.DamageMul = 1
 simfphys.pDamageEnabled = false
 simfphys.Fuel = true
 simfphys.FuelMul = 0.1
-simfphys.VERSION = 1.1
+simfphys.VERSION = 1.2
 
 FUELTYPE_NONE = 0
 FUELTYPE_PETROL = 1
@@ -113,7 +113,7 @@ if SERVER then
 		
 		if not IsValid( ent ) then return end
 		ent:SetTSInternal( mode )
-			
+		
 		net.Start( "simfphys_turnsignal" )
 			net.WriteEntity( ent )
 			net.WriteInt( mode, 32 )
@@ -468,3 +468,10 @@ simfphys.SoundPresets = {
 		1
 	}
 }
+
+local function PlayerPickup( ply, ent )
+	if ent:GetClass():lower() == "gmod_sent_vehicle_fphysics_wheel" then
+		return false
+	end
+end
+hook.Add( "GravGunPickupAllowed", "disableWheelPickup", PlayerPickup )

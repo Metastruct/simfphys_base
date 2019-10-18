@@ -15,7 +15,9 @@ local function EntityLookup(CreatedEntities)
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	WireLib.ApplyDupeInfo(ply, ent, info, GetEntByID)
+	if istable( WireLib ) then
+		WireLib.ApplyDupeInfo(ply, ent, info, GetEntByID)
+	end
 end
 
 function ENT:PreEntityCopy()
