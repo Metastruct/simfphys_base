@@ -46,33 +46,6 @@ function SWEP:IsAimingAt( vpos )
 	return IsAimingAt
 end
 
-if SERVER then
-	util.AddNetworkString( "simfphys_gasspill" )
-	
-	net.Receive( "simfphys_gasspill", function( length, ply )
-		local Pos = net.ReadVector()
-		local Dir = net.ReadVector()
-		
-		timer.Simple(0.2, function()
-			util.Decal("beersplash", Pos - Dir, Pos + Dir)
-			
-			for i = 0,8 do
-				local sc = math.Rand(0.1,0.15)
-				local effectdata = EffectData() 
-					effectdata:SetOrigin( Pos ) 
-					--effectdata:SetAngles( angle ) 
-					effectdata:SetNormal( Dir * 2 ) 
-					effectdata:SetMagnitude( sc ) 
-					effectdata:SetScale( sc ) 
-					effectdata:SetRadius( sc ) 
-				util.Effect( "StriderBlood", effectdata ) 
-			end
-			
-			sound.Play( Sound( "ambient/water/water_spray"..math.random(1,3)..".wav" ), Pos, 55)
-		end)
-	end )
-end
-
 if CLIENT then
 	SWEP.PrintName		= "Fuel filler pistol"
 	SWEP.Slot				= 1
@@ -254,11 +227,6 @@ function SWEP:Think()
 			self.NextSplash = self.NextSplash or 0
 			if self.NextSplash < CurTime() then
 				self.NextSplash = CurTime() + math.Rand(0.05,0.2)
-				
-				net.Start( "simfphys_gasspill" )
-					net.WriteVector( Trace.HitPos )
-					net.WriteVector( Trace.HitNormal )
-				net.SendToServer()
 			end
 		end
 		
