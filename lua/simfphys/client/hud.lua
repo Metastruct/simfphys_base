@@ -151,6 +151,8 @@ local function drawsimfphysHUD(vehicle)
 	
 	if not ShowHud then return end
 	
+	if vehicle:GetNWBool( "simfphys_NoHud", false ) then return end
+	
 	local maxrpm = vehicle:GetLimitRPM()
 	local rpm = vehicle:GetRPM()
 	local throttle = math.Round(vehicle:GetThrottle() * 100,0)

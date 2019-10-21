@@ -391,6 +391,10 @@ function ENT:WriteVehicleDataTable()
 		self.Blower = CreateSound(self, "")
 		self.BlowerWhine = CreateSound(self, "")
 		self.BlowOff = CreateSound(self, "")
+
+		local Health = math.floor(self.MaxHealth and self.MaxHealth or (1000 + self:GetPhysicsObject():GetMass() / 3))
+		self:SetMaxHealth( Health )
+		self:SetCurHealth( Health )
 		
 		self:SetFastSteerAngle(self.FastSteeringAngle / self.VehicleData["steerangle"])
 		self:SetNotSolid( false )

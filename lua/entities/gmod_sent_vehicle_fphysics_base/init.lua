@@ -4,6 +4,7 @@ include("shared.lua")
 include("spawn.lua")
 include("simfunc.lua")
 include("numpads.lua")
+include("damage.lua")
 
 local function EntityLookup(CreatedEntities)
 	return function(id, default)

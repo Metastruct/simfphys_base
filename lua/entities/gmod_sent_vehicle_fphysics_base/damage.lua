@@ -176,62 +176,18 @@ local function bcDamage( vehicle , position , cdamage )
 	net.Broadcast()
 end
 
-local function onCollide( ent, data )
-	if IsValid( data.HitEntity ) then
-		if data.HitEntity:GetClass():StartWith( "npc_" ) then
-			Spark( data.HitPos , data.HitNormal , "MetalVehicle.ImpactSoft" )
-			return
-		end
-	end
-	
-	if ( data.Speed > 60 && data.DeltaTime > 0.2 ) then
-		
-		local pos = data.HitPos
-		
-		if (data.Speed > 1000) then
-			Spark( pos , data.HitNormal , "MetalVehicle.ImpactHard" )
-			
-			HurtPlayers( ent , 5 )
-			
-			ent:TakeDamage( (data.Speed / 7) * simfphys.DamageMul, Entity(0), Entity(0) )
-			
-			bcDamage( ent , ent:WorldToLocal( pos ) , true )
-		else
-			Spark( pos , data.HitNormal , "MetalVehicle.ImpactSoft" )
-			
-			if data.Speed > 250 then
-				local hitent = data.HitEntity:IsPlayer()
-				if not hitent then
-					bcDamage( ent , ent:WorldToLocal( pos ) , true )
-					
-					if simfphys.DamageMul > 1 then
-						ent:TakeDamage( (data.Speed / 28) * simfphys.DamageMul, Entity(0), Entity(0) )
-					end
-				end
-			end
-			
-			if data.Speed > 500 then
-				HurtPlayers( ent , 2 )
-				ent:TakeDamage( (data.Speed / 14) * simfphys.DamageMul, Entity(0), Entity(0) )
-			end
-		end
-	end
-end
-
-local function OnDamage( ent, dmginfo )
-	ent:TakePhysicsDamage( dmginfo )
-	
-	if not ent:IsInitialized() then return end
+function ENT:OnTakeDamage( dmginfo )
+	if not self:IsInitialized() then return end
 	
 	local Damage = dmginfo:GetDamage() 
 	local DamagePos = dmginfo:GetDamagePosition() 
 	local Type = dmginfo:GetDamageType()
-	local Driver = ent:GetDriver()
+	local Driver = self:GetDriver()
 	
-	ent.LastAttacker = dmginfo:GetAttacker() 
-	ent.LastInflictor = dmginfo:GetInflictor()
+	self.LastAttacker = dmginfo:GetAttacker() 
+	self.LastInflictor = dmginfo:GetInflictor()
 	
-	bcDamage( ent , ent:WorldToLocal( DamagePos ) )
+	bcDamage( self , self:WorldToLocal( DamagePos ) )
 	
 	local Mul = 1
 	if Type == DMG_BLAST then
@@ -243,13 +199,13 @@ local function OnDamage( ent, dmginfo )
 		
 		local effectdata = EffectData()
 		effectdata:SetOrigin( DamagePos )
-		effectdata:SetNormal( (ent:GetPos() - DamagePos):GetNormalized() )
+		effectdata:SetNormal( (self:GetPos() - DamagePos):GetNormalized() )
 		util.Effect( "stunstickimpact", effectdata, true, true )
 	end
 	
-	DamageVehicle( ent , Damage * Mul, Type )
+	DamageVehicle( self , Damage * Mul, Type )
 	
-	if ent.IsArmored then return end
+	if self.IsArmored then return end
 	
 	if IsValid(Driver) then
 		local Distance = (DamagePos - Driver:GetPos()):Length() 
@@ -261,9 +217,9 @@ local function OnDamage( ent, dmginfo )
 		end
 	end
 	
-	if ent.PassengerSeats then
-		for i = 1, table.Count( ent.PassengerSeats ) do
-			local Passenger = ent.pSeat[i]:GetDriver()
+	if self.PassengerSeats then
+		for i = 1, table.Count( self.PassengerSeats ) do
+			local Passenger = self.pSeat[i]:GetDriver()
 			
 			if IsValid(Passenger) then
 				local Distance = (DamagePos - Passenger:GetPos()):Length()
@@ -278,18 +234,44 @@ local function OnDamage( ent, dmginfo )
 	end
 end
 
-hook.Add( "OnEntityCreated", "simfphys_damagestuff", function( ent )
-	if simfphys.IsCar( ent ) then
-		timer.Simple( 0.2, function()
-			if not IsValid( ent ) then return end
-			
-			local Health = math.floor(ent.MaxHealth and ent.MaxHealth or (1000 + ent:GetPhysicsObject():GetMass() / 3))
-			
-			ent:SetMaxHealth( Health )
-			ent:SetCurHealth( Health )
-			
-			ent.PhysicsCollide = onCollide
-			ent.OnTakeDamage = OnDamage
-		end)
+function ENT:PhysicsCollide( data, physobj )
+	if IsValid( data.HitEntity ) then
+		if data.HitEntity:IsNPC() or data.HitEntity:IsNextBot() or data.HitEntity:IsPlayer() then
+			Spark( data.HitPos , data.HitNormal , "MetalVehicle.ImpactSoft" )
+			return
+		end
 	end
-end)
+	
+	if ( data.Speed > 60 && data.DeltaTime > 0.2 ) then
+		
+		local pos = data.HitPos
+		
+		if (data.Speed > 1000) then
+			Spark( pos , data.HitNormal , "MetalVehicle.ImpactHard" )
+			
+			HurtPlayers( self , 5 )
+			
+			self:TakeDamage( (data.Speed / 7) * simfphys.DamageMul, Entity(0), Entity(0) )
+			
+			--bcDamage( self , self:WorldToLocal( pos ) , true )
+		else
+			Spark( pos , data.HitNormal , "MetalVehicle.ImpactSoft" )
+			
+			if data.Speed > 250 then
+				local hitent = data.HitEntity:IsPlayer()
+				if not hitent then
+					--bcDamage( self, self:WorldToLocal( pos ) , true ) -- its very annoying to always see cars with no lights. looks like poop.
+					
+					if simfphys.DamageMul > 1 then
+						self:TakeDamage( (data.Speed / 28) * simfphys.DamageMul, Entity(0), Entity(0) )
+					end
+				end
+			end
+			
+			if data.Speed > 500 then
+				HurtPlayers( self, 2 )
+				self:TakeDamage( (data.Speed / 14) * simfphys.DamageMul, Entity(0), Entity(0) )
+			end
+		end
+	end
+end
