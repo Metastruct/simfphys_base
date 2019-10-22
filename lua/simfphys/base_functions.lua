@@ -265,22 +265,24 @@ if SERVER then
 			
 			if not simfphys.WeaponSystemRegister then
 				if simfphys.ManagedVehicles then
-					print("[SIMFPHYS ARMED] IS OUT OF DATE. WEAPONS WILL NOT BE USEABLE")
+					print("[SIMFPHYS ARMED] IS OUT OF DATE")
 				end
 			else
 				timer.Simple( 0.2, function()
 					simfphys.WeaponSystemRegister( Ent )
 				end )
 				
-				if simfphys.armedAutoRegister then
+				if (simfphys.armedAutoRegister and not simfphys.armedAutoRegister()) or simfphys.RegisterEquipment then
 					print("[SIMFPHYS ARMED]: ONE OF YOUR ADDITIONAL SIMFPHYS-ARMED PACKS IS CAUSING CONFLICTS!!!")
 					print("[SIMFPHYS ARMED]: PRECAUTIONARY RESTORING FUNCTION:")
 					print("[SIMFPHYS ARMED]: simfphys.FireHitScan")
 					print("[SIMFPHYS ARMED]: simfphys.FirePhysProjectile")
 					print("[SIMFPHYS ARMED]: simfphys.RegisterCrosshair")
 					print("[SIMFPHYS ARMED]: simfphys.RegisterCamera")
-					print("[SIMFPHYS ARMED]: REMOVING FUNCTION:")
 					print("[SIMFPHYS ARMED]: simfphys.armedAutoRegister")
+					print("[SIMFPHYS ARMED]: REMOVING FUNCTION:")
+					print("[SIMFPHYS ARMED]: simfphys.RegisterEquipment")
+					print("[SIMFPHYS ARMED]: CLEARING OUTDATED ''RegisterEquipment'' HOOK")
 					print("[SIMFPHYS ARMED]: !!!FUNCTIONALITY IS NOT GUARANTEED!!!")
 				
 					simfphys.FireHitScan = function( data ) simfphys.FireBullet( data ) end
@@ -290,8 +292,10 @@ if SERVER then
 						function( ent, offset_firstperson, offset_thirdperson, bLocalAng, attachment )
 							simfphys.CameraRegister( ent, offset_firstperson, offset_thirdperson, bLocalAng, attachment )
 						end
-
-					simfphys.armedAutoRegister = nil
+					
+					hook.Remove( "PlayerSpawnedVehicle","simfphys_armedvehicles" )
+					simfphys.RegisterEquipment = nil
+					simfphys.armedAutoRegister = function( vehicle ) simfphys.WeaponSystemRegister( vehicle ) return true end
 				end
 			end
 			
