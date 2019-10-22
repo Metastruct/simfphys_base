@@ -1109,7 +1109,7 @@ function ENT:SetSuspension( index , bIsDamaged )
 	
 	local heights = {
 		[1] = self.FrontHeight + self.VehicleData.suspensiontravel_fl * -h_mod,
-		[2] = self.FrontHeight + self.VehicleData.suspensiontravel_fl * -h_mod,
+		[2] = self.FrontHeight + self.VehicleData.suspensiontravel_fr * -h_mod,
 		[3] = self.RearHeight + self.VehicleData.suspensiontravel_rl * -h_mod,
 		[4] = self.RearHeight + self.VehicleData.suspensiontravel_rr * -h_mod,
 		[5] = self.RearHeight + self.VehicleData.suspensiontravel_rl * -h_mod,
