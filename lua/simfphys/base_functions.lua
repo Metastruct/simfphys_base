@@ -106,6 +106,9 @@ end
 if SERVER then
 	util.AddNetworkString( "simfphys_settings" )
 	util.AddNetworkString( "simfphys_turnsignal" )
+	util.AddNetworkString( "simfphys_spritedamage" )
+	util.AddNetworkString( "simfphys_lightsfixall" )
+	util.AddNetworkString( "simfphys_backfire" )
 	
 	net.Receive( "simfphys_turnsignal", function( length, ply )
 		local ent = net.ReadEntity()
@@ -260,10 +263,36 @@ if SERVER then
 			
 			Ent:SetBackfireSound( Ent.snd_backfire or "" )
 			
-			if simfphys.armedAutoRegister then
+			if not simfphys.WeaponSystemRegister then
+				if simfphys.ManagedVehicles then
+					print("[SIMFPHYS ARMED] IS OUT OF DATE. WEAPONS WILL NOT BE USEABLE")
+				end
+			else
 				timer.Simple( 0.2, function()
-					simfphys.armedAutoRegister( Ent )
-				end)
+					simfphys.WeaponSystemRegister( Ent )
+				end )
+				
+				if simfphys.armedAutoRegister then
+					print("[SIMFPHYS ARMED]: ONE OF YOUR ADDITIONAL SIMFPHYS-ARMED PACKS IS CAUSING CONFLICTS!!!")
+					print("[SIMFPHYS ARMED]: PRECAUTIONARY RESTORING FUNCTION:")
+					print("[SIMFPHYS ARMED]: simfphys.FireHitScan")
+					print("[SIMFPHYS ARMED]: simfphys.FirePhysProjectile")
+					print("[SIMFPHYS ARMED]: simfphys.RegisterCrosshair")
+					print("[SIMFPHYS ARMED]: simfphys.RegisterCamera")
+					print("[SIMFPHYS ARMED]: REMOVING FUNCTION:")
+					print("[SIMFPHYS ARMED]: simfphys.armedAutoRegister")
+					print("[SIMFPHYS ARMED]: !!!FUNCTIONALITY IS NOT GUARANTEED!!!")
+				
+					simfphys.FireHitScan = function( data ) simfphys.FireBullet( data ) end
+					simfphys.FirePhysProjectile = function( data ) simfphys.FirePhysBullet( data ) end
+					simfphys.RegisterCrosshair = function( ent, data ) simfphys.xhairRegister( ent, data ) end
+					simfphys.RegisterCamera = 
+						function( ent, offset_firstperson, offset_thirdperson, bLocalAng, attachment )
+							simfphys.CameraRegister( ent, offset_firstperson, offset_thirdperson, bLocalAng, attachment )
+						end
+
+					simfphys.armedAutoRegister = nil
+				end
 			end
 			
 			duplicator.StoreEntityModifier( Ent, "VehicleMemDupe", VTable.Members )

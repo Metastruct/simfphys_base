@@ -1319,35 +1319,12 @@ function ENT:PlayPP( On )
 	self.poseon = On and self.LightsPP.max or self.LightsPP.min
 end
 
-function ENT:DamageLoop()
-	if not self:OnFire() then return end
-	
-	local CurHealth = self:GetCurHealth()
-	
-	if CurHealth <= 0 then return end
-	
-	if self:GetMaxHealth() > 30 then
-		if CurHealth > 30 then
-			self:TakeDamage(1, Entity(0), Entity(0) )
-		elseif CurHealth < 30 then
-			self:SetCurHealth( CurHealth + 1 )
-		end
-	end
-	
-	timer.Simple( 0.15, function()
-		if IsValid( self ) then
-			self:DamageLoop()
-		end
-	end)
-end
-
 function ENT:SetOnFire( bOn )
 	if bOn == self:OnFire() then return end
 	self:SetNWBool( "OnFire", bOn )
 	
 	if bOn then
 		self:DamagedStall()
-		self:DamageLoop()
 	end
 end
 

@@ -1,179 +1,205 @@
-util.AddNetworkString( "simfphys_spritedamage" )
-util.AddNetworkString( "simfphys_lightsfixall" )
-util.AddNetworkString( "simfphys_backfire" )
-
-local function Spark( pos , normal , snd )
-	local effectdata = EffectData()
-	effectdata:SetOrigin( pos - normal )
-	effectdata:SetNormal( -normal )
-	util.Effect( "stunstickimpact", effectdata, true, true )
-	
-	if snd then
-		sound.Play(Sound( snd ), pos, 75)
-	end
-end
-
-local function BloodEffect( pos )
-	local effectdata = EffectData()
-	effectdata:SetOrigin( pos )
-	util.Effect( "BloodImpact", effectdata, true, true )
-end
-
-local function DestroyVehicle( ent )
-	if not IsValid( ent ) then return end
-	if ent.destroyed then return end
-	
-	ent.destroyed = true
-	
-	local ply = ent.EntityOwner
-	local skin = ent:GetSkin()
-	local Col = ent:GetColor()
-	Col.r = Col.r * 0.8
-	Col.g = Col.g * 0.8
-	Col.b = Col.b * 0.8
-	
-	local bprop = ents.Create( "gmod_sent_vehicle_fphysics_gib" )
-	bprop:SetModel( ent:GetModel() )			
-	bprop:SetPos( ent:GetPos() )
-	bprop:SetAngles( ent:GetAngles() )
-	bprop:Spawn()
-	bprop:Activate()
-	bprop:GetPhysicsObject():SetVelocity( ent:GetVelocity() + Vector(math.random(-5,5),math.random(-5,5),math.random(150,250)) ) 
-	bprop:GetPhysicsObject():SetMass( ent.Mass * 0.75 )
-	bprop.DoNotDuplicate = true
-	bprop.MakeSound = true
-	bprop:SetColor( Col )
-	bprop:SetSkin( skin )
-	
-	ent.Gib = bprop
-	
-	simfphys.SetOwner( ply , bprop )
-	
-	if IsValid( ply ) then
-		undo.Create( "Gib" )
-		undo.SetPlayer( ply )
-		undo.AddEntity( bprop )
-		undo.SetCustomUndoText( "Undone Gib" )
-		undo.Finish( "Gib" )
-		ply:AddCleanup( "Gibs", bprop )
+function ENT:ApplyDamage( damage, type )
+	if type == DMG_BLAST then 
+		damage = damage * 10
 	end
 	
-	if ent.CustomWheels == true and not ent.NoWheelGibs then
-		for i = 1, table.Count( ent.GhostWheels ) do
-			local Wheel = ent.GhostWheels[i]
-			if IsValid(Wheel) then
-				local prop = ents.Create( "gmod_sent_vehicle_fphysics_gib" )
-				prop:SetModel( Wheel:GetModel() )			
-				prop:SetPos( Wheel:LocalToWorld( Vector(0,0,0) ) )
-				prop:SetAngles( Wheel:LocalToWorldAngles( Angle(0,0,0) ) )
-				prop:SetOwner( bprop )
-				prop:Spawn()
-				prop:Activate()
-				prop:GetPhysicsObject():SetVelocity( ent:GetVelocity() + Vector(math.random(-5,5),math.random(-5,5),math.random(0,25)) )
-				prop:GetPhysicsObject():SetMass( 20 )
-				prop.DoNotDuplicate = true
-				bprop:DeleteOnRemove( prop )
-				
-				simfphys.SetOwner( ply , prop )
-			end
-		end
+	if type == DMG_BULLET then 
+		damage = damage * 2
 	end
 	
-	local Driver = ent:GetDriver()
-	if IsValid( Driver ) then
-		if ent.RemoteDriver ~= Driver then
-			Driver:TakeDamage( Driver:Health() + Driver:Armor(), ent.LastAttacker or Entity(0), ent.LastInflictor or Entity(0) )
-		end
-	end
-	
-	if ent.PassengerSeats then
-		for i = 1, table.Count( ent.PassengerSeats ) do
-			local Passenger = ent.pSeat[i]:GetDriver()
-			if IsValid( Passenger ) then
-				Passenger:TakeDamage( Passenger:Health() + Passenger:Armor(), ent.LastAttacker or Entity(0), ent.LastInflictor or Entity(0) )
-			end
-		end
-	end
-	
-	ent:Extinguish() 
-	
-	ent:OnDestroyed()
-	
-	ent:Remove()
-end
-
-local function DamageVehicle( ent , damage, type )
-	if not simfphys.DamageEnabled then return end
-	
-	local MaxHealth = ent:GetMaxHealth()
-	local CurHealth = ent:GetCurHealth()
+	local MaxHealth = self:GetMaxHealth()
+	local CurHealth = self:GetCurHealth()
 	
 	local NewHealth = math.max( math.Round(CurHealth - damage,0) , 0 )
 	
 	if NewHealth <= (MaxHealth * 0.6) then
 		if NewHealth <= (MaxHealth * 0.3) then
-			ent:SetOnFire( true )
-			ent:SetOnSmoke( false )
+			self:SetOnFire( true )
+			self:SetOnSmoke( false )
 		else
-			ent:SetOnSmoke( true )
+			self:SetOnSmoke( true )
 		end
 	end
 	
 	if MaxHealth > 30 and NewHealth <= 31 then
-		if ent:EngineActive() then
-			ent:DamagedStall()
+		if self:EngineActive() then
+			self:DamagedStall()
 		end
 	end
 	
 	if NewHealth <= 0 then
-		if type ~= DMG_GENERIC and type ~= DMG_CRUSH or damage > 400 then
+		if type ~= DMG_CRUSH or damage > MaxHealth then
 			
-			DestroyVehicle( ent )
+			self:ExplodeVehicle()
 			
 			return
 		end
 		
-		if ent:EngineActive() then
-			ent:DamagedStall()
+		if self:EngineActive() then
+			self:DamagedStall()
 		end
+		
+		self:SetCurHealth( 0 )
 		
 		return
 	end
 	
-	ent:SetCurHealth( NewHealth )
+	self:SetCurHealth( NewHealth )
 end
 
-local function HurtPlayers( ent, damage )
+function ENT:HurtPlayers( damage )
 	if not simfphys.pDamageEnabled then return end
 	
-	local Driver = ent:GetDriver()
+	local Driver = self:GetDriver()
 	
 	if IsValid( Driver ) then
-		if ent.RemoteDriver ~= Driver then
-			Driver:TakeDamage(damage, Entity(0), ent )
+		if self.RemoteDriver ~= Driver then
+			Driver:TakeDamage(damage, Entity(0), self )
 		end
 	end
 	
-	if ent.PassengerSeats then
-		for i = 1, table.Count( ent.PassengerSeats ) do
-			local Passenger = ent.pSeat[i]:GetDriver()
+	if self.PassengerSeats then
+		for i = 1, table.Count( self.PassengerSeats ) do
+			local Passenger = self.pSeat[i]:GetDriver()
 			
 			if IsValid(Passenger) then
-				Passenger:TakeDamage(damage, Entity(0), ent )
+				Passenger:TakeDamage(damage, Entity(0), self )
 			end
 		end
 	end
 end
 
-local function bcDamage( vehicle , position , cdamage )
-	if not simfphys.DamageEnabled then return end
+function ENT:ExplodeVehicle()
+	if not IsValid( self ) then return end
+	if self.destroyed then return end
 	
-	cdamage = cdamage or false
-	net.Start( "simfphys_spritedamage" )
-		net.WriteEntity( vehicle )
-		net.WriteVector( position ) 
-		net.WriteBool( cdamage ) 
-	net.Broadcast()
+	self.destroyed = true
+
+	local ply = self.EntityOwner
+	local skin = self:GetSkin()
+	local Col = self:GetColor()
+	Col.r = Col.r * 0.8
+	Col.g = Col.g * 0.8
+	Col.b = Col.b * 0.8
+	
+	if self.GibModels then
+		local bprop = ents.Create( "gmod_sent_vehicle_fphysics_gib" )
+		bprop:SetModel( self.GibModels[1] )
+		bprop:SetPos( self:GetPos() )
+		bprop:SetAngles( self:GetAngles() )
+		bprop.MakeSound = true
+		bprop:Spawn()
+		bprop:Activate()
+		bprop:GetPhysicsObject():SetVelocity( self:GetVelocity() + Vector(math.random(-5,5),math.random(-5,5),math.random(150,250)) ) 
+		bprop:GetPhysicsObject():SetMass( self.Mass * 0.75 )
+		bprop.DoNotDuplicate = true
+		bprop:SetColor( Col )
+		bprop:SetSkin( skin )
+		
+		self.Gib = bprop
+		
+		simfphys.SetOwner( ply , bprop )
+		
+		if IsValid( ply ) then
+			undo.Create( "Gib" )
+			undo.SetPlayer( ply )
+			undo.AddEntity( bprop )
+			undo.SetCustomUndoText( "Undone Gib" )
+			undo.Finish( "Gib" )
+			ply:AddCleanup( "Gibs", bprop )
+		end
+		
+		for i = 2, table.Count( self.GibModels ) do
+			local prop = ents.Create( "gmod_sent_vehicle_fphysics_gib" )
+			prop:SetModel( self.GibModels[i] )			
+			prop:SetPos( self:GetPos() )
+			prop:SetAngles( self:GetAngles() )
+			prop:SetOwner( bprop )
+			prop:Spawn()
+			prop:Activate()
+			prop.DoNotDuplicate = true
+			bprop:DeleteOnRemove( prop )
+			
+			local PhysObj = prop:GetPhysicsObject()
+			if IsValid( PhysObj ) then
+				PhysObj:SetVelocityInstantaneous( VectorRand() * 500 + self:GetVelocity() + Vector(0,0,math.random(150,250)) )
+				PhysObj:AddAngleVelocity( VectorRand() )
+			end
+			
+			
+			simfphys.SetOwner( ply , prop )
+		end
+	else
+		
+		local bprop = ents.Create( "gmod_sent_vehicle_fphysics_gib" )
+		bprop:SetModel( self:GetModel() )			
+		bprop:SetPos( self:GetPos() )
+		bprop:SetAngles( self:GetAngles() )
+		bprop.MakeSound = true
+		bprop:Spawn()
+		bprop:Activate()
+		bprop:GetPhysicsObject():SetVelocity( self:GetVelocity() + Vector(math.random(-5,5),math.random(-5,5),math.random(150,250)) ) 
+		bprop:GetPhysicsObject():SetMass( self.Mass * 0.75 )
+		bprop.DoNotDuplicate = true
+		bprop:SetColor( Col )
+		bprop:SetSkin( skin )
+		
+		self.Gib = bprop
+		
+		simfphys.SetOwner( ply , bprop )
+		
+		if IsValid( ply ) then
+			undo.Create( "Gib" )
+			undo.SetPlayer( ply )
+			undo.AddEntity( bprop )
+			undo.SetCustomUndoText( "Undone Gib" )
+			undo.Finish( "Gib" )
+			ply:AddCleanup( "Gibs", bprop )
+		end
+		
+		if self.CustomWheels == true and not self.NoWheelGibs then
+			for i = 1, table.Count( self.GhostWheels ) do
+				local Wheel = self.GhostWheels[i]
+				if IsValid(Wheel) then
+					local prop = ents.Create( "gmod_sent_vehicle_fphysics_gib" )
+					prop:SetModel( Wheel:GetModel() )			
+					prop:SetPos( Wheel:LocalToWorld( Vector(0,0,0) ) )
+					prop:SetAngles( Wheel:LocalToWorldAngles( Angle(0,0,0) ) )
+					prop:SetOwner( bprop )
+					prop:Spawn()
+					prop:Activate()
+					prop:GetPhysicsObject():SetVelocity( self:GetVelocity() + Vector(math.random(-5,5),math.random(-5,5),math.random(0,25)) )
+					prop:GetPhysicsObject():SetMass( 20 )
+					prop.DoNotDuplicate = true
+					bprop:DeleteOnRemove( prop )
+					
+					simfphys.SetOwner( ply , prop )
+				end
+			end
+		end
+	end
+
+	local Driver = self:GetDriver()
+	if IsValid( Driver ) then
+		if self.RemoteDriver ~= Driver then
+			Driver:TakeDamage( Driver:Health() + Driver:Armor(), self.LastAttacker or Entity(0), self.LastInflictor or Entity(0) )
+		end
+	end
+	
+	if self.PassengerSeats then
+		for i = 1, table.Count( self.PassengerSeats ) do
+			local Passenger = self.pSeat[i]:GetDriver()
+			if IsValid( Passenger ) then
+				Passenger:TakeDamage( Passenger:Health() + Passenger:Armor(), self.LastAttacker or Entity(0), self.LastInflictor or Entity(0) )
+			end
+		end
+	end
+
+	self:Extinguish() 
+	
+	self:OnDestroyed()
+	
+	self:Remove()
 end
 
 function ENT:OnTakeDamage( dmginfo )
@@ -187,23 +213,15 @@ function ENT:OnTakeDamage( dmginfo )
 	self.LastAttacker = dmginfo:GetAttacker() 
 	self.LastInflictor = dmginfo:GetInflictor()
 	
-	bcDamage( self , self:WorldToLocal( DamagePos ) )
-	
-	local Mul = 1
-	if Type == DMG_BLAST then
-		Mul = 10
-	end
-	
-	if Type == DMG_BULLET then
-		Mul = 2
+	if simfphys.DamageEnabled then
+		net.Start( "simfphys_spritedamage" )
+			net.WriteEntity( self )
+			net.WriteVector( self:WorldToLocal( DamagePos ) ) 
+			net.WriteBool( false ) 
+		net.Broadcast()
 		
-		local effectdata = EffectData()
-		effectdata:SetOrigin( DamagePos )
-		effectdata:SetNormal( (self:GetPos() - DamagePos):GetNormalized() )
-		util.Effect( "stunstickimpact", effectdata, true, true )
+		self:ApplyDamage( Damage, Type )
 	end
-	
-	DamageVehicle( self , Damage * Mul, Type )
 	
 	if self.IsArmored then return end
 	
@@ -213,7 +231,10 @@ function ENT:OnTakeDamage( dmginfo )
 			local Damage = (70 - Distance) / 22
 			dmginfo:ScaleDamage( Damage )
 			Driver:TakeDamageInfo( dmginfo )
-			BloodEffect( DamagePos )
+			
+			local effectdata = EffectData()
+				effectdata:SetOrigin( DamagePos )
+			util.Effect( "BloodImpact", effectdata, true, true )
 		end
 	end
 	
@@ -227,10 +248,24 @@ function ENT:OnTakeDamage( dmginfo )
 				if (Distance < 70) then
 					dmginfo:ScaleDamage( Damage )
 					Passenger:TakeDamageInfo( dmginfo )
-					BloodEffect( DamagePos )
+					
+					local effectdata = EffectData()
+						effectdata:SetOrigin( DamagePos )
+					util.Effect( "BloodImpact", effectdata, true, true )
 				end
 			end
 		end
+	end
+end
+
+local function Spark( pos , normal , snd )
+	local effectdata = EffectData()
+	effectdata:SetOrigin( pos - normal )
+	effectdata:SetNormal( -normal )
+	util.Effect( "stunstickimpact", effectdata, true, true )
+	
+	if snd then
+		sound.Play( Sound( snd ), pos, 75)
 	end
 end
 
@@ -249,19 +284,15 @@ function ENT:PhysicsCollide( data, physobj )
 		if (data.Speed > 1000) then
 			Spark( pos , data.HitNormal , "MetalVehicle.ImpactHard" )
 			
-			HurtPlayers( self , 5 )
+			self:HurtPlayers( 5 )
 			
 			self:TakeDamage( (data.Speed / 7) * simfphys.DamageMul, Entity(0), Entity(0) )
-			
-			--bcDamage( self , self:WorldToLocal( pos ) , true )
 		else
 			Spark( pos , data.HitNormal , "MetalVehicle.ImpactSoft" )
 			
 			if data.Speed > 250 then
 				local hitent = data.HitEntity:IsPlayer()
 				if not hitent then
-					--bcDamage( self, self:WorldToLocal( pos ) , true ) -- its very annoying to always see cars with no lights. looks like poop.
-					
 					if simfphys.DamageMul > 1 then
 						self:TakeDamage( (data.Speed / 28) * simfphys.DamageMul, Entity(0), Entity(0) )
 					end
@@ -269,7 +300,8 @@ function ENT:PhysicsCollide( data, physobj )
 			end
 			
 			if data.Speed > 500 then
-				HurtPlayers( self, 2 )
+				self:HurtPlayers( 2 )
+				
 				self:TakeDamage( (data.Speed / 14) * simfphys.DamageMul, Entity(0), Entity(0) )
 			end
 		end
