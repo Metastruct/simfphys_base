@@ -28,7 +28,7 @@ function ENT:ApplyDamage( damage, type )
 	end
 	
 	if NewHealth <= 0 then
-		if type ~= DMG_CRUSH or damage > MaxHealth then
+		if (type ~= DMG_CRUSH and type ~= DMG_GENERIC) or damage > MaxHealth then
 			
 			self:ExplodeVehicle()
 			
