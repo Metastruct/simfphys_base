@@ -146,6 +146,22 @@ function ENT:BodyGroupIsValid( bodygroups )
 	return false
 end
 
+function ENT:GetPassengerSeats()
+	if not istable( self.pSeat ) then
+		self.pSeat = {}
+		
+		local DriverSeat = self:GetDriverSeat()
+
+		for _, v in pairs( self:GetChildren() ) do
+			if v ~= DriverSeat and v:GetClass():lower() == "prop_vehicle_prisoner_pod" then
+				table.insert( self.pSeat, v )
+			end
+		end
+	end
+	
+	return self.pSeat
+end
+
 function ENT:GetVehicleClass()
 	return "these are not the droids you are looking for"
 end

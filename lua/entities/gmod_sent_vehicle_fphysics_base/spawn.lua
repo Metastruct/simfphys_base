@@ -148,6 +148,7 @@ function ENT:InitializeVehicle()
 	self.DriverSeat:Spawn()
 	self.DriverSeat:Activate()
 	self.DriverSeat:SetPos( View.ViewPos + self.DriverSeat:GetUp() * (-34 + self.SeatOffset.z) + self.DriverSeat:GetRight() * (self.SeatOffset.y) + self.DriverSeat:GetForward() * (-6 + self.SeatOffset.x) )
+	self.DriverSeat:SetNWInt( "pPodIndex", 1 )
 	
 	if View.ID ~= false then
 		self:SetupEnteringAnims()
@@ -165,7 +166,9 @@ function ENT:InitializeVehicle()
 	self:DeleteOnRemove( self.DriverSeat )
 	self:SetDriverSeat( self.DriverSeat )
 	self.DriverSeat:SetNotSolid( true )
-	self.DriverSeat:SetNoDraw( true )
+	--self.DriverSeat:SetNoDraw( true )
+	self.DriverSeat:SetColor( Color( 255, 255, 255, 0 ) ) 
+	self.DriverSeat:SetRenderMode( RENDERMODE_TRANSALPHA )
 	self.DriverSeat:DrawShadow( false )
 	simfphys.SetOwner( self.EntityOwner, self.DriverSeat )
 	
@@ -181,7 +184,10 @@ function ENT:InitializeVehicle()
 			self.pSeat[i]:Spawn()
 			self.pSeat[i]:Activate()
 			self.pSeat[i]:SetNotSolid( true )
-			self.pSeat[i]:SetNoDraw( true )
+			--self.pSeat[i]:SetNoDraw( true )
+			self.pSeat[i]:SetColor( Color( 255, 255, 255, 0 ) ) 
+			self.pSeat[i]:SetRenderMode( RENDERMODE_TRANSALPHA )
+			
 			self.pSeat[i].fphysSeat = true
 			self.pSeat[i].base = self
 			self.pSeat[i].DoNotDuplicate = true
@@ -195,6 +201,10 @@ function ENT:InitializeVehicle()
 			self:DeleteOnRemove( self.pSeat[i] )
 			
 			self.pSeat[i]:SetParent( self )
+			
+			self.pPodKeyIndex = self.pPodKeyIndex and self.pPodKeyIndex + 1 or 2
+	
+			self.pSeat[i]:SetNWInt( "pPodIndex", self.pPodKeyIndex )
 		end
 	end
 	

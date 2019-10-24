@@ -24,6 +24,7 @@ local HUD_2 = Material( "simfphys/hud/hud_center" )
 local HUD_3 = Material( "simfphys/hud/hud_center_red" )
 local HUD_5 = file.Exists( "materials/simfphys/hud/hud_5.vmt", "GAME") and Material( "simfphys/hud/hud_5" ) or false
 local ForceSimpleHud = not file.Exists( "materials/simfphys/hud/hud.vmt", "GAME" ) -- lets check if the background material exists, if not we will force the old hud to prevent fps drop
+local smHider = 0
 
 local ShowHud = false
 local ShowHud_ms = false
@@ -132,7 +133,7 @@ hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
 	net.SendToServer()
 end)
 
-local function drawsimfphysHUD(vehicle)
+local function drawsimfphysHUD(vehicle,SeatCount)
 	if isMouseSteer and ShowHud_ms then
 		local MousePos = ms_pos_x
 		local m_size = sizex * 0.15
@@ -186,6 +187,8 @@ local function drawsimfphysHUD(vehicle)
 	end
 	
 	if AltHud and not ForceSimpleHud and not SimpleHudIsForced then
+		o_x = o_x - smHider * 300 - (SeatCount > 0 and 35 or 0)
+		
 		local LightsOn = vehicle:GetLightsEnabled()
 		local LampsOn = vehicle:GetLampsEnabled()
 		local FogLightsOn = vehicle:GetFogLightsEnabled()
@@ -493,22 +496,118 @@ local function drawTurnMenu( vehicle )
 	surface.SetDrawColor( 255, 255, 255, 255 ) 
 end
 
-local function simfphysHUD()
+local function PaintSeatSwitcher( ent, pSeats, SeatCount )
+	if not ShowHud then return end
+
+	local X = ScrW()
+	local Y = ScrH()
+
+	local me = LocalPlayer()
+	
+	if SeatCount <= 0 then return end
+	
+	pSeats[0] = ent:GetDriverSeat()
+	
+	draw.NoTexture() 
+	
+	local MySeat = me:GetVehicle():GetNWInt( "pPodIndex", -1 )
+	
+	local Passengers = {}
+	for _, ply in pairs( player.GetAll() ) do
+		if ply:GetSimfphys() == ent then
+			local Pod = ply:GetVehicle()
+			Passengers[ Pod:GetNWInt( "pPodIndex", -1 ) ] = ply:GetName()
+		end
+	end
+	
+	me.SwitcherTime = me.SwitcherTime or 0
+	me.oldPassengersmf = me.oldPassengersmf or {}
+	
+	local Time = CurTime()
+	for k, v in pairs( Passengers ) do
+		if me.oldPassengersmf[k] ~= v then
+			me.oldPassengersmf[k] = v
+			me.SwitcherTime = Time + 2
+		end
+	end
+	
+	for k, v in pairs( me.oldPassengersmf ) do
+		if not Passengers[k] then
+			me.oldPassengersmf[k] = nil
+			me.SwitcherTime = Time + 2
+		end
+	end
+	
+	for _, v in pairs( simfphys.pSwitchKeysInv ) do
+		if input.IsKeyDown(v) then
+			me.SwitcherTime = Time + 2
+		end
+	end
+	
+	local Hide = me.SwitcherTime > Time
+	smHider = smHider + ((Hide and 1 or 0) - smHider) * FrameTime() * 15
+	local Alpha1 = 135 + 110 * smHider 
+	local HiderOffset = 300 * smHider
+	local Offset = -50
+	local yPos = Y - (SeatCount + 1) * 30 - 10
+
+	if me:IsDrivingSimfphys() and (AltHud and not ForceSimpleHud and not ent:GetNWBool( "simfphys_NoRacingHud", false )) then
+		Offset = -50 + hudoffset_x * screenw
+		yPos = y + radius * 1.2 - (SeatCount + 1) * 30 - 10 + hudoffset_y * screenh
+	end
+	
+	for _, Pod in pairs( pSeats ) do
+		local I = Pod:GetNWInt( "pPodIndex", -1 )
+		if I >= 0 then
+			if I == MySeat then
+				draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,127,255,100 + 50 * smHider) )
+			else
+				draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,0,0,100 + 50 * smHider) )
+			end
+			if Hide then
+				if Passengers[I] then
+					draw.DrawText( Passengers[I], "SimfphysFont_seatswitcher", X + 40 + Offset - HiderOffset, yPos + I * 30 + 2.5, Color( 255, 255, 255,  Alpha1 ), TEXT_ALIGN_LEFT )
+				else
+					draw.DrawText( "-", "SimfphysFont_seatswitcher", X + 40 + Offset - HiderOffset, yPos + I * 30 + 2.5, Color( 255, 255, 255,  Alpha1 ), TEXT_ALIGN_LEFT )
+				end
+				
+				draw.DrawText( "["..I.."]", "SimfphysFont_seatswitcher", X + 17 + Offset - HiderOffset, yPos + I * 30 + 2.5, Color( 255, 255, 255, Alpha1 ), TEXT_ALIGN_CENTER )
+			else
+				if Passengers[I] then
+					draw.DrawText( "[^"..I.."]", "SimfphysFont_seatswitcher", X + 17 + Offset - HiderOffset, yPos + I * 30 + 2.5, Color( 255, 255, 255, Alpha1 ), TEXT_ALIGN_CENTER )
+				else
+					draw.DrawText( "["..I.."]", "SimfphysFont_seatswitcher", X + 17 + Offset - HiderOffset, yPos + I * 30 + 2.5, Color( 255, 255, 255, Alpha1 ), TEXT_ALIGN_CENTER )
+				end
+			end
+		end
+	end
+end
+
+hook.Add( "HUDPaint", "simfphys_HUD", function()
 	local ply = LocalPlayer()
 	local turnmenu_isopen = false
 	
 	if not IsValid( ply ) or not ply:Alive() then turnmenu_wasopen = false return end
 
 	local vehicle = ply:GetVehicle()
-	if not IsValid( vehicle ) then turnmenu_wasopen = false return end
-	
 	local vehiclebase = ply:GetSimfphys()
 	
-	if not IsValid( vehiclebase ) then turnmenu_wasopen = false return end
+	if not IsValid( vehicle ) or not IsValid( vehiclebase ) then 
+		ply.oldPassengersmf = {}
+		
+		turnmenu_wasopen = false
+		smHider = 0
+		return
+	end
+	
+	local pSeats = vehiclebase:GetPassengerSeats()
+	local SeatCount = table.Count( pSeats )
+	
+	PaintSeatSwitcher( vehiclebase, pSeats, SeatCount )
 	
 	if not ply:IsDrivingSimfphys() then turnmenu_wasopen = false return end
 	
-	drawsimfphysHUD( vehiclebase )
+	drawsimfphysHUD( vehiclebase, SeatCount )
 	
 	if vehiclebase.HasTurnSignals and input.IsKeyDown( turnmenu ) then
 		turnmenu_isopen = true
@@ -534,8 +633,7 @@ local function simfphysHUD()
 			end
 		end
 	end
-end
-hook.Add( "HUDPaint", "simfphys_HUD", simfphysHUD)
+end)
 
 -- draw.arc function by bobbleheadbob
 -- https://dl.dropboxusercontent.com/u/104427432/Scripts/drawarc.lua

@@ -1,4 +1,3 @@
-util.AddNetworkString( "simfphys_request_seatswitch" )
 util.AddNetworkString( "simfphys_mousesteer" )
 util.AddNetworkString( "simfphys_blockcontrols" )
 	
@@ -17,57 +16,47 @@ net.Receive( "simfphys_blockcontrols", function( length, ply )
 	ply.blockcontrols = net.ReadBool()
 end)
 
-local function handleseatswitching( length, ply )
-	local vehicle = net.ReadEntity()
-	local ply = net.ReadEntity()
-	local req_seat = net.ReadInt( 32 )
+hook.Add( "PlayerButtonDown", "!!!simfphysButtonDown", function( ply, button )
+	local vehicle = ply:GetSimfphys()
 	
 	if not IsValid( vehicle ) then return end
-	if not IsValid( ply ) then return end
 	
-	ply.NextSeatSwitch = ply.NextSeatSwitch or 0
-	
-	if ply.NextSeatSwitch < CurTime() then
-		ply.NextSeatSwitch = CurTime() + 0.5
-		
-		if req_seat == 0 then
-			if not IsValid( vehicle:GetDriver() ) then
-				ply:ExitVehicle()
-				
-				if IsValid(vehicle.DriverSeat) then
-					timer.Simple( 0.05, function()
-						if not IsValid(vehicle) then return end
-						if not IsValid(ply) then return end
-						if IsValid(vehicle:GetDriver()) then return end
-						
-						ply:EnterVehicle( vehicle.DriverSeat )
-						vehicle:EnteringSequence( ply )
-						
-						ply:SetAllowWeaponsInVehicle( false ) 
-						local angles = Angle(0,90,0)
-						ply:SetEyeAngles( angles )
-					end)
-				end
-			end
-		else
-			if not vehicle.pSeat then return end
+	if button == KEY_1 then
+		if not IsValid( vehicle:GetDriver() ) then
+			ply:ExitVehicle()
 			
-			local seat = vehicle.pSeat[req_seat]
+			local DriverSeat = vehicle:GetDriverSeat()
 			
-			if IsValid(seat) and not IsValid( seat:GetDriver() ) then
-				ply:ExitVehicle()
-				
-				timer.Simple( 0.05, function()
-					if not IsValid( vehicle ) then return end
-					if not IsValid( ply ) then return end
-					if IsValid( seat:GetDriver() ) then return end
+			if IsValid( DriverSeat ) then
+				timer.Simple( FrameTime(), function()
+					if not IsValid( vehicle ) or not IsValid( ply ) then return end
+					if IsValid( vehicle:GetDriver() ) or not IsValid( DriverSeat ) then return end
 					
-					ply:EnterVehicle( seat )
-					local angles = Angle(0,90,0)
-					ply:SetEyeAngles( angles )
+					ply:EnterVehicle( DriverSeat )
+					
+					timer.Simple( FrameTime() * 2, function()
+						if not IsValid( ply ) or not IsValid( vehicle ) then return end
+						ply:SetEyeAngles( Angle(0,vehicle:GetAngles().y,0) )
+					end)
 				end)
 			end
 		end
+	else
+		for _, Pod in pairs( vehicle:GetPassengerSeats() ) do
+			if IsValid( Pod ) then
+				if Pod:GetNWInt( "pPodIndex", 3 ) == simfphys.pSwitchKeys[ button ] then
+					if not IsValid( Pod:GetDriver() ) then
+						ply:ExitVehicle()
+					
+						timer.Simple( FrameTime(), function()
+							if not IsValid( Pod ) or not IsValid( ply ) then return end
+							if IsValid( Pod:GetDriver() ) then return end
+							
+							ply:EnterVehicle( Pod )
+						end)
+					end
+				end
+			end
+		end
 	end
-end
-net.Receive("simfphys_request_seatswitch", handleseatswitching)
+end )
