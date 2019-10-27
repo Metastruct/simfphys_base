@@ -132,6 +132,8 @@ function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 		if Fuel <= 0 and IsRunning then
 			self:StopEngine()
 		end
+	else
+		self:SetFuelUse( -1 )
 	end
 	
 	local ReactionForce = (self.EngineTorque * 2 - math.Clamp(self.ForwardSpeed,-self.Brake,self.Brake)) * self.DriveWheelsOnGround

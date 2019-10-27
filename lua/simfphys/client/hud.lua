@@ -47,8 +47,6 @@ local ms_deadzone = 1.5
 local ms_exponent = 2
 local ms_key_freelook = KEY_Y
 
-local cvarFuelSystem = GetConVar( "sv_simfphys_fuel" )
-
 cvars.AddChangeCallback( "cl_simfphys_hud", function( convar, oldValue, newValue ) ShowHud = tonumber( newValue )~=0 end)
 cvars.AddChangeCallback( "cl_simfphys_hud_offset_x", function( convar, oldValue, newValue ) hudoffset_x = newValue end)
 cvars.AddChangeCallback( "cl_simfphys_hud_offset_y", function( convar, oldValue, newValue ) hudoffset_y = newValue end)
@@ -66,7 +64,6 @@ cvars.AddChangeCallback( "cl_simfphys_ms_return", function( convar, oldValue, ne
 cvars.AddChangeCallback( "cl_simfphys_ms_deadzone", function( convar, oldValue, newValue )  ms_deadzone = tonumber( newValue ) end)
 cvars.AddChangeCallback( "cl_simfphys_ms_exponent", function( convar, oldValue, newValue ) ms_exponent = tonumber( newValue ) end)
 cvars.AddChangeCallback( "cl_simfphys_ms_keyfreelook", function( convar, oldValue, newValue ) ms_key_freelook = tonumber( newValue ) end)
-
 cvars.AddChangeCallback( "cl_simfphys_key_turnmenu", function( convar, oldValue, newValue ) turnmenu = tonumber( newValue ) end)
 
 ShowHud = GetConVar( "cl_simfphys_hud" ):GetBool()
@@ -81,7 +78,6 @@ Hudreal = GetConVar( "cl_simfphys_hudrealspeed" ):GetBool()
 isMouseSteer = GetConVar( "cl_simfphys_mousesteer" ):GetBool()
 hasCounterSteerEnabled = GetConVar( "cl_simfphys_ctenable" ):GetBool()
 slushbox = GetConVar( "cl_simfphys_auto" ):GetBool()
-
 turnmenu = GetConVar( "cl_simfphys_key_turnmenu" ):GetInt()
 
 ms_sensitivity = GetConVar( "cl_simfphys_ms_sensitivity" ):GetFloat()
@@ -259,26 +255,6 @@ local function drawsimfphysHUD(vehicle,SeatCount)
 				surface.SetDrawColor( 255, 255, 255, 255 )
 			end
 		end
-		--[[
-		else
-			for i = 0, s_smoothrpm,125 do
-				local anglestep = (255 / maxrpm) * i
-				
-				local u_col
-				if (i < powerbandend) then
-					u_col = Color( 200, 200, 200, 100 )
-				else
-					u_col= Color( 200, 0, 0, 100)
-				end
-				surface.SetDrawColor( u_col )
-				
-				local cos_a = math.cos( math.rad(startang + anglestep) )
-				local sin_a = math.sin( math.rad(startang + anglestep) )
-				
-				surface.DrawLine( x + cos_a * (radius - radius / 6.66) + o_x, y + sin_a * (radius - radius / 6.66) + o_y, x + cos_a * radius / 1.05 + o_x, y + sin_a * radius / 1.05 + o_y)
-			end
-		end
-		]]
 		
 		local step = 0
 		for i = 0,maxrpm,250 do
@@ -345,7 +321,8 @@ local function drawsimfphysHUD(vehicle,SeatCount)
 		surface.SetDrawColor( Color(255,255,255,150) )
 		surface.DrawRect( x + radius * 1.22 + o_x, y + radius * 0.36 + t_size - t_size * math.min(sm_throttle / 100,1) + o_y, radius * 0.08, t_size * math.min(sm_throttle / 100,1) )
 		
-		if not cvarFuelSystem:GetBool() then return end
+		local fueluse = vehicle:GetFuelUse()
+		if fueluse == -1 then return end
 		
 		local r = math.Round( radius, 0)
 		surface.SetDrawColor( Color(150,150,150,50) )
@@ -357,7 +334,6 @@ local function drawsimfphysHUD(vehicle,SeatCount)
 		
 		if fueltype ~= 1 and fueltype ~= 2 then return end
 		
-		local fueluse = vehicle:GetFuelUse()
 		local ecospeed = (Hudreal and kmh or wirekmh)
 		local calc_fueluse = (100 / ecospeed) * fueluse * 60
 		if Hudmpg then
@@ -387,8 +363,6 @@ local function drawsimfphysHUD(vehicle,SeatCount)
 		draw.SimpleText( "cruise", "simfphysfont", s_xpos + sizex * 0.115 + o_x, s_ypos + sizey * 0.035 + o_y, Color( 255, 127, 0, 255 ), 2, 1 )
 	end
 
-	
-	
 	draw.SimpleText( "Throttle: "..throttle.." %", "simfphysfont", s_xpos + sizex * 0.005 + o_x, s_ypos + sizey * 0.035 + o_y, Color( 255, 235, 0, 255 ), 0, 1)
 	
 	draw.SimpleText( "RPM: "..math.Round(rpm,0)..Active, "simfphysfont", s_xpos + sizex * 0.005 + o_x, s_ypos + sizey * 0.012 + o_y, Color( 255, 235 * (1 - redline), 0, 255 ), 0, 1 )
@@ -400,8 +374,10 @@ local function drawsimfphysHUD(vehicle,SeatCount)
 	
 	draw.SimpleText( (Hudreal and kmh or wirekmh).." kmh", "simfphysfont", s_xpos + sizex * 0.11 + o_x, s_ypos + sizey * 0.062 + o_y, Color( 255, 235, 0, 255 ), 2, 1 )
 	
-	if not cvarFuelSystem:GetBool() then return end
 	
+	local fueluse = vehicle:GetFuelUse()
+	if fueluse == -1 then return end
+
 	local r = math.Round(sizey * 0.075,0)
 	surface.SetDrawColor( Color(0,0,0,80) )
 	surface.DrawRect( s_xpos + o_x - sizex * 0.007, s_ypos + o_y, sizex * 0.0025, r * (1 - fuel) )
