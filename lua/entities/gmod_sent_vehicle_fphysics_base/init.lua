@@ -28,8 +28,10 @@ function ENT:PreEntityCopy()
 end
 
 function ENT:PostEntityPaste(Player,Ent,CreatedEntities)
-	if Ent.EntityMods and Ent.EntityMods.WireDupeInfo then
-		WireLib.ApplyDupeInfo(Player, Ent, Ent.EntityMods.WireDupeInfo, EntityLookup(CreatedEntities))
+	if istable( WireLib ) then
+		if Ent.EntityMods and Ent.EntityMods.WireDupeInfo then
+			WireLib.ApplyDupeInfo(Player, Ent, Ent.EntityMods.WireDupeInfo, EntityLookup(CreatedEntities))
+		end
 	end
 end
 
