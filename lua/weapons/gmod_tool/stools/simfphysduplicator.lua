@@ -549,6 +549,9 @@ function TOOL:LeftClick( trace )
 	local vehicle = VehicleList[ vname ]
 	
 	if not vehicle then return false end
+
+	ply.LockRightClick = true
+	timer.Simple( 0.6, function() if IsValid( ply ) then ply.LockRightClick = false end end )
 	
 	local SpawnPos = trace.HitPos + Vector(0,0,25) + (vehicle.SpawnOffset or Vector(0,0,0))
 	
@@ -566,70 +569,92 @@ function TOOL:LeftClick( trace )
 	else
 		Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle )
 	end
-	
+
 	if not IsValid( Ent ) then return end
-	
-	local tsc = string.Explode( ",", ply.TOOLMemory.TireSmokeColor )
-	Ent:SetTireSmokeColor( Vector( tonumber(tsc[1]), tonumber(tsc[2]), tonumber(tsc[3]) ) )
-	
-	Ent.Turbocharged = tobool( ply.TOOLMemory.HasTurbo )
-	Ent.Supercharged = tobool( ply.TOOLMemory.HasBlower )
-	
-	Ent:SetEngineSoundPreset( tonumber( ply.TOOLMemory.SoundPreset ) )
-	Ent:SetMaxTorque( tonumber( ply.TOOLMemory.PeakTorque ) )
-	Ent:SetDifferentialGear( tonumber( ply.TOOLMemory.FinalGear ) )
-	
-	Ent:SetSteerSpeed( tonumber( ply.TOOLMemory.SteerSpeed ) )
-	Ent:SetFastSteerAngle( tonumber( ply.TOOLMemory.SteerAngFast ) )
-	Ent:SetFastSteerConeFadeSpeed( tonumber( ply.TOOLMemory.SteerFadeSpeed ) )
-	
-	Ent:SetEfficiency( tonumber( ply.TOOLMemory.Efficiency ) )
-	Ent:SetMaxTraction( tonumber( ply.TOOLMemory.MaxTraction ) )
-	Ent:SetTractionBias( tonumber( ply.TOOLMemory.GripOffset ) )
-	Ent:SetPowerDistribution( tonumber( ply.TOOLMemory.PowerDistribution ) )
-	
-	Ent:SetBackFire( tobool( ply.TOOLMemory.HasBackfire ) )
-	Ent:SetDoNotStall( tobool( ply.TOOLMemory.DoesntStall ) )
-	
-	Ent:SetIdleRPM( tonumber( ply.TOOLMemory.IdleRPM ) )
-	Ent:SetLimitRPM( tonumber( ply.TOOLMemory.MaxRPM ) )
-	Ent:SetRevlimiter( tobool( ply.TOOLMemory.HasRevLimiter ) )
-	Ent:SetPowerBandEnd( tonumber( ply.TOOLMemory.PowerEnd ) )
-	Ent:SetPowerBandStart( tonumber( ply.TOOLMemory.PowerStart ) )
-	
-	Ent:SetTurboCharged( Ent.Turbocharged )
-	Ent:SetSuperCharged( Ent.Supercharged )
-	Ent:SetBrakePower( tonumber( ply.TOOLMemory.BrakePower ) )
-	
-	Ent:SetSoundoverride( ply.TOOLMemory.SoundOverride or "" )
-	
-	Ent:SetLights_List( Ent.LightsTable or "no_lights" )
-	
-	Ent:SetBulletProofTires( tobool( ply.TOOLMemory.HasBulletProofTires ) )
-	
-	Ent.snd_horn = ply.TOOLMemory.HornSound
-	
-	Ent.snd_blowoff = ply.TOOLMemory.snd_blowoff
-	Ent.snd_spool = ply.TOOLMemory.snd_spool
-	Ent.snd_bloweron = ply.TOOLMemory.snd_bloweron
-	Ent.snd_bloweroff = ply.TOOLMemory.snd_bloweroff
-	
-	Ent:SetBackfireSound( ply.TOOLMemory.backfiresound or "" )
-	
-	local Gears = {}
-	local Data = string.Explode( ",", ply.TOOLMemory.Gears  )
-	for i = 1, table.Count( Data ) do Gears[i] = tonumber( Data[i] ) end
-	Ent.Gears = Gears
-	
-	if istable( ply.TOOLMemory.SubMaterials ) then
-		for i = 0, table.Count( ply.TOOLMemory.SubMaterials ) do
-			Ent:SetSubMaterial( i, ply.TOOLMemory.SubMaterials[i] )
-		end
-	end
+
+	undo.Create( "Vehicle" )
+		undo.SetPlayer( ply )
+		undo.AddEntity( Ent )
+		undo.SetCustomUndoText( "Undone " .. vehicle.Name )
+	undo.Finish( "Vehicle (" .. tostring( vehicle.Name ) .. ")" )
+
+	ply:AddCleanup( "vehicles", Ent )
 	
 	timer.Simple( 0.5, function()
 		if not IsValid(Ent) then return end
 
+		local tsc = string.Explode( ",", ply.TOOLMemory.TireSmokeColor )
+		Ent:SetTireSmokeColor( Vector( tonumber(tsc[1]), tonumber(tsc[2]), tonumber(tsc[3]) ) )
+		
+		Ent.Turbocharged = tobool( ply.TOOLMemory.HasTurbo )
+		Ent.Supercharged = tobool( ply.TOOLMemory.HasBlower )
+		
+		Ent:SetEngineSoundPreset( math.Clamp( tonumber( ply.TOOLMemory.SoundPreset ), -1, 14) )
+		Ent:SetMaxTorque( math.Clamp( tonumber( ply.TOOLMemory.PeakTorque ), 20, 1000) )
+		Ent:SetDifferentialGear( math.Clamp( tonumber( ply.TOOLMemory.FinalGear ),0.2, 6 ) )
+		
+		Ent:SetSteerSpeed( math.Clamp( tonumber( ply.TOOLMemory.SteerSpeed ), 1, 16 ) )
+		Ent:SetFastSteerAngle( math.Clamp( tonumber( ply.TOOLMemory.SteerAngFast ), 0, 1) )
+		Ent:SetFastSteerConeFadeSpeed( math.Clamp( tonumber( ply.TOOLMemory.SteerFadeSpeed ), 1, 5000 ) )
+		
+		Ent:SetEfficiency( math.Clamp( tonumber( ply.TOOLMemory.Efficiency ) ,0.2,4) )
+		Ent:SetMaxTraction( math.Clamp( tonumber( ply.TOOLMemory.MaxTraction ) , 5,1000) )
+		Ent:SetTractionBias( math.Clamp( tonumber( ply.TOOLMemory.GripOffset ),-0.99,0.99) )
+		Ent:SetPowerDistribution( math.Clamp( tonumber( ply.TOOLMemory.PowerDistribution ) ,-1,1) )
+		
+		Ent:SetBackFire( tobool( ply.TOOLMemory.HasBackfire ) )
+		Ent:SetDoNotStall( tobool( ply.TOOLMemory.DoesntStall ) )
+		
+		Ent:SetIdleRPM( math.Clamp( tonumber( ply.TOOLMemory.IdleRPM ),1,25000) )
+		Ent:SetLimitRPM( math.Clamp( tonumber( ply.TOOLMemory.MaxRPM ),4,25000) )
+		Ent:SetRevlimiter( tobool( ply.TOOLMemory.HasRevLimiter ) )
+		Ent:SetPowerBandEnd( math.Clamp( tonumber( ply.TOOLMemory.PowerEnd ), 3, 25000) )
+		Ent:SetPowerBandStart( math.Clamp( tonumber( ply.TOOLMemory.PowerStart ) ,2 ,25000) )
+		
+		Ent:SetTurboCharged( Ent.Turbocharged )
+		Ent:SetSuperCharged( Ent.Supercharged )
+		Ent:SetBrakePower( math.Clamp( tonumber( ply.TOOLMemory.BrakePower ), 0.1, 500) )
+		
+		Ent:SetSoundoverride( ply.TOOLMemory.SoundOverride or "" )
+		
+		Ent:SetLights_List( Ent.LightsTable or "no_lights" )
+		
+		Ent:SetBulletProofTires( tobool( ply.TOOLMemory.HasBulletProofTires ) )
+		
+		Ent.snd_horn = ply.TOOLMemory.HornSound
+		
+		Ent.snd_blowoff = ply.TOOLMemory.snd_blowoff
+		Ent.snd_spool = ply.TOOLMemory.snd_spool
+		Ent.snd_bloweron = ply.TOOLMemory.snd_bloweron
+		Ent.snd_bloweroff = ply.TOOLMemory.snd_bloweroff
+		
+		Ent:SetBackfireSound( ply.TOOLMemory.backfiresound or "" )
+		
+		local Gears = {}
+		local Data = string.Explode( ",", ply.TOOLMemory.Gears  )
+		for i = 1, table.Count( Data ) do 
+			local gRatio = tonumber( Data[i] )
+			
+			if isnumber( gRatio ) then
+				if i == 1 then
+					Gears[i] = math.Clamp( gRatio, -5, -0.001)
+					
+				elseif i == 2 then
+					Gears[i] = 0
+					
+				else
+					Gears[i] = math.Clamp( gRatio, 0.001, 5)
+				end
+			end
+		end
+		Ent.Gears = Gears
+		
+		if istable( ply.TOOLMemory.SubMaterials ) then
+			for i = 0, table.Count( ply.TOOLMemory.SubMaterials ) do
+				Ent:SetSubMaterial( i, ply.TOOLMemory.SubMaterials[i] )
+			end
+		end
+			
 		if ply.TOOLMemory.FrontDampingOverride and ply.TOOLMemory.FrontConstantOverride and ply.TOOLMemory.RearDampingOverride and ply.TOOLMemory.RearConstantOverride then
 			Ent.FrontDampingOverride = tonumber( ply.TOOLMemory.FrontDampingOverride )
 			Ent.FrontConstantOverride = tonumber( ply.TOOLMemory.FrontConstantOverride )
@@ -782,14 +807,6 @@ function TOOL:LeftClick( trace )
 		end
 	end)
 	
-	undo.Create( "Vehicle" )
-		undo.SetPlayer( ply )
-		undo.AddEntity( Ent )
-		undo.SetCustomUndoText( "Undone " .. vehicle.Name )
-	undo.Finish( "Vehicle (" .. tostring( vehicle.Name ) .. ")" )
-
-	ply:AddCleanup( "vehicles", Ent )
-	
 	return true
 end
 
@@ -798,6 +815,8 @@ function TOOL:RightClick( trace )
 	
 	local ent = trace.Entity
 	local ply = self:GetOwner()
+	
+	if ply.LockRightClick then ply:PrintMessage( HUD_PRINTTALK, "Duplicator is busy") return end
 	
 	if not istable(ply.TOOLMemory) then 
 		ply.TOOLMemory = {}
