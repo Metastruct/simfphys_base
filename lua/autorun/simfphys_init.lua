@@ -7,7 +7,4 @@ if SERVER then
 	if ForceWorkshop:GetBool() then
 		resource.AddWorkshop("771487490")
 	end
-	
-	resource.AddSingleFile( "materials/vgui/simfphys_circle.vmt" ) 
-	resource.AddSingleFile( "materials/vgui/simfphys_square.vmt" ) 
 end

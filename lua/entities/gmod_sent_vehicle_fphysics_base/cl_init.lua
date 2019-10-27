@@ -476,55 +476,8 @@ function ENT:Backfire( damaged )
 	end
 end
 
---[[
-function ENT:Draw3d2ds()
-	if self.DrawTexTable == false then return end
-	
-	if self.DrawTexTable == nil then
-		local List = list.Get( "simfphys_lights" )[self:GetLights_List()]
-		
-		if not List then self.DrawTexTable = false return end
-		
-		if not istable( List.DrawTexture ) then
-			self.DrawTexTable = false
-		else
-			self.DrawTexTable = List.DrawTexture
-		end
-	end
-	
-	if not istable( self.DrawTexTable ) then return end
-	
-	local IsFlashing = self:GetFlasher() == 1
-	
-	local triggers = {
-		["running"] = self:GetLightsEnabled(),
-		["highbeam"] = self:GetLampsEnabled(),
-		["fog"] = self:GetFogLightsEnabled(),
-		["brake"] = self:GetIsBraking(),
-		["reverse"] = (self:GetGear() == 1),
-		["turn_left"] = (self.signal_left and IsFlashing),
-		["turn_right"] = (self.signal_right and IsFlashing),
-	}
-
-	for k, v in pairs( self.DrawTexTable ) do
-		if triggers[ v.trigger ] then
-			if isvector( v.pos ) and isangle( v.ang ) then
-				cam.Start3D2D( self:LocalToWorld( v.pos ), self:LocalToWorldAngles( v.ang ), 1 )
-					if v.mat and v.col and v.Length and v.Width then
-						surface.SetMaterial( v.mat )
-						surface.SetDrawColor( v.col.r, v.col.g, v.col.b, v.col.a )
-						surface.DrawTexturedRect( -v.Length * 0.5, -v.Width * 0.5, v.Length, v.Width )
-					end
-				cam.End3D2D()
-			end
-		end
-	end
-end
-]]
-
 function ENT:Draw()
 	self:DrawModel()
-	--self:Draw3d2ds()
 end
 
 function ENT:SetSoundPreset(index)
