@@ -18,13 +18,14 @@ end
 function ENT:Think()
 	local curtime = CurTime()
 	
+	local Active = self:GetActive()
+	local Throttle = self:GetThrottle()
+	local LimitRPM = self:GetLimitRPM()
+	
+	self:ManageSounds( Active, Throttle, LimitRPM )
+
 	self.RunNext = self.RunNext or 0
 	if self.RunNext < curtime then
-		local Active = self:GetActive()
-		local Throttle = self:GetThrottle()
-		local LimitRPM = self:GetLimitRPM()
-		
-		self:ManageSounds( Active, Throttle, LimitRPM )
 		self:ManageEffects( Active, Throttle, LimitRPM )
 		self:CalcFlasher()
 		
@@ -223,10 +224,13 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 	local Clutch = self:GetClutch()
 	local FadeRPM = LimitRPM * 0.5
 	
-	self.FadeThrottle = self.FadeThrottle + math.Clamp(Throttle - self.FadeThrottle,-0.2,0.2)
+	local FT = FrameTime()
+	local Rate = 3.33 * FT
+	
+	self.FadeThrottle = self.FadeThrottle + math.Clamp(Throttle - self.FadeThrottle,-Rate,Rate)
 	self.PitchOffset = self.PitchOffset + ((CurDist - self.OldDist) * 0.23 - self.PitchOffset) * 0.5
 	self.OldDist = CurDist
-	self.SmoothRPM = self.SmoothRPM + math.Clamp(FlyWheelRPM - self.SmoothRPM,-(350 / 6000) * LimitRPM,(600 / 6000) * LimitRPM)
+	self.SmoothRPM = self.SmoothRPM + math.Clamp(FlyWheelRPM - self.SmoothRPM,-0.972 * FT * LimitRPM,1.66 * FT * LimitRPM)
 	
 	self.OldThrottle2 = self.OldThrottle2 or 0
 	if Throttle ~= self.OldThrottle2 then
@@ -240,7 +244,7 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 	
 	if self:GetRevlimiter() and LimitRPM > 2500 then
 		if (self.SmoothRPM >= LimitRPM - 200) and self.FadeThrottle > 0 then
-			self.SmoothRPM = self.SmoothRPM - (1200 / 6000) * LimitRPM
+			self.SmoothRPM = self.SmoothRPM - 3.33 * FT * LimitRPM
 			self.FadeThrottle = 0.2
 			self:Backfire()
 		end
@@ -472,8 +476,55 @@ function ENT:Backfire( damaged )
 	end
 end
 
+--[[
+function ENT:Draw3d2ds()
+	if self.DrawTexTable == false then return end
+	
+	if self.DrawTexTable == nil then
+		local List = list.Get( "simfphys_lights" )[self:GetLights_List()]
+		
+		if not List then self.DrawTexTable = false return end
+		
+		if not istable( List.DrawTexture ) then
+			self.DrawTexTable = false
+		else
+			self.DrawTexTable = List.DrawTexture
+		end
+	end
+	
+	if not istable( self.DrawTexTable ) then return end
+	
+	local IsFlashing = self:GetFlasher() == 1
+	
+	local triggers = {
+		["running"] = self:GetLightsEnabled(),
+		["highbeam"] = self:GetLampsEnabled(),
+		["fog"] = self:GetFogLightsEnabled(),
+		["brake"] = self:GetIsBraking(),
+		["reverse"] = (self:GetGear() == 1),
+		["turn_left"] = (self.signal_left and IsFlashing),
+		["turn_right"] = (self.signal_right and IsFlashing),
+	}
+
+	for k, v in pairs( self.DrawTexTable ) do
+		if triggers[ v.trigger ] then
+			if isvector( v.pos ) and isangle( v.ang ) then
+				cam.Start3D2D( self:LocalToWorld( v.pos ), self:LocalToWorldAngles( v.ang ), 1 )
+					if v.mat and v.col and v.Length and v.Width then
+						surface.SetMaterial( v.mat )
+						surface.SetDrawColor( v.col.r, v.col.g, v.col.b, v.col.a )
+						surface.DrawTexturedRect( -v.Length * 0.5, -v.Width * 0.5, v.Length, v.Width )
+					end
+				cam.End3D2D()
+			end
+		end
+	end
+end
+]]
+
 function ENT:Draw()
 	self:DrawModel()
+	--self:Draw3d2ds()
 end
 
 function ENT:SetSoundPreset(index)
