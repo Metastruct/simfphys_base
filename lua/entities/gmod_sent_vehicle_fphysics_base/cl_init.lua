@@ -244,7 +244,7 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 	
 	if self:GetRevlimiter() and LimitRPM > 2500 then
 		if (self.SmoothRPM >= LimitRPM - 200) and self.FadeThrottle > 0 then
-			self.SmoothRPM = self.SmoothRPM - 3.33 * FT * LimitRPM
+			self.SmoothRPM = self.SmoothRPM - 0.2 * LimitRPM
 			self.FadeThrottle = 0.2
 			self:Backfire()
 		end
