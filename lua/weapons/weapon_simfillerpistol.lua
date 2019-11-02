@@ -227,6 +227,21 @@ function SWEP:Think()
 			self.NextSplash = self.NextSplash or 0
 			if self.NextSplash < CurTime() then
 				self.NextSplash = CurTime() + math.Rand(0.05,0.2)
+
+				for i = 0,8 do
+					local sc = math.Rand(0.1,0.15)
+					
+					local effectdata = EffectData() 
+						effectdata:SetOrigin( Trace.HitPos ) 
+						--effectdata:SetAngles( angle ) 
+						effectdata:SetNormal( Trace.HitNormal * 2 ) 
+						effectdata:SetMagnitude( sc ) 
+						effectdata:SetScale( sc ) 
+						effectdata:SetRadius( sc ) 
+					util.Effect( "StriderBlood", effectdata ) 
+				end
+				
+				sound.Play( Sound( "ambient/water/water_spray"..math.random(1,3)..".wav" ), Pos, 55)
 			end
 		end
 		
