@@ -805,7 +805,12 @@ function ENT:StopEngine()
 end
 
 function ENT:CanStart()
-	local FuelSystemOK = simfphys.Fuel and self:GetFuel() > 0 or true
+	local FuelSystemOK = true
+	
+	if simfphys.Fuel then
+		FuelSystemOK = self:GetFuel() > 0
+	end
+	
 	local canstart = self:GetCurHealth() > (self:GetMaxHealth() * 0.1) and FuelSystemOK
 	
 	return canstart
