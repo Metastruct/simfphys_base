@@ -1,3 +1,5 @@
+surface.CreateFont( "simfphysworldtip", {font="coolvetica", size=24, weight=500, antialias=true, additive=false} )
+
 surface.CreateFont( "simfphysfont", {
 	font = "Verdana",
 	extended = false,

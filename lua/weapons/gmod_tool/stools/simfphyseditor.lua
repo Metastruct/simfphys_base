@@ -105,6 +105,24 @@ function TOOL:RightClick( trace )
 	return true
 end
 
+function TOOL:Think()
+	if CLIENT then return end
+	
+	local ply = self:GetOwner()
+	
+	if not IsValid( ply ) then return end
+	
+	local ent = ply:GetEyeTrace().Entity
+	
+	if not simfphys.IsCar( ent ) then return end
+	
+	self.ThinkNext = self.ThinkNext and self.ThinkNext or 0
+	if self.ThinkNext < CurTime() then
+		self.ThinkNext = CurTime() + 1
+		ent:BuildVehicleInfo()
+	end
+end
+
 function TOOL:Reload( trace )
 	local ent = trace.Entity
 	local ply = self:GetOwner()

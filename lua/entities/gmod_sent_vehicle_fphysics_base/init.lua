@@ -148,6 +148,22 @@ function ENT:Think()
 	return true
 end
 
+function ENT:BuildVehicleInfo()
+	local WheelRad = self.RearWheelRadius
+
+	if self.FrontWheelPowered and self.RearWheelRadius then
+		WheelRad = math.max( self.FrontWheelRadius, self.RearWheelRadius )
+	elseif self.FrontWheelPowered then
+		WheelRad = self.FrontWheelRadius
+	end
+	
+	local Torque = self:GetMaxTorque() * (WheelRad / 10) * self:GetEfficiency()
+	
+	self:SetInfoHorsePower( math.Round( math.floor( Torque * self:GetPowerBandEnd() / 9548.8) * 1.34) )
+	self:SetInfoTorque( math.Round( Torque ) )
+	self:SetInfoTopSpeed( (((self:GetLimitRPM() * self.Gears[ table.Count( self.Gears ) ] * self:GetDifferentialGear()) * 3.14 * WheelRad * 2) / 52) )
+end
+
 function ENT:ControlHorn()	
 	local HornVol = self.HornKeyIsDown and 1 or 0
 	self.HornVolume = self.HornVolume and self.HornVolume + math.Clamp(HornVol - self.HornVolume,-0.45,0.8) or 0

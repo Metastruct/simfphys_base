@@ -575,6 +575,15 @@ function ENT:SetupVehicle()
 	self.VehicleData["filter"] = table.Copy( self.Wheels )
 	table.insert( self.VehicleData["filter"], self )
 	
+	local Mass = 0
+	for _, Entity in pairs( constraint.GetAllConstrainedEntities( self ) ) do
+		local EPOBJ = Entity:GetPhysicsObject()
+		if IsValid( EPOBJ ) then
+			Mass = Mass + EPOBJ:GetMass()
+		end
+	end
+	self:SetInfoWeight( Mass )
+	
 	self.EnableSuspension = 1
 	self:OnSpawn()
 end

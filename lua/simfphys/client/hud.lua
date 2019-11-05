@@ -694,3 +694,76 @@ function draw.Arc(cx,cy,radius,thickness,startang,endang,roughness,color,bClockw
 	surface.SetDrawColor(color)
 	surface.DrawArc(surface.PrecacheArc(cx,cy,radius,thickness,startang,endang,roughness,bClockwise))
 end
+
+
+local TipColor = Color( 50, 50, 50, 255 )
+hook.Add("HUDPaint", "simfphys_vehicleditorinfo", function()
+	local ply = LocalPlayer()
+	
+	if ply:InVehicle() then return end
+	
+	local wep = ply:GetActiveWeapon()
+	if not IsValid( wep ) or wep:GetClass() ~= "gmod_tool" or ply:GetInfo("gmod_toolmode") ~= "simfphyseditor" then return end
+
+	local trace = ply:GetEyeTrace()
+	
+	local Ent = trace.Entity
+	
+	if not simfphys.IsCar( Ent ) then return end
+	
+	local SpeedMul = Hudmph and (Hudreal and 0.0568182 or 0.0568182 * 0.75) or (Hudreal and 0.09144 or 0.09144 * 0.75)
+	local SpeedSuffix = Hudmph and "mph" or "km/h"
+	local TopSpeed = math.Round( Ent:GetInfoTopSpeed() * SpeedMul )
+	local HP = Ent:GetInfoHorsePower()
+	local Weight = math.Round( Ent:GetInfoWeight() )
+	local PowerToWeight = math.Round(Weight / HP,1)
+	local PeakTorque = Ent:GetInfoTorque()
+
+	local text = "Peak Power: "..HP.." HP (at "..Ent:GetPowerBandEnd().." RPM)".."\nPeak Torque: "..PeakTorque.." Nm\nTop Speed: "..tostring( TopSpeed )..SpeedSuffix.." (theoretical max)".."\nWeight: "..Weight.." kg ("..PowerToWeight.." kg / HP)"
+
+	local pos = Ent:LocalToWorld( Ent:OBBCenter() ):ToScreen()
+	
+	local black = Color( 200, 200, 200, 255 )
+	local tipcol = Color( TipColor.r, TipColor.g, TipColor.b, 255 )
+	
+	local x = 0
+	local y = 0
+	local padding = 10
+	local offset = 50
+	
+	surface.SetFont( "simfphysworldtip" )
+	local w, h = surface.GetTextSize( text )
+	
+	x = pos.x - w 
+	y = pos.y - h 
+	
+	x = x - offset
+	y = y - offset
+
+	draw.RoundedBox( 8, x-padding-2, y-padding-2, w+padding*2+4, h+padding*2+4, black )
+	
+	
+	local verts = {}
+	verts[1] = { x=x+w/1.5-2, y=y+h+2 }
+	verts[2] = { x=x+w+2, y=y+h/2-1 }
+	verts[3] = { x=pos.x-offset/2+2, y=pos.y-offset/2+2 }
+	
+	draw.NoTexture()
+	surface.SetDrawColor( 200, 200, 200, tipcol.a )
+	surface.DrawPoly( verts )
+	
+	
+	draw.RoundedBox( 8, x-padding, y-padding, w+padding*2, h+padding*2, tipcol )
+	
+	local verts = {}
+	verts[1] = { x=x+w/1.5, y=y+h }
+	verts[2] = { x=x+w, y=y+h/2 }
+	verts[3] = { x=pos.x-offset/2, y=pos.y-offset/2 }
+	
+	draw.NoTexture()
+	surface.SetDrawColor( tipcol.r, tipcol.g, tipcol.b, tipcol.a )
+	surface.DrawPoly( verts )
+	
+	
+	draw.DrawText( text, "simfphysworldtip", x + w/2, y, black, TEXT_ALIGN_CENTER )
+end)

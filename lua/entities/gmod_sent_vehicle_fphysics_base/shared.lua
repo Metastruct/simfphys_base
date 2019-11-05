@@ -62,6 +62,11 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool",16, "HandBrakeEnabled" )
 	
 	self:NetworkVar( "Float",15, "VehicleSteer" )
+	self:NetworkVar( "Float",16, "InfoHorsePower" )
+	self:NetworkVar( "Float",17, "InfoTorque" )
+	self:NetworkVar( "Float",18, "InfoTopSpeed" )
+	self:NetworkVar( "Float",19, "InfoWeight" )
+	
 	self:NetworkVar( "Entity",0, "Driver" )
 	self:NetworkVar( "Entity",1, "DriverSeat" )
 	self:NetworkVar( "Bool",3, "Active" )
@@ -80,6 +85,11 @@ function ENT:SetupDataTables()
 		self:NetworkVarNotify( "Active", self.OnActiveChanged )
 		self:NetworkVarNotify( "Throttle", self.OnThrottleChanged )
 	end
+	
+	self:AddDataTables()
+end
+
+function ENT:AddDataTables()
 end
 
 function ENT:IsSimfphyscar()
