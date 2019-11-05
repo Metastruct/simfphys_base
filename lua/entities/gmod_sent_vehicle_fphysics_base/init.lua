@@ -157,7 +157,8 @@ function ENT:BuildVehicleInfo()
 		WheelRad = self.FrontWheelRadius
 	end
 	
-	local Torque = self:GetMaxTorque() * (WheelRad / 10) * self:GetEfficiency()
+	local BoostVal = 1 + (self:GetTurboCharged() and 0.3 or 0) + (self:GetSuperCharged() and 0.48 or 0)
+	local Torque = self:GetMaxTorque() * (WheelRad / 10) * self:GetEfficiency() * BoostVal
 	
 	self:SetInfoHorsePower( math.Round( math.floor( Torque * self:GetPowerBandEnd() / 9548.8) * 1.34) )
 	self:SetInfoTorque( math.Round( Torque ) )
