@@ -101,7 +101,7 @@ function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 	local signSpeed = ((self.ForwardSpeed > 0) and 1 or 0) + ((self.ForwardSpeed < 0) and -1 or 0)
 	
 	local TorqueDiff = (self.RpmDiff / LimitRPM) * 0.15 * self.Torque
-	local EngineBrake = (signThrottle == 0) and self.EngineRPM * (self.EngineRPM / LimitRPM) ^ 2 / 60 * signSpeed or 0
+	local EngineBrake = (signThrottle == 0) and math.min( self.EngineRPM * (self.EngineRPM / LimitRPM) ^ 2 / 60 * signSpeed, 100 ) or 0
 	
 	local GearedPower = ((self.ThrottleDelay <= c_time and (self.Torque + TorqueDiff) * signThrottle * signGearRatio or 0) - EngineBrake) / math.abs(self.GearRatio) / 50
 	
