@@ -206,8 +206,8 @@ if SERVER then
 		end
 		
 		local data = {}
-		data["torque"] = ent:GetMaxTorque() * (WheelRad / 10) * ent:GetEfficiency() * (1 + (ent:GetTurboCharged() and 0.3 or 0) + (ent:GetSuperCharged() and 0.3 or 0))
-		data["horsepower"] = (data["torque"] * ent:GetPowerBandEnd() / 9548.8) * 1.34
+		data["torque"] = ent:GetMaxTorque() * (WheelRad / 10) * ent:GetEfficiency() * (1 + (ent:GetTurboCharged() and 0.3 or 0) + (ent:GetSuperCharged() and 0.48 or 0))
+		data["horsepower"] = (data["torque"] * ent:GetLimitRPM() / 9548.8) * 1.34
 		data["maxspeed"] = ((ent:GetLimitRPM() * ent.Gears[ table.Count( ent.Gears ) ] * ent:GetDifferentialGear()) * 3.14 * WheelRad * 2) / 52
 		data["weight"] = Mass
 		
