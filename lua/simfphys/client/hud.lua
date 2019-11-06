@@ -696,7 +696,7 @@ function draw.Arc(cx,cy,radius,thickness,startang,endang,roughness,color,bClockw
 end
 
 
-local TipColor = Color( 50, 50, 50, 255 )
+local TipColor = Color( 0, 127, 255, 255 )
 hook.Add("HUDPaint", "simfphys_vehicleditorinfo", function()
 	local ply = LocalPlayer()
 	
@@ -711,19 +711,23 @@ hook.Add("HUDPaint", "simfphys_vehicleditorinfo", function()
 	
 	if not simfphys.IsCar( Ent ) then return end
 	
+	local vInfo = Ent:GetVehicleInfo()
+	
+	if not istable( vInfo ) or not vInfo["maxspeed"] or not vInfo["horsepower"] or not vInfo["weight"] or not vInfo["torque"] then return end
+	
 	local SpeedMul = Hudmph and (Hudreal and 0.0568182 or 0.0568182 * 0.75) or (Hudreal and 0.09144 or 0.09144 * 0.75)
 	local SpeedSuffix = Hudmph and "mph" or "km/h"
-	local TopSpeed = math.Round( Ent:GetInfoTopSpeed() * SpeedMul )
-	local HP = Ent:GetInfoHorsePower()
-	local Weight = math.Round( Ent:GetInfoWeight() )
+	local TopSpeed = math.Round( vInfo["maxspeed"] * SpeedMul )
+	local HP = math.Round( vInfo["horsepower"] )
+	local Weight = math.Round( vInfo["weight"] )
 	local PowerToWeight = math.Round(Weight / HP,1)
-	local PeakTorque = Ent:GetInfoTorque()
+	local PeakTorque = math.Round( vInfo["torque"] )
 
 	local text = "Peak Power: "..HP.." HP (at "..Ent:GetPowerBandEnd().." RPM)".."\nPeak Torque: "..PeakTorque.." Nm\nTop Speed: "..tostring( TopSpeed )..SpeedSuffix.." (theoretical max)".."\nWeight: "..Weight.." kg ("..PowerToWeight.." kg / HP)"
 
 	local pos = Ent:LocalToWorld( Ent:OBBCenter() ):ToScreen()
 	
-	local black = Color( 200, 200, 200, 255 )
+	local black = Color( 255, 255, 255, 255 )
 	local tipcol = Color( TipColor.r, TipColor.g, TipColor.b, 255 )
 	
 	local x = 0
@@ -749,7 +753,7 @@ hook.Add("HUDPaint", "simfphys_vehicleditorinfo", function()
 	verts[3] = { x=pos.x-offset/2+2, y=pos.y-offset/2+2 }
 	
 	draw.NoTexture()
-	surface.SetDrawColor( 200, 200, 200, tipcol.a )
+	surface.SetDrawColor( 255, 255, 255, tipcol.a )
 	surface.DrawPoly( verts )
 	
 	

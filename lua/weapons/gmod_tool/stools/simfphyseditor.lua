@@ -47,13 +47,14 @@ if CLIENT then
 	language.Add( "tool.simfphyseditor.blower.help", "Enables Supercharger sounds and increases torque at low to mid RPM" )
 	language.Add( "tool.simfphyseditor.revlimiter", "Revlimiter" )
 	language.Add( "tool.simfphyseditor.revlimiter.help", "Enables bouncy revlimiter. NOTE: This does not work if Limit RPM is less than 2500!" )
-	
 end
 
 function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	
 	if not simfphys.IsCar( ent ) then return false end
+	
+	if CLIENT then return true end
 	
 	ent:SetSteerSpeed( math.Clamp( self:GetClientNumber( "steerspeed" ), 1, 16 ) )
 	ent:SetFastSteerConeFadeSpeed( math.Clamp( self:GetClientNumber( "fadespeed" ), 1, 5000 ) )
@@ -83,6 +84,8 @@ function TOOL:RightClick( trace )
 	
 	if not simfphys.IsCar( ent ) then return false end
 	
+	if CLIENT then return true end
+	
 	ply:ConCommand( "simfphyseditor_steerspeed " ..ent:GetSteerSpeed() )
 	ply:ConCommand( "simfphyseditor_fadespeed " ..ent:GetFastSteerConeFadeSpeed() )
 	ply:ConCommand( "simfphyseditor_faststeerangle " ..ent:GetFastSteerAngle() )
@@ -106,20 +109,24 @@ function TOOL:RightClick( trace )
 end
 
 function TOOL:Think()
-	if CLIENT then return end
-	
-	local ply = self:GetOwner()
-	
-	if not IsValid( ply ) then return end
-	
-	local ent = ply:GetEyeTrace().Entity
-	
-	if not simfphys.IsCar( ent ) then return end
-	
-	self.ThinkNext = self.ThinkNext and self.ThinkNext or 0
-	if self.ThinkNext < CurTime() then
-		self.ThinkNext = CurTime() + 1
-		ent:BuildVehicleInfo()
+	if CLIENT then
+		local ply = self:GetOwner()
+		
+		if not IsValid( ply ) then return end
+		
+		ply.simeditor_nextrequest = isnumber( ply.simeditor_nextrequest ) and ply.simeditor_nextrequest or 0
+		
+		local ent = ply:GetEyeTrace().Entity
+		
+		if not simfphys.IsCar( ent ) then return end
+		
+		if ply.simeditor_nextrequest < CurTime() then
+			net.Start( "simfphys_plyrequestinfo" )
+				net.WriteEntity( ent )
+			net.SendToServer()
+			
+			ply.simeditor_nextrequest = CurTime() + 0.6
+		end
 	end
 end
 

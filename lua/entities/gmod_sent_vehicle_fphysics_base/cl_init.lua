@@ -638,6 +638,10 @@ function ENT:PrecacheSounds()
 	end
 end
 
+function ENT:GetVehicleInfo()
+	return self.VehicleInfo
+end
+
 function ENT:SaveStopSounds()
 	if self.HighRPM then
 		self.HighRPM:Stop()

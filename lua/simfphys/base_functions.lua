@@ -112,6 +112,35 @@ if SERVER then
 	util.AddNetworkString( "simfphys_spritedamage" )
 	util.AddNetworkString( "simfphys_lightsfixall" )
 	util.AddNetworkString( "simfphys_backfire" )
+	util.AddNetworkString( "simfphys_plyrequestinfo" )
+	
+	net.Receive( "simfphys_plyrequestinfo", function( length, ply )
+		if not IsValid( ply ) then return end
+		
+		ply.simeditor_nextrequest = isnumber( ply.simeditor_nextrequest ) and ply.simeditor_nextrequest or 0
+		
+		if ply.simeditor_nextrequest > CurTime() then return end
+		
+		ply.simeditor_nextrequest = CurTime() + 0.5
+		
+		local ent = ply:GetEyeTrace().Entity
+		
+		if not simfphys.IsCar( ent ) then return end
+
+		local ent = net.ReadEntity()
+
+		local data = simfphys.BuildVehicleInfo( ent )
+
+		if not data then return end
+		
+		net.Start( "simfphys_plyrequestinfo" )
+			net.WriteEntity( ent )
+			net.WriteFloat( data["torque"] )
+			net.WriteFloat( data["horsepower"] )
+			net.WriteFloat( data["maxspeed"] )
+			net.WriteFloat( data["weight"] )
+		net.Send( ply )
+	end )
 	
 	net.Receive( "simfphys_turnsignal", function( length, ply )
 		local ent = net.ReadEntity()
@@ -156,6 +185,34 @@ if SERVER then
 		end
 		simfphys.UpdateFrictionData()
 	end)
+
+	function simfphys.BuildVehicleInfo( ent )
+		if not simfphys.IsCar( ent ) then return false end
+		
+		local WheelRad = ent.RearWheelRadius
+
+		if ent.FrontWheelPowered and ent.RearWheelRadius then
+			WheelRad = math.max( ent.FrontWheelRadius, ent.RearWheelRadius )
+		elseif ent.FrontWheelPowered then
+			WheelRad = ent.FrontWheelRadius
+		end
+
+		local Mass = 0
+		for _, Entity in pairs( constraint.GetAllConstrainedEntities( ent ) ) do
+			local EPOBJ = Entity:GetPhysicsObject()
+			if IsValid( EPOBJ ) then
+				Mass = Mass + EPOBJ:GetMass()
+			end
+		end
+		
+		local data = {}
+		data["torque"] = ent:GetMaxTorque() * (WheelRad / 10) * ent:GetEfficiency() * (1 + (ent:GetTurboCharged() and 0.3 or 0) + (ent:GetSuperCharged() and 0.3 or 0))
+		data["horsepower"] = (data["torque"] * ent:GetPowerBandEnd() / 9548.8) * 1.34
+		data["maxspeed"] = ((ent:GetLimitRPM() * ent.Gears[ table.Count( ent.Gears ) ] * ent:GetDifferentialGear()) * 3.14 * WheelRad * 2) / 52
+		data["weight"] = Mass
+		
+		return data
+	end
 	
 	function simfphys.SpawnVehicleSimple( spawnname, pos, ang )
 		
@@ -325,6 +382,20 @@ if SERVER then
 			end
 		end
 	end
+end
+
+if CLIENT then
+	net.Receive( "simfphys_plyrequestinfo", function( length )
+		local ent = net.ReadEntity()
+		
+		if not simfphys.IsCar( ent ) then return end
+		
+		ent.VehicleInfo = {}
+		ent.VehicleInfo["torque"] =  net.ReadFloat()
+		ent.VehicleInfo["horsepower"] = net.ReadFloat()
+		ent.VehicleInfo["maxspeed"] = net.ReadFloat()
+		ent.VehicleInfo["weight"] = net.ReadFloat()
+	end )
 end
 
 function simfphys.UpdateFrictionData()
