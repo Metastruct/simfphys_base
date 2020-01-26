@@ -521,7 +521,7 @@ local function PaintSeatSwitcher( ent, pSeats, SeatCount )
 	end
 	
 	local Hide = me.SwitcherTime > Time
-	smHider = smHider + ((Hide and 1 or 0) - smHider) * FrameTime() * 15
+	smHider = smHider + ((Hide and 1 or 0) - smHider) * RealFrameTime() * 15
 	local Alpha1 = 135 + 110 * smHider 
 	local HiderOffset = 300 * smHider
 	local Offset = -50
