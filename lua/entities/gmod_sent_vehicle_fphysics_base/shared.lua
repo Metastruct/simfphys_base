@@ -7,7 +7,6 @@ ENT.Category = "Fun + Games"
 
 ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
-ENT.DoNotDuplicate = true
 
 ENT.AutomaticFrameAdvance = true
 ENT.RenderGroup = RENDERGROUP_BOTH 
