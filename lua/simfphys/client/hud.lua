@@ -183,7 +183,7 @@ local function drawsimfphysHUD(vehicle,SeatCount)
 	end
 	
 	if AltHud and not ForceSimpleHud and not SimpleHudIsForced then
-		o_x = o_x - smHider * 300 - (SeatCount > 0 and 35 or 0)
+		o_x = o_x - smHider * 300 - (SeatCount > 0 and 45 or 0)
 		
 		local LightsOn = vehicle:GetLightsEnabled()
 		local LampsOn = vehicle:GetLampsEnabled()
@@ -472,6 +472,7 @@ local function drawTurnMenu( vehicle )
 	surface.SetDrawColor( 255, 255, 255, 255 ) 
 end
 
+local LockText = Material( "lfs_locked.png" )
 local function PaintSeatSwitcher( ent, pSeats, SeatCount )
 	if not ShowHud then return end
 
@@ -539,6 +540,13 @@ local function PaintSeatSwitcher( ent, pSeats, SeatCount )
 				draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,127,255,100 + 50 * smHider) )
 			else
 				draw.RoundedBox(5, X + Offset - HiderOffset, yPos + I * 30, 35 + HiderOffset, 25, Color(0,0,0,100 + 50 * smHider) )
+			end
+			if I == SeatCount then
+				if ent:GetIsVehicleLocked() then
+					surface.SetDrawColor( 255, 255, 255, 255 )
+					surface.SetMaterial( LockText  )
+					surface.DrawTexturedRect( X + Offset - HiderOffset - 25, yPos + I * 30, 25, 25 )
+				end
 			end
 			if Hide then
 				if Passengers[I] then

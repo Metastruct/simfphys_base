@@ -62,6 +62,10 @@ function ENT:Think()
 			
 			local OldDriver = self:GetDriver()
 			if OldDriver ~= Driver then
+				if self:GetIsVehicleLocked() then
+					self:UnLock()
+				end
+
 				self:SetDriver( Driver )
 				
 				local HadDriver = IsValid( OldDriver )
@@ -76,8 +80,6 @@ function ENT:Think()
 					end
 					
 				else
-					self:UnLock()
-					
 					if self.ems then
 						self.ems:Stop()
 					end
@@ -335,7 +337,6 @@ function ENT:OnActiveChanged( name, old, new)
 			self.BlowerWhine:PlayEx(0,0)
 		end
 	else
-		self:UnLock()
 		self:StopEngine()
 		
 		if TurboCharged then
@@ -904,11 +905,13 @@ function ENT:SteerVehicle( steer )
 end
 
 function ENT:Lock()
-	self.VehicleLocked = true
+	self:SetIsVehicleLocked( true )
+	self:EmitSound( "doors/latchlocked2.wav" )
 end
 
 function ENT:UnLock()
-	self.VehicleLocked = false
+	self:SetIsVehicleLocked( false )
+	self:EmitSound( "doors/latchunlocked1.wav" )
 end
 
 function ENT:ForceLightsOff()
@@ -985,16 +988,19 @@ function ENT:GetMouseSteer()
 end
 
 function ENT:Use( ply )
+	if not IsValid( ply ) then return end
+
+	if self:GetIsVehicleLocked() or self:HasPassengerEnemyTeam( ply ) then 
+		self:EmitSound( "doors/default_locked.wav" )
+
+		return
+	end
+
 	self:SetPassenger( ply )
 end
 
 function ENT:SetPassenger( ply )
 	if not IsValid( ply ) then return end
-	
-	if self.VehicleLocked or self:HasPassengerEnemyTeam( ply ) then 
-		self:EmitSound( "doors/default_locked.wav" )
-		return
-	end
 	
 	if not IsValid(self:GetDriver()) and not ply:KeyDown(IN_WALK) then
 		ply:SetAllowWeaponsInVehicle( false ) 
