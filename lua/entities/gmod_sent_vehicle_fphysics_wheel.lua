@@ -94,7 +94,13 @@ if SERVER then
 	function ENT:Use( ply )
 		local base = self:GetBaseEnt()
 		if not IsValid( base ) then return end
-		
+
+		if base:GetIsVehicleLocked() or base:HasPassengerEnemyTeam( ply ) then 
+			base:EmitSound( "doors/default_locked.wav" )
+
+			return
+		end
+
 		base:SetPassenger( ply )
 	end
 

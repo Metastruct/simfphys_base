@@ -26,12 +26,12 @@ function TOOL:LeftClick( trace )
 	if not simfphys.IsCar( ent ) then return false end
 	
 	local data = {
-		[1] = {tonumber( self:GetClientInfo( "constant_f" ) ),tonumber( self:GetClientInfo( "damping_f" ) )},
-		[2] = {tonumber( self:GetClientInfo( "constant_f" ) ),tonumber( self:GetClientInfo( "damping_f" ) )},
-		[3] = {tonumber( self:GetClientInfo( "constant_r" ) ),tonumber( self:GetClientInfo( "damping_r" ) )},
-		[4] = {tonumber( self:GetClientInfo( "constant_r" ) ),tonumber( self:GetClientInfo( "damping_r" ) )},
-		[5] = {tonumber( self:GetClientInfo( "constant_r" ) ),tonumber( self:GetClientInfo( "damping_r" ) )},
-		[6] = {tonumber( self:GetClientInfo( "constant_r" ) ),tonumber( self:GetClientInfo( "damping_r" ) )}
+		[1] = {self:GetClientNumber( "constant_f" ),self:GetClientNumber( "damping_f" )},
+		[2] = {self:GetClientNumber( "constant_f" ),self:GetClientNumber( "damping_f" )},
+		[3] = {self:GetClientNumber( "constant_r" ),self:GetClientNumber( "damping_r" )},
+		[4] = {self:GetClientNumber( "constant_r" ),self:GetClientNumber( "damping_r" )},
+		[5] = {self:GetClientNumber( "constant_r" ),self:GetClientNumber( "damping_r" )},
+		[6] = {self:GetClientNumber( "constant_r" ),self:GetClientNumber( "damping_r" )}
 	}
 	
 	local elastics = ent.Elastics
@@ -62,8 +62,8 @@ function TOOL:LeftClick( trace )
 		end
 	end
 	
-	ent:SetFrontSuspensionHeight( tonumber( self:GetClientInfo( "height_f" ) ) )
-	ent:SetRearSuspensionHeight( tonumber( self:GetClientInfo( "height_r" ) ) )
+	ent:SetFrontSuspensionHeight( self:GetClientNumber( "height_f" ) )
+	ent:SetRearSuspensionHeight( self:GetClientNumber( "height_r" ) )
 
 	return true
 end

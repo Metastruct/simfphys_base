@@ -4,6 +4,7 @@ include("shared.lua")
 include("spawn.lua")
 include("simfunc.lua")
 include("numpads.lua")
+include("damage.lua")
 
 local function EntityLookup(CreatedEntities)
 	return function(id, default)
@@ -15,16 +16,22 @@ local function EntityLookup(CreatedEntities)
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	WireLib.ApplyDupeInfo(ply, ent, info, GetEntByID)
+	if istable( WireLib ) then
+		WireLib.ApplyDupeInfo(ply, ent, info, GetEntByID)
+	end
 end
 
 function ENT:PreEntityCopy()
-	duplicator.StoreEntityModifier(self, "WireDupeInfo", WireLib.BuildDupeInfo(self))
+	if istable( WireLib ) then
+		duplicator.StoreEntityModifier( self, "WireDupeInfo", WireLib.BuildDupeInfo(self) )
+	end
 end
 
 function ENT:PostEntityPaste(Player,Ent,CreatedEntities)
-	if Ent.EntityMods and Ent.EntityMods.WireDupeInfo then
-		WireLib.ApplyDupeInfo(Player, Ent, Ent.EntityMods.WireDupeInfo, EntityLookup(CreatedEntities))
+	if istable( WireLib ) then
+		if Ent.EntityMods and Ent.EntityMods.WireDupeInfo then
+			WireLib.ApplyDupeInfo(Player, Ent, Ent.EntityMods.WireDupeInfo, EntityLookup(CreatedEntities))
+		end
 	end
 end
 
@@ -55,6 +62,10 @@ function ENT:Think()
 			
 			local OldDriver = self:GetDriver()
 			if OldDriver ~= Driver then
+				if self:GetIsVehicleLocked() then
+					self:UnLock()
+				end
+
 				self:SetDriver( Driver )
 				
 				local HadDriver = IsValid( OldDriver )
@@ -69,8 +80,6 @@ function ENT:Think()
 					end
 					
 				else
-					self:UnLock()
-					
 					if self.ems then
 						self.ems:Stop()
 					end
@@ -162,8 +171,8 @@ function ENT:createWireIO()
 	--self.Inputs = WireLib.CreateSpecialInputs(self, { "blah" }, { "NORMAL" })
 	
 	self.Outputs = WireLib.CreateSpecialOutputs( self, 
-		{ "Active","Health","RPM","Torque","DriverSeat","PassengerSeats","Driver","Gear","Ratio","Lights Enabled","Highbeams Enabled","Foglights Enabled","Sirens Enabled" },
-		{ "NORMAL","NORMAL","NORMAL","NORMAL","ENTITY","ARRAY","ENTITY","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL" }
+		{ "Active","Health","RPM","Torque","DriverSeat","PassengerSeats","Driver","Gear","Ratio","Lights Enabled","Highbeams Enabled","Foglights Enabled","Sirens Enabled","Turn Signals Enabled","Remaining Fuel" },
+		{ "NORMAL","NORMAL","NORMAL","NORMAL","ENTITY","ARRAY","ENTITY","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL","NORMAL" }
 	)
 end
 
@@ -293,6 +302,8 @@ function ENT:UpdateWireOutputs()
 	WireLib.TriggerOutput(self, "Highbeams Enabled", self:GetLampsEnabled() and 1 or 0 )
 	WireLib.TriggerOutput(self, "Foglights Enabled", self:GetFogLightsEnabled() and 1 or 0 )
 	WireLib.TriggerOutput(self, "Sirens Enabled", self:GetEMSEnabled() and 1 or 0 )
+	WireLib.TriggerOutput(self, "Turn Signals Enabled", self:GetTSEnabled())
+	WireLib.TriggerOutput(self, "Remaining Fuel", self:GetFuel())
 end
 
 function ENT:OnActiveChanged( name, old, new)
@@ -326,7 +337,6 @@ function ENT:OnActiveChanged( name, old, new)
 			self.BlowerWhine:PlayEx(0,0)
 		end
 	else
-		self:UnLock()
 		self:StopEngine()
 		
 		if TurboCharged then
@@ -441,6 +451,14 @@ function ENT:ControlLighting( curtime )
 			end
 		end
 	end
+end
+
+function ENT:SetTSInternal(mode)
+	self.TSMode = mode
+end
+
+function ENT:GetTSEnabled()
+	if self.TSMode != nil then return self.TSMode else return 0 end
 end
 
 function ENT:GetEngineData()
@@ -788,7 +806,12 @@ function ENT:StopEngine()
 end
 
 function ENT:CanStart()
-	local FuelSystemOK = simfphys.Fuel and self:GetFuel() > 0 or true
+	local FuelSystemOK = true
+	
+	if simfphys.Fuel then
+		FuelSystemOK = self:GetFuel() > 0
+	end
+	
 	local canstart = self:GetCurHealth() > (self:GetMaxHealth() * 0.1) and FuelSystemOK
 	
 	return canstart
@@ -882,11 +905,13 @@ function ENT:SteerVehicle( steer )
 end
 
 function ENT:Lock()
-	self.VehicleLocked = true
+	self:SetIsVehicleLocked( true )
+	self:EmitSound( "doors/latchlocked2.wav" )
 end
 
 function ENT:UnLock()
-	self.VehicleLocked = false
+	self:SetIsVehicleLocked( false )
+	self:EmitSound( "doors/latchunlocked1.wav" )
 end
 
 function ENT:ForceLightsOff()
@@ -963,16 +988,19 @@ function ENT:GetMouseSteer()
 end
 
 function ENT:Use( ply )
+	if not IsValid( ply ) then return end
+
+	if self:GetIsVehicleLocked() or self:HasPassengerEnemyTeam( ply ) then 
+		self:EmitSound( "doors/default_locked.wav" )
+
+		return
+	end
+
 	self:SetPassenger( ply )
 end
 
 function ENT:SetPassenger( ply )
 	if not IsValid( ply ) then return end
-	
-	if self.VehicleLocked or self:HasPassengerEnemyTeam( ply ) then 
-		self:EmitSound( "doors/default_locked.wav" )
-		return
-	end
 	
 	if not IsValid(self:GetDriver()) and not ply:KeyDown(IN_WALK) then
 		ply:SetAllowWeaponsInVehicle( false ) 
@@ -1094,7 +1122,7 @@ function ENT:SetSuspension( index , bIsDamaged )
 	
 	local heights = {
 		[1] = self.FrontHeight + self.VehicleData.suspensiontravel_fl * -h_mod,
-		[2] = self.FrontHeight + self.VehicleData.suspensiontravel_fl * -h_mod,
+		[2] = self.FrontHeight + self.VehicleData.suspensiontravel_fr * -h_mod,
 		[3] = self.RearHeight + self.VehicleData.suspensiontravel_rl * -h_mod,
 		[4] = self.RearHeight + self.VehicleData.suspensiontravel_rr * -h_mod,
 		[5] = self.RearHeight + self.VehicleData.suspensiontravel_rl * -h_mod,
@@ -1304,35 +1332,12 @@ function ENT:PlayPP( On )
 	self.poseon = On and self.LightsPP.max or self.LightsPP.min
 end
 
-function ENT:DamageLoop()
-	if not self:OnFire() then return end
-	
-	local CurHealth = self:GetCurHealth()
-	
-	if CurHealth <= 0 then return end
-	
-	if self:GetMaxHealth() > 30 then
-		if CurHealth > 30 then
-			self:TakeDamage(1, Entity(0), Entity(0) )
-		elseif CurHealth < 30 then
-			self:SetCurHealth( CurHealth + 1 )
-		end
-	end
-	
-	timer.Simple( 0.15, function()
-		if IsValid( self ) then
-			self:DamageLoop()
-		end
-	end)
-end
-
 function ENT:SetOnFire( bOn )
 	if bOn == self:OnFire() then return end
 	self:SetNWBool( "OnFire", bOn )
 	
 	if bOn then
 		self:DamagedStall()
-		self:DamageLoop()
 	end
 end
 

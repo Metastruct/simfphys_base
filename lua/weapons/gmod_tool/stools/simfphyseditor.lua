@@ -47,7 +47,6 @@ if CLIENT then
 	language.Add( "tool.simfphyseditor.blower.help", "Enables Supercharger sounds and increases torque at low to mid RPM" )
 	language.Add( "tool.simfphyseditor.revlimiter", "Revlimiter" )
 	language.Add( "tool.simfphyseditor.revlimiter.help", "Enables bouncy revlimiter. NOTE: This does not work if Limit RPM is less than 2500!" )
-	
 end
 
 function TOOL:LeftClick( trace )
@@ -55,24 +54,26 @@ function TOOL:LeftClick( trace )
 	
 	if not simfphys.IsCar( ent ) then return false end
 	
-	ent:SetSteerSpeed( tonumber( self:GetClientInfo( "steerspeed" ) ) )
-	ent:SetFastSteerConeFadeSpeed( tonumber( self:GetClientInfo( "fadespeed" ) ) )
-	ent:SetFastSteerAngle( tonumber( self:GetClientInfo( "faststeerangle" ) ) )
-	ent:SetEngineSoundPreset( tonumber( self:GetClientInfo( "soundpreset" ) ) )
-	ent:SetIdleRPM( tonumber( self:GetClientInfo( "idlerpm" ) ) )
-	ent:SetLimitRPM( tonumber( self:GetClientInfo( "maxrpm" ) ) )
-	ent:SetPowerBandStart( tonumber( self:GetClientInfo( "powerbandstart" ) ) )
-	ent:SetPowerBandEnd( tonumber( self:GetClientInfo( "powerbandend" ) ) )
-	ent:SetMaxTorque( tonumber( self:GetClientInfo( "maxtorque" ) ) )
-	ent:SetTurboCharged( self:GetClientInfo( "turbocharged" ) == "1")
-	ent:SetSuperCharged( self:GetClientInfo( "supercharged" ) == "1")
-	ent:SetRevlimiter( self:GetClientInfo( "revlimiter" ) == "1")
-	ent:SetDifferentialGear( tonumber( self:GetClientInfo( "diffgear" ) ) )
-	ent:SetMaxTraction( math.max( tonumber( self:GetClientInfo( "traction" ) ) , 5) )
-	ent:SetTractionBias( math.Clamp(tonumber( self:GetClientInfo( "tractionbias" ) ),-0.99,0.99) )
-	ent:SetBrakePower( tonumber( self:GetClientInfo( "brakepower" ) ) )
-	ent:SetPowerDistribution( math.Clamp(tonumber( self:GetClientInfo( "powerdistribution" ) ) ,-1,1) )
-	ent:SetEfficiency( tonumber( self:GetClientInfo( "efficiency" ) ) )
+	if CLIENT then return true end
+	
+	ent:SetSteerSpeed( math.Clamp( self:GetClientNumber( "steerspeed" ), 1, 16 ) )
+	ent:SetFastSteerConeFadeSpeed( math.Clamp( self:GetClientNumber( "fadespeed" ), 1, 5000 ) )
+	ent:SetFastSteerAngle( math.Clamp( self:GetClientNumber( "faststeerangle" ),0,1) )
+	ent:SetEngineSoundPreset( math.Clamp( self:GetClientNumber( "soundpreset" ), -1, 14) )
+	ent:SetIdleRPM( math.Clamp( self:GetClientNumber( "idlerpm" ),1,25000) )
+	ent:SetLimitRPM( math.Clamp( self:GetClientNumber( "maxrpm" ),4,25000) )
+	ent:SetPowerBandStart( math.Clamp( self:GetClientNumber( "powerbandstart" ),2,25000) )
+	ent:SetPowerBandEnd( math.Clamp( self:GetClientNumber( "powerbandend" ),3,25000) )
+	ent:SetMaxTorque( math.Clamp( self:GetClientNumber( "maxtorque" ),20,1000) )
+	ent:SetTurboCharged( self:GetClientInfo( "turbocharged" ) == "1" )
+	ent:SetSuperCharged( self:GetClientInfo( "supercharged" ) == "1" )
+	ent:SetRevlimiter( self:GetClientInfo( "revlimiter" ) == "1" )
+	ent:SetDifferentialGear( math.Clamp( self:GetClientNumber( "diffgear" ),0.2,6 ) )
+	ent:SetMaxTraction( math.Clamp(self:GetClientNumber( "traction" ) , 5,1000) )
+	ent:SetTractionBias( math.Clamp( self:GetClientNumber( "tractionbias" ),-0.99,0.99) )
+	ent:SetBrakePower( math.Clamp( self:GetClientNumber( "brakepower" ),0.1,500) )
+	ent:SetPowerDistribution( math.Clamp( self:GetClientNumber( "powerdistribution" ) ,-1,1) )
+	ent:SetEfficiency( math.Clamp( self:GetClientNumber( "efficiency" ) ,0.2,4) )
 	
 	return true
 end
@@ -82,6 +83,8 @@ function TOOL:RightClick( trace )
 	local ply = self:GetOwner()
 	
 	if not simfphys.IsCar( ent ) then return false end
+	
+	if CLIENT then return true end
 	
 	ply:ConCommand( "simfphyseditor_steerspeed " ..ent:GetSteerSpeed() )
 	ply:ConCommand( "simfphyseditor_fadespeed " ..ent:GetFastSteerConeFadeSpeed() )
@@ -103,6 +106,28 @@ function TOOL:RightClick( trace )
 	ply:ConCommand( "simfphyseditor_efficiency " ..ent:GetEfficiency() )
 	
 	return true
+end
+
+function TOOL:Think()
+	if CLIENT then
+		local ply = self:GetOwner()
+		
+		if not IsValid( ply ) then return end
+		
+		ply.simeditor_nextrequest = isnumber( ply.simeditor_nextrequest ) and ply.simeditor_nextrequest or 0
+		
+		local ent = ply:GetEyeTrace().Entity
+		
+		if not simfphys.IsCar( ent ) then return end
+		
+		if ply.simeditor_nextrequest < CurTime() then
+			net.Start( "simfphys_plyrequestinfo" )
+				net.WriteEntity( ent )
+			net.SendToServer()
+			
+			ply.simeditor_nextrequest = CurTime() + 0.6
+		end
+	end
 end
 
 function TOOL:Reload( trace )
@@ -259,7 +284,7 @@ function TOOL.BuildCPanel( panel )
 		Label 	= "Max Traction",
 		Type 	= "Float",
 		Min 	= "5",
-		Max 	= "500",
+		Max 	= "1000",
 		Command = "simfphyseditor_traction"
 	})
 	panel:AddControl( "Slider",
@@ -293,7 +318,7 @@ function TOOL.BuildCPanel( panel )
 		Label 	= "#tool.simfphyseditor.efficiency",
 		Type 	= "Float",
 		Min 	= "0.2",
-		Max 	= "2",
+		Max 	= "4",
 		Command = "simfphyseditor_efficiency",
 		Help = true
 	})

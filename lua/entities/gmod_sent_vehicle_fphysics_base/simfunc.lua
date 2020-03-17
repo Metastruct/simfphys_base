@@ -101,7 +101,7 @@ function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 	local signSpeed = ((self.ForwardSpeed > 0) and 1 or 0) + ((self.ForwardSpeed < 0) and -1 or 0)
 	
 	local TorqueDiff = (self.RpmDiff / LimitRPM) * 0.15 * self.Torque
-	local EngineBrake = (signThrottle == 0) and self.EngineRPM * (self.EngineRPM / LimitRPM) ^ 2 / 60 * signSpeed or 0
+	local EngineBrake = (signThrottle == 0) and math.min( self.EngineRPM * (self.EngineRPM / LimitRPM) ^ 2 / 60 * signSpeed, 100 ) or 0
 	
 	local GearedPower = ((self.ThrottleDelay <= c_time and (self.Torque + TorqueDiff) * signThrottle * signGearRatio or 0) - EngineBrake) / math.abs(self.GearRatio) / 50
 	
@@ -132,6 +132,8 @@ function ENT:SimulateEngine(IdleRPM,LimitRPM,Powerbandstart,Powerbandend,c_time)
 		if Fuel <= 0 and IsRunning then
 			self:StopEngine()
 		end
+	else
+		self:SetFuelUse( -1 )
 	end
 	
 	local ReactionForce = (self.EngineTorque * 2 - math.Clamp(self.ForwardSpeed,-self.Brake,self.Brake)) * self.DriveWheelsOnGround
@@ -346,11 +348,11 @@ function ENT:SimulateWheels(k_clutch,LimitRPM)
 				end
 			end
 			
-			local Ax = math.acos( math.Clamp( Forward:Dot(VelForward) ,-1,1) ) * (180 / math.pi)
-			local Ay = math.asin( math.Clamp( Right:Dot(VelForward) ,-1,1) ) * (180 / math.pi)
+			local Ax = math.deg( math.acos( math.Clamp( Forward:Dot(VelForward) ,-1,1) ) )
+			local Ay = math.deg( math.asin( math.Clamp( Right:Dot(VelForward) ,-1,1) ) )
 			
-			local Fx = math.cos(Ax * (math.pi / 180)) * Velocity:Length()
-			local Fy = math.sin(Ay * (math.pi / 180)) * Velocity:Length()
+			local Fx = math.cos( math.rad( Ax ) ) * Velocity:Length()
+			local Fy = math.sin( math.rad( Ay ) ) * Velocity:Length()
 			
 			local absFy = math.abs(Fy)
 			local absFx = math.abs(Fx)
@@ -358,7 +360,8 @@ function ENT:SimulateWheels(k_clutch,LimitRPM)
 			local PowerBiasMul = WheelPos.IsFrontWheel and (1 - self:GetPowerDistribution()) * 0.5 or (1 + self:GetPowerDistribution()) * 0.5
 			local BrakeForce = math.Clamp(-Fx,-self.Brake,self.Brake) * SurfaceMultiplicator
 			
-			local ForwardForce = self.EngineTorque * PowerBiasMul * IsPoweredWheel + (not WheelPos.IsFrontWheel and math.Clamp(-Fx,-self.HandBrake,self.HandBrake) or 0) + BrakeForce * 0.5
+			local TorqueConv = self.EngineTorque * PowerBiasMul * IsPoweredWheel
+			local ForwardForce = TorqueConv + (not WheelPos.IsFrontWheel and math.Clamp(-Fx,-self.HandBrake,self.HandBrake) or 0) + BrakeForce * 0.5
 			
 			local TractionCycle = Vector(math.min(absFy,MaxTraction),ForwardForce,0):Length()
 			
@@ -387,12 +390,16 @@ function ENT:SimulateWheels(k_clutch,LimitRPM)
 			self.VehicleData[ "Exp_GLF_".. i ] = GripLossFaktor ^ 2
 			Wheel:SetGripLoss( GripLossFaktor )
 			
+			local WheelOPow = math.abs( self.CurrentGear == 1 and math.min( TorqueConv, 0 ) or math.max( TorqueConv, 0 ) ) > 0
+			local FrontWheelCanTurn = (WheelOPow and 0 or self.Brake) < MaxTraction * 1.75
+			local RearWheelCanTurn = (self.HandBrake < MaxTraction) and (WheelOPow and 0 or self.Brake) < MaxTraction * 2
+			
 			if WheelPos.IsFrontWheel then
-				if self.Brake < MaxTraction * 2 then
+				if FrontWheelCanTurn then
 					self.VehicleData[ "spin_" .. i ] = self.VehicleData[ "spin_" .. i ] + TurnWheel
 				end
 			else
-				if self.HandBrake < MaxTraction then
+				if RearWheelCanTurn then
 					self.VehicleData[ "spin_" .. i ] = self.VehicleData[ "spin_" .. i ] + TurnWheel
 				end
 			end
@@ -402,8 +409,8 @@ function ENT:SimulateWheels(k_clutch,LimitRPM)
 				local Angle = GhostEnt:GetAngles()
 				local offsetang = WheelPos.IsFrontWheel and self.CustomWheelAngleOffset or (self.CustomWheelAngleOffset_R or self.CustomWheelAngleOffset)
 				local Direction = GhostEnt:LocalToWorldAngles( offsetang ):Forward()
-				local TFront = (self.Brake < MaxTraction * 2) and TurnWheel or 0
-				local TBack = (self.Brake < MaxTraction * 2) and TurnWheel or 0
+				local TFront = FrontWheelCanTurn and TurnWheel or 0
+				local TBack = RearWheelCanTurn and TurnWheel or 0
 				
 				local AngleStep = WheelPos.IsFrontWheel and TFront or TBack
 				Angle:RotateAroundAxis(Direction, WheelPos.IsRightWheel and AngleStep or -AngleStep)

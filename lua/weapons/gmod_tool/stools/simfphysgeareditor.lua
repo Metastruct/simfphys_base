@@ -46,17 +46,17 @@ function TOOL:LeftClick( trace )
 		local vname = ent:GetSpawn_List()
 		local VehicleList = list.Get( "simfphys_vehicles" )[vname]
 		
-		local gears = {tonumber( self:GetClientInfo( "gear_r" ) ),0}
-		for i = 1, tonumber( self:GetClientInfo( "numgears" ) ) do
+		local gears = {math.Clamp(self:GetClientNumber( "gear_r" ), -5, -0.001),0}
+		for i = 1, self:GetClientNumber( "numgears" ) do
 			local index = i + 2
-			gears[index] = tonumber( self:GetClientInfo( "gear_"..i ) )
+			gears[index] = math.Clamp( self:GetClientNumber( "gear_"..i ), 0.001, 5)
 		end
 		
 		SetGears(self:GetOwner(), ent, gears )
-		ent:SetDifferentialGear( tonumber( self:GetClientInfo( "gear_diff" ) ) )
+		ent:SetDifferentialGear( math.Clamp( self:GetClientNumber( "gear_diff" ),0.2,6 ) )
 		
 		if tobool( self:GetClientInfo( "forcetype" ) ) then
-			ent.ForceTransmission =  math.Clamp(tonumber( self:GetClientInfo( "type" ) ),1,2)
+			ent.ForceTransmission =  math.Clamp( self:GetClientNumber( "type" ), 1, 2 )
 		else
 			ent.ForceTransmission = nil
 		end

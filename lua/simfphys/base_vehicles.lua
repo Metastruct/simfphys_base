@@ -139,6 +139,15 @@ local V = {
 		Mass = 3500,
 		MaxHealth = 3000,
 		
+		GibModels = {
+			"models/combine_apc_destroyed_gib01.mdl",
+			"models/combine_apc_destroyed_gib02.mdl",
+			"models/combine_apc_destroyed_gib03.mdl",
+			"models/combine_apc_destroyed_gib04.mdl",
+			"models/combine_apc_destroyed_gib05.mdl",
+			"models/combine_apc_destroyed_gib06.mdl",
+		},
+		
 		FrontWheelRadius = 28,
 		RearWheelRadius = 28,
 		
@@ -422,6 +431,23 @@ local V = {
 		EnginePos = Vector(-16.1,-81.68,47.25),
 		
 		LightsTable = "conapc",
+		
+		GibModels = {
+			"models/blu/conscript_apc.mdl",
+			"models/props_vehicles/apc_tire001.mdl",
+			"models/props_vehicles/apc_tire001.mdl",
+			"models/props_vehicles/apc_tire001.mdl",
+			"models/props_vehicles/apc_tire001.mdl",
+			"models/props_c17/TrapPropeller_Engine.mdl",
+			"models/gibs/helicopter_brokenpiece_01.mdl",
+			"models/gibs/manhack_gib01.mdl",
+			"models/gibs/manhack_gib02.mdl",
+			"models/gibs/manhack_gib03.mdl",
+			"models/combine_apc_destroyed_gib02.mdl",
+			"models/combine_apc_destroyed_gib03.mdl",
+			"models/combine_apc_destroyed_gib04.mdl",
+			"models/combine_apc_destroyed_gib05.mdl",
+		},
 		
 		CustomWheels = true,
 		CustomSuspensionTravel = 10,

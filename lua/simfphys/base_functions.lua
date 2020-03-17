@@ -13,7 +13,10 @@ simfphys.DamageMul = 1
 simfphys.pDamageEnabled = false
 simfphys.Fuel = true
 simfphys.FuelMul = 0.1
-simfphys.VERSION = 1.1
+simfphys.VERSION = 1.2
+
+simfphys.pSwitchKeys = {[KEY_1] = 1,[KEY_2] = 2,[KEY_3] = 3,[KEY_4] = 4,[KEY_5] = 5,[KEY_6] = 6,[KEY_7] = 7,[KEY_8] = 8,[KEY_9] = 9,[KEY_0] = 10}
+simfphys.pSwitchKeysInv = {[1] = KEY_1,[2] = KEY_2,[3] = KEY_3,[4] = KEY_4,[5] = KEY_5,[6] = KEY_6,[7] = KEY_7,[8] = KEY_8,[9] = KEY_9,[10] = KEY_0}
 
 FUELTYPE_NONE = 0
 FUELTYPE_PETROL = 1
@@ -106,12 +109,45 @@ end
 if SERVER then
 	util.AddNetworkString( "simfphys_settings" )
 	util.AddNetworkString( "simfphys_turnsignal" )
+	util.AddNetworkString( "simfphys_spritedamage" )
+	util.AddNetworkString( "simfphys_lightsfixall" )
+	util.AddNetworkString( "simfphys_backfire" )
+	util.AddNetworkString( "simfphys_plyrequestinfo" )
+	
+	net.Receive( "simfphys_plyrequestinfo", function( length, ply )
+		if not IsValid( ply ) then return end
+		
+		ply.simeditor_nextrequest = isnumber( ply.simeditor_nextrequest ) and ply.simeditor_nextrequest or 0
+		
+		if ply.simeditor_nextrequest > CurTime() then return end
+		
+		ply.simeditor_nextrequest = CurTime() + 0.5
+		
+		local ent = ply:GetEyeTrace().Entity
+		
+		if not simfphys.IsCar( ent ) then return end
+
+		local ent = net.ReadEntity()
+
+		local data = simfphys.BuildVehicleInfo( ent )
+
+		if not data then return end
+		
+		net.Start( "simfphys_plyrequestinfo" )
+			net.WriteEntity( ent )
+			net.WriteFloat( data["torque"] )
+			net.WriteFloat( data["horsepower"] )
+			net.WriteFloat( data["maxspeed"] )
+			net.WriteFloat( data["weight"] )
+		net.Send( ply )
+	end )
 	
 	net.Receive( "simfphys_turnsignal", function( length, ply )
 		local ent = net.ReadEntity()
 		local mode = net.ReadInt( 32 ) 
 		
 		if not IsValid( ent ) then return end
+		ent:SetTSInternal( mode )
 		
 		net.Start( "simfphys_turnsignal" )
 			net.WriteEntity( ent )
@@ -149,6 +185,34 @@ if SERVER then
 		end
 		simfphys.UpdateFrictionData()
 	end)
+
+	function simfphys.BuildVehicleInfo( ent )
+		if not simfphys.IsCar( ent ) then return false end
+		
+		local WheelRad = ent.RearWheelRadius
+
+		if ent.FrontWheelPowered and ent.RearWheelRadius then
+			WheelRad = math.max( ent.FrontWheelRadius, ent.RearWheelRadius )
+		elseif ent.FrontWheelPowered then
+			WheelRad = ent.FrontWheelRadius
+		end
+
+		local Mass = 0
+		for _, Entity in pairs( constraint.GetAllConstrainedEntities( ent ) ) do
+			local EPOBJ = Entity:GetPhysicsObject()
+			if IsValid( EPOBJ ) then
+				Mass = Mass + EPOBJ:GetMass()
+			end
+		end
+		
+		local data = {}
+		data["torque"] = ent:GetMaxTorque() * (WheelRad / 10) * ent:GetEfficiency() * (1 + (ent:GetTurboCharged() and 0.3 or 0) + (ent:GetSuperCharged() and 0.48 or 0))
+		data["horsepower"] = (data["torque"] * ent:GetLimitRPM() / 9548.8) * 1.34
+		data["maxspeed"] = ((ent:GetLimitRPM() * ent.Gears[ table.Count( ent.Gears ) ] * ent:GetDifferentialGear()) * 3.14 * WheelRad * 2) / 52
+		data["weight"] = Mass
+		
+		return data
+	end
 	
 	function simfphys.SpawnVehicleSimple( spawnname, pos, ang )
 		
@@ -259,10 +323,40 @@ if SERVER then
 			
 			Ent:SetBackfireSound( Ent.snd_backfire or "" )
 			
-			if simfphys.armedAutoRegister then
+			if not simfphys.WeaponSystemRegister then
+				if simfphys.ManagedVehicles then
+					print("[SIMFPHYS ARMED] IS OUT OF DATE")
+				end
+			else
 				timer.Simple( 0.2, function()
-					simfphys.armedAutoRegister( Ent )
-				end)
+					simfphys.WeaponSystemRegister( Ent )
+				end )
+				
+				if (simfphys.armedAutoRegister and not simfphys.armedAutoRegister()) or simfphys.RegisterEquipment then
+					print("[SIMFPHYS ARMED]: ONE OF YOUR ADDITIONAL SIMFPHYS-ARMED PACKS IS CAUSING CONFLICTS!!!")
+					print("[SIMFPHYS ARMED]: PRECAUTIONARY RESTORING FUNCTION:")
+					print("[SIMFPHYS ARMED]: simfphys.FireHitScan")
+					print("[SIMFPHYS ARMED]: simfphys.FirePhysProjectile")
+					print("[SIMFPHYS ARMED]: simfphys.RegisterCrosshair")
+					print("[SIMFPHYS ARMED]: simfphys.RegisterCamera")
+					print("[SIMFPHYS ARMED]: simfphys.armedAutoRegister")
+					print("[SIMFPHYS ARMED]: REMOVING FUNCTION:")
+					print("[SIMFPHYS ARMED]: simfphys.RegisterEquipment")
+					print("[SIMFPHYS ARMED]: CLEARING OUTDATED ''RegisterEquipment'' HOOK")
+					print("[SIMFPHYS ARMED]: !!!FUNCTIONALITY IS NOT GUARANTEED!!!")
+				
+					simfphys.FireHitScan = function( data ) simfphys.FireBullet( data ) end
+					simfphys.FirePhysProjectile = function( data ) simfphys.FirePhysBullet( data ) end
+					simfphys.RegisterCrosshair = function( ent, data ) simfphys.xhairRegister( ent, data ) end
+					simfphys.RegisterCamera = 
+						function( ent, offset_firstperson, offset_thirdperson, bLocalAng, attachment )
+							simfphys.CameraRegister( ent, offset_firstperson, offset_thirdperson, bLocalAng, attachment )
+						end
+					
+					hook.Remove( "PlayerSpawnedVehicle","simfphys_armedvehicles" )
+					simfphys.RegisterEquipment = nil
+					simfphys.armedAutoRegister = function( vehicle ) simfphys.WeaponSystemRegister( vehicle ) return true end
+				end
 			end
 			
 			duplicator.StoreEntityModifier( Ent, "VehicleMemDupe", VTable.Members )
@@ -288,6 +382,20 @@ if SERVER then
 			end
 		end
 	end
+end
+
+if CLIENT then
+	net.Receive( "simfphys_plyrequestinfo", function( length )
+		local ent = net.ReadEntity()
+		
+		if not simfphys.IsCar( ent ) then return end
+		
+		ent.VehicleInfo = {}
+		ent.VehicleInfo["torque"] =  net.ReadFloat()
+		ent.VehicleInfo["horsepower"] = net.ReadFloat()
+		ent.VehicleInfo["maxspeed"] = net.ReadFloat()
+		ent.VehicleInfo["weight"] = net.ReadFloat()
+	end )
 end
 
 function simfphys.UpdateFrictionData()
@@ -467,3 +575,10 @@ simfphys.SoundPresets = {
 		1
 	}
 }
+
+local function PlayerPickup( ply, ent )
+	if ent:GetClass():lower() == "gmod_sent_vehicle_fphysics_wheel" then
+		return false
+	end
+end
+hook.Add( "GravGunPickupAllowed", "disableWheelPickup", PlayerPickup )
