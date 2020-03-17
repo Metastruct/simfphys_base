@@ -18,13 +18,14 @@ end
 function ENT:Think()
 	local curtime = CurTime()
 	
+	local Active = self:GetActive()
+	local Throttle = self:GetThrottle()
+	local LimitRPM = self:GetLimitRPM()
+	
+	self:ManageSounds( Active, Throttle, LimitRPM )
+
 	self.RunNext = self.RunNext or 0
 	if self.RunNext < curtime then
-		local Active = self:GetActive()
-		local Throttle = self:GetThrottle()
-		local LimitRPM = self:GetLimitRPM()
-		
-		self:ManageSounds( Active, Throttle, LimitRPM )
 		self:ManageEffects( Active, Throttle, LimitRPM )
 		self:CalcFlasher()
 		
@@ -223,10 +224,13 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 	local Clutch = self:GetClutch()
 	local FadeRPM = LimitRPM * 0.5
 	
-	self.FadeThrottle = self.FadeThrottle + math.Clamp(Throttle - self.FadeThrottle,-0.2,0.2)
+	local FT = FrameTime()
+	local Rate = 3.33 * FT
+	
+	self.FadeThrottle = self.FadeThrottle + math.Clamp(Throttle - self.FadeThrottle,-Rate,Rate)
 	self.PitchOffset = self.PitchOffset + ((CurDist - self.OldDist) * 0.23 - self.PitchOffset) * 0.5
 	self.OldDist = CurDist
-	self.SmoothRPM = self.SmoothRPM + math.Clamp(FlyWheelRPM - self.SmoothRPM,-(350 / 6000) * LimitRPM,(600 / 6000) * LimitRPM)
+	self.SmoothRPM = self.SmoothRPM + math.Clamp(FlyWheelRPM - self.SmoothRPM,-0.972 * FT * LimitRPM,1.66 * FT * LimitRPM)
 	
 	self.OldThrottle2 = self.OldThrottle2 or 0
 	if Throttle ~= self.OldThrottle2 then
@@ -240,7 +244,7 @@ function ENT:ManageSounds( Active, fThrottle, LimitRPM )
 	
 	if self:GetRevlimiter() and LimitRPM > 2500 then
 		if (self.SmoothRPM >= LimitRPM - 200) and self.FadeThrottle > 0 then
-			self.SmoothRPM = self.SmoothRPM - (1200 / 6000) * LimitRPM
+			self.SmoothRPM = self.SmoothRPM - 0.2 * LimitRPM
 			self.FadeThrottle = 0.2
 			self:Backfire()
 		end
@@ -632,6 +636,10 @@ function ENT:PrecacheSounds()
 			end
 		end
 	end
+end
+
+function ENT:GetVehicleInfo()
+	return self.VehicleInfo
 end
 
 function ENT:SaveStopSounds()

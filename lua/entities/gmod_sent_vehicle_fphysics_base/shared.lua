@@ -60,8 +60,10 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool",12, "EMSEnabled" )
 	self:NetworkVar( "Bool",11, "FogLightsEnabled" )
 	self:NetworkVar( "Bool",16, "HandBrakeEnabled" )
-	
+	self:NetworkVar( "Bool",18, "IsVehicleLocked" )
+
 	self:NetworkVar( "Float",15, "VehicleSteer" )
+	
 	self:NetworkVar( "Entity",0, "Driver" )
 	self:NetworkVar( "Entity",1, "DriverSeat" )
 	self:NetworkVar( "Bool",3, "Active" )
@@ -80,6 +82,11 @@ function ENT:SetupDataTables()
 		self:NetworkVarNotify( "Active", self.OnActiveChanged )
 		self:NetworkVarNotify( "Throttle", self.OnThrottleChanged )
 	end
+	
+	self:AddDataTables()
+end
+
+function ENT:AddDataTables()
 end
 
 function ENT:IsSimfphyscar()
@@ -144,6 +151,22 @@ function ENT:BodyGroupIsValid( bodygroups )
 		end
 	end
 	return false
+end
+
+function ENT:GetPassengerSeats()
+	if not istable( self.pSeat ) then
+		self.pSeat = {}
+		
+		local DriverSeat = self:GetDriverSeat()
+
+		for _, v in pairs( self:GetChildren() ) do
+			if v ~= DriverSeat and v:GetClass():lower() == "prop_vehicle_prisoner_pod" then
+				table.insert( self.pSeat, v )
+			end
+		end
+	end
+	
+	return self.pSeat
 end
 
 function ENT:GetVehicleClass()
