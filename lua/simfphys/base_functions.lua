@@ -143,10 +143,12 @@ if SERVER then
 	end )
 	
 	net.Receive( "simfphys_turnsignal", function( length, ply )
+		if not ply:IsDrivingSimfphys() then return end
+
 		local ent = net.ReadEntity()
 		local mode = net.ReadInt( 32 ) 
-		
-		if not IsValid( ent ) then return end
+
+		if not IsValid( ent ) or ply:GetSimfphys() ~= ent then return end
 		ent:SetTSInternal( mode )
 		
 		net.Start( "simfphys_turnsignal" )
