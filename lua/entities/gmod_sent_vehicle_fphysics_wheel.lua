@@ -28,7 +28,8 @@ if SERVER then
 		self:SetSolid( SOLID_VPHYSICS )
 		self:SetCollisionGroup( COLLISION_GROUP_WEAPON  ) 
 		self:SetUseType( SIMPLE_USE )
-		
+		self:AddFlags( FL_OBJECT )
+
 		self:DrawShadow( false )
 
 		self.OldMaterial = ""

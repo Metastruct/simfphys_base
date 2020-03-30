@@ -5,7 +5,8 @@ function ENT:Initialize()
 	self:SetNotSolid( true )
 	self:SetUseType( SIMPLE_USE )
 	self:SetRenderMode( RENDERMODE_TRANSALPHA )
-	
+	self:AddFlags( FL_OBJECT ) -- this allows npcs to see this entity
+
 	local PObj = self:GetPhysicsObject()
 	if not IsValid( PObj ) then print("[SIMFPHYS] ERROR COULDN'T INITIALIZE VEHICLE! '"..self:GetModel().."' has no physics model!") return end
 	
