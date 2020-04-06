@@ -1,18 +1,6 @@
 AddCSLuaFile("simfphys/init.lua")
 include("simfphys/init.lua")
 
-if false then
-	local _CreateSound=CreateSound
-	CreateSound=function(ent,sn,rf)
-		if not sn or #sn<3 then
-			MsgN" === BAD SOUND ==="
-			debug.Trace()
-			
-		end
-		local ret = _CreateSound(ent,sn,rf)
-		return ret
-	end
-end
 
 -- for FastDL
 local res = [[materials/effects/flashlight/headlight_highbeam.vmt
