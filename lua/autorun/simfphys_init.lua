@@ -73,7 +73,7 @@ sound/simulated_vehicles/valve_noise.wav]]
 local ForceWorkshop = CreateConVar("sv_simfphys_forceworkshop", 0, {FCVAR_ARCHIVE}, "Force clients to download the content from the workshop? (requires a restart)")
 
 if SERVER then
-	local FastDL = CreateConVar("sv_simfphys_fastdl", 1, {FCVAR_ARCHIVE}, "Add files to fastdl")
+	local FastDL = CreateConVar("sv_simfphys_fastdl", 0, {FCVAR_ARCHIVE}, "Add files to fastdl")
 	if FastDL:GetBool() then
 		for res in res:gmatch '[^\r\n]+' do
 			resource.AddFile(res)
