@@ -138,7 +138,8 @@ end )
 
 numpad.Register( "k_hrn", function( pl, ent, keydown )
 	if not IsValid(pl) or not IsValid(ent) then return false end
-	
+	ent.KeyPressedTime = isnumber( ent.KeyPressedTime ) and ent.KeyPressedTime or 0
+
 	local v_list = list.Get( "simfphys_lights" )[ent.LightsTable] or false
 	
 	if keydown then
