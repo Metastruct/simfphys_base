@@ -13,7 +13,7 @@ hook.Add( "OnEntityCreated", "!!11!!!simfphysEntitySorter", function( ent )
 	timer.Simple( FrameTime(), function() 
 		if not IsValid( ent ) then return end
 
-		if isfunction( ent.IsNPC ) and ent.IsNPC() then table.insert( NPCsStored, ent ) end
+		if isfunction( ent.IsNPC ) and ent:IsNPC() then table.insert( NPCsStored, ent ) end
 	end )
 end )
 
