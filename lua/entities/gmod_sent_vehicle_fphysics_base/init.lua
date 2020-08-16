@@ -47,6 +47,9 @@ end
 function ENT:OnDestroyed()
 end
 
+function ENT:OnRepaired()
+end
+
 function ENT:Think()
 	local Time = CurTime()
 	
