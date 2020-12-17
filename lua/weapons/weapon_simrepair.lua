@@ -104,6 +104,7 @@ function SWEP:PrimaryAttack()
 						net.WriteEntity( ent )
 					net.Broadcast()
 					
+					ent:OnRepaired()
 					if istable(ent.Wheels) then
 						for i = 1, table.Count( ent.Wheels ) do
 							local Wheel = ent.Wheels[ i ]

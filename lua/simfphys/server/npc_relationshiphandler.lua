@@ -6,16 +6,31 @@ local MAX_STEP = 0
 local NPC_LIST = {}
 local VEHICLE_LIST = {}
 
-local function GetNPCs()
-	local NPCs = {}
+local NPCsStored = {}
+local NextNPCsGetAll = 0
 
-	for k, v in pairs( ents.GetAll() ) do
-		if v:IsNPC() then
-			table.insert( NPCs, v )
+hook.Add( "OnEntityCreated", "!!11!!!simfphysEntitySorter", function( ent )
+	timer.Simple( FrameTime(), function() 
+		if not IsValid( ent ) then return end
+
+		if isfunction( ent.IsNPC ) and ent:IsNPC() then table.insert( NPCsStored, ent ) end
+	end )
+end )
+
+local function GetNPCs()
+	local Time = CurTime()
+	
+	if NextNPCsGetAll < Time then
+		NextNPCsGetAll = Time + FrameTime()
+
+		for index, npc in pairs( NPCsStored ) do
+			if not IsValid( npc ) then
+				NPCsStored[ index ] = nil
+			end
 		end
 	end
 
-	return NPCs
+	return NPCsStored
 end
 
 hook.Add( "Think", "!!!!!!!simfphysNPCRelationshipHandler", function()
@@ -48,10 +63,10 @@ hook.Add( "Think", "!!!!!!!simfphysNPCRelationshipHandler", function()
 							NPC.simfphysLastEnemy = Enemy
 
 							if VEHICLE == Enemy:GetSimfphys() then
-								NPC:AddEntityRelationship( VEHICLE, D_HT, 30 )
+								NPC:AddEntityRelationship( VEHICLE, D_HT, 99 )
 								for _, wheel in pairs( VEHICLE.Wheels ) do
 									if IsValid( wheel ) then
-										NPC:AddEntityRelationship( wheel, D_HT, 30 )
+										NPC:AddEntityRelationship( wheel, D_HT, 99 )
 									end
 								end
 							end

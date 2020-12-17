@@ -47,6 +47,9 @@ end
 function ENT:OnDestroyed()
 end
 
+function ENT:OnRepaired()
+end
+
 function ENT:Think()
 	local Time = CurTime()
 	
@@ -1103,10 +1106,11 @@ function ENT:SetPhysics( enable )
 				if IsValid(Wheel) then
 					Wheel:GetPhysicsObject():SetMaterial("friction_00")
 					if Wheel:GetPhysicsObject():GetMaterial() ~= "friction_00" then
-						print("(SIMFPHYS) WARNING! MISSING PHYSPROP MATERIAL FOR WHEEL"..i..". THIS SHOULD NEVER HAPPEN!! CLEAN YOUR GMOD!! DON'T USE CONTENT OF GAMES YOU DON'T OWN!!")
-						print("NOW KISS MY BUTT FOR ADDING THIS FIX BUT DON'T CRY ABOUT WIERD PERFORMANCE OR NOISES!")
-						
-						Wheel:GetPhysicsObject():SetMaterial("gmod_ice")
+						print("(SIMFPHYS) ERROR! MISSING ''friction_00'' PHYSPROP-MATERIAL!!! THIS SHOULD NEVER HAPPEN!! CLEAN YOUR GMOD!! DON'T USE CONTENT OF GAMES YOU DON'T OWN!! DON'T EVEN BOTHER REPORTING THIS ISSUE, BECAUSE ONLY YOU CAN FIX THIS AS THIS IS AN ISSUE WITH YOUR GAME!!!!")
+						sound.Play( "common/bugreporter_failed.wav", self:GetPos() )
+						self:Remove()
+
+						break
 					end
 				end
 			end
