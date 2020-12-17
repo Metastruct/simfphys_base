@@ -631,7 +631,6 @@ function ENT:PrecacheSounds()
 			if file.Exists( "sound/"..sound, "GAME" ) then
 				util.PrecacheSound( sound )
 			else
-				print("Warning soundfile \""..sound.."\" not found. Using \"common/null.wav\" instead to prevent fps rape")
 				self.EngineSounds[index] = "common/null.wav"
 			end
 		end
