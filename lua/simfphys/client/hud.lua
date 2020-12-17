@@ -98,11 +98,14 @@ local function DrawCircle( X, Y, radius )
 	end
 end
 
+local lastSteerVehicle
 hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
 	if ply ~= LocalPlayer() then return end
 	
 	local vehicle = ply:GetVehicle()
 	if not IsValid(vehicle) then return end
+	if not vehicle.SPHYSBaseEnt or not IsValid(vehicle.SPHYSBaseEnt) then return end
+	if vehicle.SPHYSBaseEnt:GetDriver() ~= ply then return end
 	
 	if isMouseSteer then
 		local freelook = input.IsButtonDown( ms_key_freelook )
@@ -124,10 +127,14 @@ hook.Add( "StartCommand", "simfphysmove", function( ply, cmd )
 		SteerVehicle = 0
 	end
 	
-	net.Start( "simfphys_mousesteer" )
-		net.WriteEntity( vehicle )
-		net.WriteFloat( SteerVehicle )
-	net.SendToServer()
+	if lastSteerVehicle ~= SteerVehicle then
+		net.Start( "simfphys_mousesteer" )
+			net.WriteEntity( vehicle )
+			net.WriteFloat( SteerVehicle )
+		net.SendToServer()
+
+		lastSteerVehicle = SteerVehicle
+	end
 end)
 
 local function drawsimfphysHUD(vehicle,SeatCount)
